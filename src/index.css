@@ -1,0 +1,378 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+g.highcharts-legend.highcharts-no-tooltip {
+    display: none;
+}
+
+/* Remove arrows in input number for Chrome, Safari, Edge, Opera */
+.no-arrows::-webkit-outer-spin-button,
+.no-arrows::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.TradingViewChart .tradingview-widget-container iframe {
+    min-height: 450px;
+}
+
+input:focus {
+    border-color: #fff;
+}
+
+.rc-slider {
+    height: 25px !important;
+}
+
+@media only screen and (max-width: 768px) {
+    .TradingViewChart .tradingview-widget-container iframe {
+        min-height: 300px;
+    }
+
+    .rc-slider-handle {
+        top: 5px;
+    }
+}
+
+/* Remove arrows in input number for Firefox */
+.no-arrows {
+    -moz-appearance: textfield;
+}
+
+rect.highcharts-background {
+    height: auto;
+}
+
+.rc-slider-handle.rc-slider-handle-1,
+.rc-slider-handle.rc-slider-handle-2 {
+    border: 2px solid #2C7CAC;
+    background-color: #2C7CAC;
+    opacity: 1;
+}
+
+.rc-slider-track,
+.rc-slider-tracks {
+    background-color: #5A9FC9 !important;
+}
+
+.light {
+    --gradient: linear-gradient(0deg, #2A79A8 0%, #4BBDFF 100%);
+    --gradient2: linear-gradient(270deg, #2A79A8 0%, #4BBDFF 100%);
+    --userBg: #2C7CAC;
+    --ButtonBg: #2C7CAC;
+    --Primary: #2C7CAC;
+    --Secondary: #00588B;
+    --Secondary2: #5A9FC9;
+    --Secondary3: #05121B;
+    --background: #F8FCFF;
+    --background2: #5A9FC9;
+    --background3: #F8FCFF;
+    --background4: #B7D1E0;
+    --background5: #fff;
+    --background6: #fff;
+    --background7: #fff;
+    --background8: #2C7CAC;
+    --background9: #D7EFE7;
+    --background10: #FBDBDE;
+    --textBoxBg: #F8FCFF;
+    --textBoxBg2: #F8FCFF;
+    --accent-Color: #2C7CAC;
+    --border-Color: #B7D1E0;
+    --border-Color2: #F8FCFF;
+    --border-Color3: #2C7CAC;
+    --border-Color4: #5A9FC9;
+    --border-Color5: #BFBFBF;
+    --border-Color6: #B7D1E0;
+    --border-Color7: #2C7CAC;
+    background: var(--background);
+}
+
+.dark {
+    --Primary: #fff;
+    --Secondary: #fff;
+    --Secondary2: #fff;
+    --Secondary3: #fff;
+    --ButtonBg: #204766;
+    --userBg: #1B2831;
+    --gradient: #1B2831;
+    --gradient2: #1B2831;
+    --background: #05121B;
+    --background2: #0F1C25;
+    --background3: #1B2831;
+    --background4: #204766;
+    --background5: #05121B;
+    --background6: #1B2831;
+    --background7: #0F1C25;
+    --background8: #1B2831;
+    --background9: #1D443B;
+    --background10: #5F2025;
+    --textBoxBg: #05121B;
+    --textBoxBg2: #0B1A25;
+    --accent-Color: #0F1C25;
+    --border-Color: #05121B;
+    --border-Color2: #05121B;
+    --border-Color3: #05121B;
+    --border-Color4: #05121B;
+    --border-Color5: #BFBFBF;
+    --border-Color6: #1B2831;
+    --border-Color7: #fff;
+    background: var(--background);
+}
+
+.custom-slider {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.custom-slider::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    bottom: -10px;
+    background: transparent;
+    z-index: 1;
+    cursor: pointer;
+}
+
+.placeholder-custom::placeholder {
+    font-size: 14px;
+    line-height: 21px;
+    color: #B7D1E0;
+}
+
+* {
+    font-family: "Poppins";
+}
+
+/* Add this CSS */
+.no-scroll {
+    overflow: hidden;
+}
+
+.Levels input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.Levels input[type="range"]::-moz-range-thumb {
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* Toggle switch styles */
+.FilterModalVisible .switch {
+    position: relative;
+    display: inline-block;
+    width: 61px;
+    height: 32px;
+}
+
+.FilterModalVisible .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.FilterModalVisible .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #2C7CAC;
+    transition: .4s;
+    border-radius: 6px;
+}
+
+.FilterModalVisible .slider:before {
+    position: absolute;
+    content: "";
+    height: 24px;
+    width: 24px;
+    border-radius: 6px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+}
+
+/* Light mode styles */
+.FilterModalVisible .slider.light {
+    background-color: #2C7CAC;
+    background-image: url('assets/Images/Menu/Light.png');
+    /* Add light mode icon */
+    background-position: 8px center;
+    background-repeat: no-repeat;
+}
+
+/* Dark mode styles */
+.FilterModalVisible .slider.dark {
+    background-color: #30373e;
+    background-image: url('assets/Images/Menu/Dark.png');
+    /* Add dark mode icon */
+    background-position: 7px center;
+    background-repeat: no-repeat;
+}
+
+.FilterModalVisible input:checked+.slider {
+    background-color: #1B2831;
+    background-image: url('/src/assets/Images/Menu/Dark.png');
+    /* Dark mode image only when checked */
+}
+
+.FilterModalVisible input:not(:checked)+.slider {
+    background-position: 34px center;
+    background-image: url('/src/assets/Images/Menu/Light.png');
+    /* Light mode image only when unchecked */
+}
+
+.FilterModalVisible input:checked+.slider:before {
+    transform: translateX(29px);
+}
+
+
+/* Toggle switch styles */
+.FilterModalVisibleMenu .switch {
+    position: relative;
+    display: inline-block;
+    width: 41px;
+    height: 22px;
+}
+
+.FilterModalVisibleMenu .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.FilterModalVisibleMenu .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #2C7CAC;
+    transition: .4s;
+    border-radius: 4px;
+}
+
+.FilterModalVisibleMenu .slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    border-radius: 3px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+}
+
+/* Light mode styles */
+.FilterModalVisibleMenu .slider.light {
+    background-color: #2C7CAC;
+    background-image: url('assets/Images/Menu/LiteMenu.png');
+    background-position: 8px center;
+    background-repeat: no-repeat;
+}
+
+/* Dark mode styles */
+.FilterModalVisibleMenu .slider.dark {
+    background-color: #30373e;
+    background-image: url('assets/Images/Menu/DrakMenu.png');
+    background-position: 40px center;
+    background-repeat: no-repeat;
+}
+
+.FilterModalVisibleMenu input:checked+.slider {
+    background-color: #1B2831;
+    background-image: url('/src/assets/Images/Menu/DrakMenu.png');
+}
+
+.FilterModalVisibleMenu input:not(:checked)+.slider {
+    background-position: 24px center;
+    background-image: url('/src/assets/Images/Menu/LiteMenu.png');
+}
+
+.FilterModalVisibleMenu input:checked+.slider:before {
+    transform: translateX(19px);
+}
+
+@media only screen and (max-width: 1024px) {
+
+    /* Dark mode styles */
+    .FilterModalVisibleMenu .slider.dark {
+        background-color: #30373e;
+        background-image: url('assets/Images/Menu/DrakMenu.png');
+        background-position: 7px center;
+        background-repeat: no-repeat;
+    }
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.custom-slider {
+    -webkit-appearance: none;
+    /* Override default styling */
+    appearance: none;
+    background: #fff;
+    /* Slider track color */
+    outline: none;
+}
+
+/* Track styling for Webkit browsers */
+.custom-slider::-webkit-slider-runnable-track {
+    height: 1px;
+    background: #fff;
+}
+
+/* Thumb styling for Webkit browsers */
+.custom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    margin-top: -7px;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.slide-in {
+    animation: slideIn 0.8s forwards;
+}
+
+.slide-out {
+    animation: slideOut 0.8s forwards;
+}
+
+@keyframes slideIn {
+    0% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
