@@ -51,7 +51,7 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
     const [BEGain5, setBEGain5] = useState(true);
     const [showAll, setShowAll] = useState(false);
     const [BEContract, setBEContract] = useState(true);
-    const visibleRows = showAllRows ? LevelTable.length : 5; // Show 5 rows initially
+    const visibleRows = showAllRows ? LevelTable.length : 5;
     const [isFilterModalVisible2, setIsFilterModalVisible2] = useState(false);
 
 
@@ -116,7 +116,6 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
             }
         });
 
-        // Update state once after the loop
         setLevelTable(levelTableData);
         setContractsTable(contractsTableData);
         setCreditTable(creditTableData);
@@ -136,7 +135,7 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
                 let t = levels[level];
 
                 // Ensure values are numbers
-                let stopLevel = Number(t.stopLevel) || 0; // Corrected property name
+                let stopLevel = Number(t.stopLevel) || 0;
                 let levelValue = Number(t.value) || 0;
                 let commissionValue = Number(commission) || 0;
 
@@ -145,7 +144,7 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
                 if (stopLevel > 0 && (t.fullIcClose || t.oneSideClose)) {
                     temp = (stopLevel * levelValue * 100).toFixed(2);
                 }
-                tempStopTable.push(Number(temp)); // Push to temp array
+                tempStopTable.push(Number(temp));
 
                 // Commission Calculation
                 let temp1 = 0;
@@ -156,7 +155,7 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
                 } else {
                     temp1 = (commissionValue * levelValue).toFixed(2);
                 }
-                tempCommissionTable.push(Number(temp1)); // Push to temp array
+                tempCommissionTable.push(Number(temp1));
             }
         });
 
@@ -169,7 +168,7 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
         let indx = 0;
         setBPTable([])
         setProfitTable([])
-        Object.keys(levels).map((level, index) => {
+        Object.keys(levels).map((level) => {
             if (levels[level].active) {
                 let t = levels[level]
                 // BP Calculation
@@ -217,28 +216,23 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
     // To calculate Cumulative Loss
     useEffect(() => {
         let indx = 0;
-        setCumulativeLossTable([]);  // Clear previous cumulative loss table
+        setCumulativeLossTable([]);
 
-        Object.keys(levels).forEach((level, index) => {
+        Object.keys(levels).forEach((level) => {
             if (levels[level].active) {
                 let currentLoss = LossTable[indx] || 0;
                 let previousSeriesGainLoss = SeriesGainLossTable[indx - 1] || 0;
                 let previousCumulativeLoss = CumulativeLossTable[indx - 1] || 0;
                 let cumulativeLoss = 0;
-
-                // Apply the conditions based on previous series gain/loss
                 if (previousSeriesGainLoss > 0) {
-                    cumulativeLoss = currentLoss;  // Case 1: Previous gain/loss > 0
+                    cumulativeLoss = currentLoss;
                 } else if (previousSeriesGainLoss === 0) {
-                    cumulativeLoss = currentLoss + previousCumulativeLoss;  // Case 2: Previous gain/loss == 0
+                    cumulativeLoss = currentLoss + previousCumulativeLoss;
                 } else if (previousSeriesGainLoss < 0) {
-                    cumulativeLoss = previousSeriesGainLoss + currentLoss;  // Case 3: Previous gain/loss < 0
+                    cumulativeLoss = previousSeriesGainLoss + currentLoss;
                 }
-
-                // Update the cumulative loss table
                 setCumulativeLossTable((prev) => [...prev, cumulativeLoss]);
-
-                indx += 1;  // Increment for active levels
+                indx += 1;
             }
         });
     }, [LossTable, SeriesGainLossTable, levels]);
@@ -246,17 +240,13 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
     // To calculate Series Gain/Loss
     useEffect(() => {
         let indx = 0;
-        setSeriesGainLossTable([]);  // Reset the table at the start
+        setSeriesGainLossTable([]);
 
-        Object.keys(levels).forEach((level, index) => {
+        Object.keys(levels).forEach((level) => {
             if (levels[level].active) {
                 let seriesGainLossData = 0;
-
-                // Get current profit and loss
                 let currentProfit = ProfitTable[indx] || 0;
                 let currentLoss = LossTable[indx] || 0;
-
-                // Get previous gain/loss value, default to 0 if none
                 let previousSeriesGain = SeriesGainLossTable[indx - 1] || 0;
 
                 // For the first index, just add profit or loss
@@ -269,14 +259,12 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
 
                 // Ensure the sign handling for values less than 0
                 if (seriesGainLossData < 0) {
-                    seriesGainLossData = seriesGainLossData;  // Keep as negative if already negative
+                    seriesGainLossData = seriesGainLossData;
                 } else {
-                    seriesGainLossData = seriesGainLossData;  // Keep as positive if positive
+                    seriesGainLossData = seriesGainLossData;
                 }
-
-                // Update the state
                 setSeriesGainLossTable((prev) => [...prev, seriesGainLossData]);
-                indx += 1;  // Increment only for active levels
+                indx += 1;
             }
         });
     }, [ProfitTable, LossTable]);

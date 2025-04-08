@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
 import Help from '../assets/Images/Menu/Help.png';
 import LogoIcon from '../assets/svg/LogoIcon.svg';
+import MenuIcon from '../assets/svg/MenuIcon.svg';
 import LogoSmall from '../assets/svg/LogoSmall.svg';
-import MenuIcon from '../assets/Images/MenuIcon.png';
 import Settings from '../assets/Images/Menu/settings.png';
 import SavedMatrix from '../assets/svg/SaveMatrixIcon.svg';
 import SwitchToAdminIcon from '../assets/svg/SwitchToAdmin.svg';
@@ -202,7 +202,7 @@ const UserMenu = ({ activeLink, setActiveLink }) => {
                 <Link to='/saved-matrix' className={`w-full py-[18px] px-[7px] flex justify-center ${getLinkClass('saved-matrix')}`}><img src={SavedMatrix} onClick={() => handleLinkClick('saved-matrix')} alt="" /></Link>
                 <Link to='/subscription' className={`w-full py-[18px] px-[7px] flex justify-center ${getLinkClass('subscription')}`}><img src={Subscription} onClick={() => handleLinkClick('subscription')} alt="" /></Link>
                 <div className=' flex justify-center'>
-                  {appContext.superUser && <img src={SwitchToAdminIcon} alt='' className='py-[18px] px-[7px]' onClick={() => { setIsAdmin(!isAdmin); appContext.setAppContext({ ...appContext, isAdmin: !isAdmin }); navigate("/") }} />}
+                  {appContext.superUser && <img src={SwitchToAdminIcon} alt='' className='py-[18px] px-[7px] cursor-pointer' onClick={() => { setIsAdmin(!isAdmin); appContext.setAppContext({ ...appContext, isAdmin: !isAdmin }); navigate("/") }} />}
                 </div>
               </div>
               <div className='pt-3'>

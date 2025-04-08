@@ -24,24 +24,15 @@ const Login = ({ setIsLoggedIn }) => {
 
   function validateFormData() {
     if (email.length < 1 || password === "") {
-      setMsg({
-        type: "error",
-        msg: "Email and password is required"
-      });
+      setMsg({ type: "error", msg: "Email and password is required" });
       return false;
     }
     if (!validateEmail(email)) {
-      setMsg({
-        type: "error",
-        msg: "Plase enter valid email"
-      })
+      setMsg({ type: "error", msg: "Please enter valid email" })
       return false
     }
     if (!PASSWORD_REGEX.test(password)) {
-      setMsg({
-        type: "error",
-        msg: `Enter valid password`
-      })
+      setMsg({ type: "error", msg: "Enter valid password" })
       return false
     }
     return true
@@ -58,26 +49,52 @@ const Login = ({ setIsLoggedIn }) => {
           setIsLoggedIn(true);
           localStorage.setItem("userId", response.data.data._id);
         } else {
-          setMsg({
-            type: "error",
-            msg: "Something went wrong"
-          })
+          setMsg({ type: "error", msg: "Something went wrong" })
         }
       } catch (error) {
         if (error.message.includes('Network Error')) {
-          setMsg({
-            type: "error",
-            msg: 'Could not connect to the server. Please check your connection.'
-          });
+          setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
         } else {
-          setMsg({
-            type: "error",
-            msg: "An unexpected error occurred.",
-          });
+          setMsg({ type: "error", msg: "An unexpected error occurred.", });
         }
       }
     }
   }
+
+  const handleForgotPassword = async () => {
+    if (email.length > 1) {
+      if (!validateEmail(email)) {
+        setMsg({ type: "error", msg: "Please enter a valid email" });
+        return false;
+      }
+
+      try {
+        setMsg({ type: "info", msg: "Please wait, we are processing your request" });
+        let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_RESET_RESUEST_URL, { email: email });
+
+        if (response.status === 200) {
+          appContext.setAppContext((currect) => ({
+            ...currect,
+            email: email.toLowerCase(),
+          }));
+          setMsg({ type: "info", msg: response.data.msg });
+          navigate("/forget-password");
+          return;
+        }
+        if (response.status === 404) {
+          setMsg({ type: "error", msg: "Email not found" });
+          return;
+        }
+        setMsg({ type: "error", msg: "Something went wrong" });
+      } catch (error) {
+        if (error.message.includes("Network Error")) {
+          setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection.", });
+        }
+      }
+    } else {
+      setMsg({ type: "error", msg: "Please enter email ID" });
+    }
+  };
 
   useMemo(() => {
     if (msg.type !== "")
@@ -119,59 +136,7 @@ const Login = ({ setIsLoggedIn }) => {
               </span>
             </label>
             <p className='flex text-sm text-Secondary2 mt-[5px]'>(Password should be at least 1 upper, 1 lower, 1 special character, 1 digit, length min 8 - max 30)</p>
-            <p className='text-sm text-Secondary2 mx-auto text-end mt-[5px] '> <Link onClick={async () => {
-              if (email.length > 1) {
-                if (!validateEmail(email)) {
-                  setMsg({
-                    type: "error",
-                    msg: "Plase enter valid email"
-                  })
-                  return false
-                }
-                try {
-                  setMsg({
-                    type: "info",
-                    msg: "Please wait we are processing your request"
-                  })
-                  let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_RESET_RESUEST_URL), { email: email })
-                  if (response.status === 200) {
-                    appContext.setAppContext((currect) => ({
-                      ...currect,
-                      email: email.toLowerCase()
-                    }))
-                    setMsg({
-                      type: "info",
-                      msg: response.data.msg
-                    })
-                    navigate("/forget-password")
-                  }
-                  if (response.status === 404) {
-                    setMsg({
-                      type: "error",
-                      msg: "Email not found"
-                    })
-                    return
-                  }
-                  if (response.status !== 200) {
-                    setMsg({
-                      type: "error",
-                      msg: "Something went wrong"
-                    })
-                    return false
-                  }
-                } catch (error) {
-                  if (error.message.includes('Network Error')) {
-                    setMsg({
-                      type: "error",
-                      msg: 'Could not connect to the server. Please check your connection.'
-                    });
-                  }
-                }
-              } else setMsg({
-                type: "error",
-                msg: "Please enter email id"
-              })
-            }} className={email ? '' : 'pointer-events-none text-gray-400'}>Forget Password?</Link></p>
+            <p className='text-sm text-Secondary2 mx-auto text-end mt-[5px] '> <Link onClick={handleForgotPassword} className={email ? '' : 'pointer-events-none text-gray-400'}>Forget Password?</Link></p>
 
             {(msg.msg !== "") && <p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}.</p>}
 

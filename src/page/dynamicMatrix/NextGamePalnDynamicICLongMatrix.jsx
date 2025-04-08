@@ -21,24 +21,19 @@ function NextGamePalnDynamicICLongMatrix({
   // Function to calculate BE Contracts dynamically (adapted from your JS code)
   const calculateDynamicBEContracts = (dynamicCumulativeLoss, premium, commission) => {
     if (isNaN(dynamicCumulativeLoss) || isNaN(premium) || isNaN(commission) || premium <= 0) {
-      return 0; // Return 0 if inputs are invalid
+      return 0;
     }
-
     let beContracts = Math.ceil(dynamicCumulativeLoss / ((5 - premium) * 100));
-
     while (true) {
-      if (isNaN(beContracts)) break; // Exit loop if NaN
-
+      if (isNaN(beContracts)) break; 
       const totalCommission = beContracts * commission;
       const adjustedLoss = dynamicCumulativeLoss + totalCommission;
       const newBEContracts = Math.ceil(adjustedLoss / ((5 - premium) * 100));
-
       if (isNaN(newBEContracts) || newBEContracts === beContracts) {
-        break; // Break if NaN or the values are stable
+        break;
       }
       beContracts = newBEContracts;
     }
-
     return beContracts;
   };
 

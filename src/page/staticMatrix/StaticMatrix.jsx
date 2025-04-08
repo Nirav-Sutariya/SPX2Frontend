@@ -21,8 +21,8 @@ import { defaultTradePrice, defaultCommission, defaultAllocation, DefaultInDeCre
 
 const StaticMatrix = () => {
 
-  const MINIMUM_VALUE = 0; // Define the minimum value
-  const MAXIMUM_VALUE = 99.00; // Define the maximum value
+  const MINIMUM_VALUE = 0;
+  const MAXIMUM_VALUE = 99.00;
   const menuRef = useRef(null);
   const dropdownRef = useRef(null);
   const containerRef = useRef(null);
@@ -110,17 +110,19 @@ const StaticMatrix = () => {
         setStaticKey(response.data.data);
         appContext.setAppContext((curr) => ({
           ...curr,
-          staticShortKey: response.data.data, // Store static key in context
+          staticShortKey: response.data.data,
         }));
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
-  // Matrix List Section Api Call Section  
-  // Get Matrix List  Api
+  // Get Matrix List Api &&  Matrix List Section Api Call Section 
   async function getMatrixFromAPI() {
     let temp = {}
-
     try {
       let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_STATIC_MATRIX_URL), { typeIc: "short", userId: getUserId() }, {
         headers: {
@@ -128,13 +130,12 @@ const StaticMatrix = () => {
         }
       })
       if (response.status === 200) {
-        let data = response.data.data; // Extract actual data array
+        let data = response.data.data;
         if (Array.isArray(data)) {
           data.forEach(item => {
-            temp[item._id] = item.matrixName; // Store ID and Name correctly
+            temp[item._id] = item.matrixName;
           });
         }
-
         appContext.setAppContext(curr => ({
           ...curr,
           names: temp,
@@ -143,10 +144,7 @@ const StaticMatrix = () => {
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
     }
   }
@@ -154,8 +152,7 @@ const StaticMatrix = () => {
   // Crate Matrix Name Api
   async function addMatrixAPI(name) {
     try {
-      let formData = { matrixName: name, userId: getUserId(), typeIc: "short" }
-      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_CREATE_STATIC_MATRIX_URL), formData, {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_CREATE_STATIC_MATRIX_URL), { matrixName: name, userId: getUserId(), typeIc: "short" }, {
         headers: {
           'x-access-token': getToken()
         }
@@ -164,10 +161,7 @@ const StaticMatrix = () => {
         await getMatrixFromAPI()
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
     }
   }
@@ -187,10 +181,7 @@ const StaticMatrix = () => {
       return response
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsgM3({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
       }
     }
   }
@@ -209,7 +200,6 @@ const StaticMatrix = () => {
             }
           })
 
-          // Handle successful deletion response
           if (response.status === 200) {
             setMsgM1({ type: "info", msg: 'Matrix was deleted...' });
             const updatedNames = { ...names };
@@ -223,10 +213,7 @@ const StaticMatrix = () => {
           }
         } catch (error) {
           if (error.message.includes('Network Error')) {
-            setMsgM1({
-              type: "error",
-              msg: 'Could not connect to the server. Please check your connection.'
-            });
+            setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
           }
         }
       },
@@ -238,7 +225,7 @@ const StaticMatrix = () => {
   const handleEditClick = (key) => {
     setEditIndex(key);
     setEditName(names[key]);
-    setEditKey(key); // Store the matrix ID
+    setEditKey(key);
   };
 
   // New Name Add Function
@@ -249,10 +236,7 @@ const StaticMatrix = () => {
         setNewName('');
       } catch (error) {
         if (error.message.includes('Network Error')) {
-          setMsgM1({
-            type: "error",
-            msg: 'Could not connect to the server. Please check your connection.'
-          });
+          setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
         }
       }
     }
@@ -261,10 +245,7 @@ const StaticMatrix = () => {
   // Dropdown Edit Name Function
   const handleEditNameChange = (e) => {
     if (e.target.value.length > 25) {
-      setMsgM1({
-        type: "error",
-        msg: "length should be less than 25"
-      })
+      setMsgM1({ type: "error", msg: "length should be less than 25" })
       return
     }
     setEditName(e.target.value);
@@ -292,13 +273,10 @@ const StaticMatrix = () => {
       if (response.status === 200 && Array.isArray(response.data.data)) {
         const formattedData = response.data.data.map(({ buyingPower, _id }) => ({ buyingPower, _id }));
         setStaticLevelDefaultValue(formattedData);
-
-        // Store values in app context
         appContext.setAppContext((prev) => ({
           ...prev,
           buyingPowerStatic: formattedData.map((item) => item.buyingPower),
         }));
-
         setOriginalSize(response.data.data[0].buyingPower);
         await getSingleLevelAPI(response.data.data[0]._id);
       } else {
@@ -321,14 +299,16 @@ const StaticMatrix = () => {
       if (response.status === 200 && Array.isArray(response.data.data)) {
         const formattedData = response.data.data.map(({ buyingPower, _id }) => ({ buyingPower, _id }));
         setStaticLevelDefaultValue(formattedData);
-
-        // Store values in app context
         appContext.setAppContext((prev) => ({
           ...prev,
           buyingPowerStatic: formattedData.map((item) => item.buyingPower),
         }));
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // Get Single level
@@ -342,20 +322,19 @@ const StaticMatrix = () => {
 
       if (response.status === 200 && response.data.status === 1) {
         const levelData = response.data.data;
-
-        // Extract only level fields (level1, level2, etc.)
         const levelsOnly = Object.keys(levelData)
           .filter((key) => key.startsWith('level'))
           .reduce((obj, key) => {
             obj[key] = { value: levelData[key] || 0, active: levelData[key] > 0 };
             return obj;
           }, {});
-
         setLevels(levelsOnly);
       }
       return null;
     } catch (error) {
-      console.error("API Request Failed:", error);
+      if (error.message.includes('Network Error')) {
+        setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
     }
   }
 
@@ -368,14 +347,11 @@ const StaticMatrix = () => {
         },
       });
       if (response.status === 200) {
-        // Apply saved matrix data if it exists
         setSelectedValue(response.data.data.spread ?? 5);
         setAllocation(response.data.data.allocation ?? defaultAllocation);
         setTradePrice(response.data.data.tradePrice ?? defaultTradePrice);
         setCommission(response.data.data.commission ?? defaultCommission);
         setOriginalSize(response.data.data.originalSize ?? 5000);
-
-        // Convert levels array to object format (level1, level2, etc.)
         const savedLevelsObject = response.data.data.levels.reduce((obj, level) => {
           obj[level.level] = { value: level.value || 0, active: level.active };
           return obj;
@@ -405,10 +381,7 @@ const StaticMatrix = () => {
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsgM3({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
       }
       return false
     }
@@ -417,10 +390,7 @@ const StaticMatrix = () => {
   // Matrix Save Data Api
   const handleSaveMatrix = async () => {
     if (!selectedName) {
-      setMsgM3({
-        type: "error",
-        msg: "Please select one of matrix from dropdown"
-      });
+      setMsgM3({ type: "error", msg: "Please select one of matrix from dropdown" });
       return;
     }
     const arrayDataWithKeys = Object.entries(levels).map(([level, value]) => ({
@@ -459,26 +429,11 @@ const StaticMatrix = () => {
         }
       });
       if (response.status === 201) {
-        setMsgM3({
-          type: "info",
-          msg: "Matrix saved successfully"
-        });
+        setMsgM3({ type: "info", msg: "Matrix saved successfully" });
       }
     } catch (error) {
       if (error.message.includes("Network Error")) {
-        setMsgM1({
-          type: "error",
-          msg: "Could not connect to the server. Please check your connection."
-        });
-      } else {
-        if (error.response?.data) {
-          Object.keys(error.response.data).forEach((field) => {
-            const errorMessages = error.response.data[field];
-            if (errorMessages && errorMessages.length > 0) {
-              setMsgM3({ type: "error", msg: errorMessages });
-            }
-          });
-        }
+        setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
     }
   };
@@ -505,10 +460,10 @@ const StaticMatrix = () => {
 
     for (const [key, value] of Object.entries(temp)) {
       if (!value.active) {
-        continue; // Skip inactive levels
+        continue;
       }
 
-      lastActiveKey = key; // Track the last active level
+      lastActiveKey = key;
 
       if (preVal !== 0) {
         value.value += preVal;
@@ -523,9 +478,9 @@ const StaticMatrix = () => {
     if (lastActiveKey && temp[lastActiveKey].value === 0) {
       setErrorMessage("Last active level's value should not be 0!");
       setTimeout(() => {
-        setErrorMessage(""); // Clear the error message
+        setErrorMessage("");
       }, 2000);
-      return; // Stop execution and do not update state
+      return;
     }
     // Clear error message on success
     setErrorMessage("");
@@ -537,17 +492,13 @@ const StaticMatrix = () => {
   function ShiftMatrix() {
     let temp = { ...levels };
     let levelKeys = Object.keys(temp);
-    // Check if shifting is possible
     let hasChecked = levelKeys.some(key => temp[key].active);
     let hasValues = levelKeys.some(key => temp[key].value > 0);
     let onlyLastLevelHasValue =
       temp[levelKeys[levelKeys.length - 1]].value > 0 &&
       levelKeys.slice(0, -1).every(key => temp[key].value === 0);
     if (!hasChecked || !hasValues || onlyLastLevelHasValue) {
-      setMsgM2({
-        type: "error",
-        msg: "Shift can't be performed due to selection or value conditions."
-      });
+      setMsgM2({ type: "error", msg: "Shift can't be performed due to selection or value conditions." });
       return;
     }
     // Perform the shift operation
@@ -631,7 +582,7 @@ const StaticMatrix = () => {
       ...prevLevels,
       [level]: {
         ...prevLevels[level],
-        value: Math.max(0, Number(prevLevels[level]?.value || 0) - 1) // Ensure value doesn't go below 0
+        value: Math.max(0, Number(prevLevels[level]?.value || 0) - 1)
       }
     }));
   };
@@ -639,10 +590,7 @@ const StaticMatrix = () => {
   const handleNumberInput = (fun, e) => {
     setTimeout(() => {
       if (isNaN(e.target.value) || (e.target.value < 0)) {
-        setMsgM2({
-          type: "error",
-          msg: "Only positive number should allow"
-        })
+        setMsgM2({ type: "error", msg: "Only positive number should allow" })
         return
       }
     }, 10 * 100);
@@ -651,10 +599,7 @@ const StaticMatrix = () => {
 
   const handleInputChange = (level, value) => {
     if (isNaN(value) || (value || "").includes(".") || (value < 0)) {
-      setMsgM2({
-        type: "error",
-        msg: "Only positive number should allow"
-      })
+      setMsgM2({ type: "error", msg: "Only positive number should allow" })
       return
     }
     setLevels({
@@ -773,7 +718,7 @@ const StaticMatrix = () => {
     setAfterLossTable([])
     setLossPreTable([])
 
-    Object.keys(levels).map((level, index) => {
+    Object.keys(levels).map((level) => {
       if (levels[level].active) {
 
         let temp = Number(currentAllocation) + SeriesGainLossTable[indx]
@@ -804,10 +749,10 @@ const StaticMatrix = () => {
   }, [SeriesGainLossTable, currentAllocation, CumulativeLossTable])
 
   const handleNameClick = (key) => {
-    setSelectedName(key); // Set the clicked name as the selected one
-    setDropdownVisible(false); // Hide the dropdown after selection
-    sessionStorage.setItem('staticShortMatrix', JSON.stringify(key));
+    setSelectedName(key);
     getSPXMatrixAPI(key);
+    setDropdownVisible(false);
+    sessionStorage.setItem('staticShortMatrix', JSON.stringify(key));
   };
 
   useEffect(() => {
@@ -819,7 +764,6 @@ const StaticMatrix = () => {
         setMenuVisible(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMenuVisible, isFilterModalVisible]);
@@ -923,16 +867,13 @@ const StaticMatrix = () => {
     setOriginalSize(e.target.value);
   };
 
-  // Handle Spread Dropdwon
+  // Handle Spread Dropdown
   const handleChange = (event) => {
     const newValue = event.target.value;
-
-    // Reset buyingPowerStatic to prevent stale data
     appContext.setAppContext((prev) => ({
       ...prev,
-      buyingPowerStatic: [], // Clear previous data
+      buyingPowerStatic: [],
     }));
-
     setSelectedValue(newValue);
   };
 

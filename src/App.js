@@ -38,14 +38,14 @@ import DynamicMatrixShort from "./page/dynamicMatrix/DynamicMatrixShort";
 const App = () => {
 
   let appContext = useContext(AppContext);
-  const [theme, setTheme] = useState("light"); // manage the theme state
+  const [theme, setTheme] = useState("light");
   const navigateData = window.location.pathname
   const [isLoading, setIsLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isDarkTheme, setIsDarkTheme] = useState(appContext.userData.theme);
   const [dashboardKey, setDashboardKey] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(!!getToken()); // true if token exists
+  const [isLoggedIn, setIsLoggedIn] = useState(!!getToken());
   const [activeLink, setActiveLink] = useState("/dashboard");
+  const [isDarkTheme, setIsDarkTheme] = useState(localStorage.getItem("theme") === "dark");
 
 
   // Get User Data Fined
@@ -58,26 +58,23 @@ const App = () => {
           }
         })
         if (response.status === 200) {
-          const { firstName, lastName, email, profilePicture, slackId, phoneNo, theme } = response.data.data;
+          const { firstName, lastName, email, slackId, phoneNo } = response.data.data;
           appContext.setAppContext((curr) => ({
             ...curr,
             userData: {
               first_name: firstName || "",
               last_name: lastName || "",
               email: email || "",
-              profilePhoto: profilePicture || "",
               slackID: slackId || "",
               phone: phoneNo || "",
-              theme: theme || "light",
             },
+            profilePhoto: response.data.data.profilePicture,
           }));
         }
       } catch (error) {
+        console.error("Error fetching user data:", error);
       }
   }
-
-  console.log("theme", appContext.userData.theme);
-
 
   // Get Super User To Admin Slide Access
   async function isSuperUser() {
@@ -96,6 +93,7 @@ const App = () => {
         })
       }
     } catch (error) {
+      console.error("Error fetching user data:", error);
     }
   }
 
@@ -110,7 +108,9 @@ const App = () => {
       if (response.status === 200) {
         setDashboardKey(response.data.data);
       }
-    } catch (error) { }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
   }
 
   // Find Plan List
@@ -136,6 +136,7 @@ const App = () => {
         appContext.setAppContext({ ...appContext, plans: planData })
       }
     } catch (error) {
+      console.error("Error fetching user data:", error);
     }
   }
 
@@ -149,10 +150,10 @@ const App = () => {
       })
       if (response.status === 200) {
         let data = response.data.data
-        appContext.setAppContext({ ...appContext, shortMatrixLength: data.shortMatrix, longtMatrixLength: data.longMatrix })
+        appContext.setAppContext({ ...appContext, shortMatrixLength: data.shortMatrix, longMatrixLength: data.longMatrix })
       }
     } catch (error) {
-      console.log("error at fetch level length - ", error);
+      console.error("Error fetching user data:", error);
     }
   }
 
@@ -195,53 +196,38 @@ const App = () => {
     }
   };
 
+  // Set the initial theme from localStorage or default to light
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+    setIsDarkTheme(savedTheme === 'dark');
+    setIsDarkMode(savedTheme === 'dark');
+  }, []);
 
-  // Fetch user theme from API when the component mounts
-  const fetchUserTheme = async () => {
+  const toggleTheme = async () => {
+    const newTheme = isDarkTheme ? "light" : "dark";
+    setTheme(newTheme);
+    setIsDarkMode(!isDarkMode);
+    setIsDarkTheme(!isDarkTheme);
+    localStorage.setItem("theme", newTheme);
+
     try {
-      const response = await axios.post(
-        process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_UPDATE_USER_THEME,
-        { userId: getUserId() },
-        { headers: { "x-access-token": getToken() } }
-      );
+      const response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_UPDATE_USER_THEME, { userId: getUserId(), theme: newTheme }, {
+        headers: {
+          "x-access-token": getToken()
+        }
+      });
 
-      if (response.status === 200) {
-        const theme = response.data.data.theme || "light";
-        setIsDarkTheme(theme === "dark");
-
-        // Update localStorage and context
-        localStorage.setItem("theme", theme);
+      if (response.status === 201) {
         appContext.setAppContext((curr) => ({
           ...curr,
-          userData: { theme },
+          theme: newTheme
         }));
       }
     } catch (error) {
-      console.error("Error fetching theme:", error);
+      console.error("Error fetching user data:", error);
     }
   };
-
-
-  // // Set the initial theme from localStorage or default to light
-  // useEffect(() => {
-  //   const savedTheme = localStorage.getItem('theme') || 'light';
-  //   setTheme(savedTheme);
-  //   setIsDarkTheme(savedTheme === 'dark');
-  //   setIsDarkMode(savedTheme === 'dark');
-  // }, []);
-
-  // const toggleTheme = () => {
-  //   const newTheme = isDarkTheme ? 'light' : 'dark';
-  //   setTheme(newTheme);
-  //   setIsDarkTheme(!isDarkTheme);
-  //   setIsDarkMode(!isDarkMode);
-  //   localStorage.setItem('theme', newTheme); // Save the theme to localStorage
-  // };
-
-    // Sync theme from API on mount
-    useEffect(() => {
-      fetchUserTheme();
-    }, []);
 
   useMemo(async () => {
     if (isLoggedIn) {
@@ -307,14 +293,14 @@ const App = () => {
       </>
       : <>
         <Router>
-          <div className={`flex justify-center ${appContext.userData.theme}`}>
+          <div className={`flex justify-center ${appContext.theme}`}>
             <div className="w-full bg-background max-w-[1920px]">
               {isLoggedIn ? (
                 <div className="flex md:flex-nowrap lg:p-[14px]">
                   <Menu activeLink={activeLink} setActiveLink={setActiveLink} />
                   {!appContext.isAdmin ? <>
                     <div className="w-full max-w-[1530px]">
-                      <Header isDarkMode={isDarkMode} isDarkTheme={isDarkTheme} activeLink={activeLink} setActiveLink={setActiveLink} setIsLoggedIn={setIsLoggedIn} />
+                      <Header toggleTheme={toggleTheme} isDarkMode={isDarkMode} isDarkTheme={isDarkTheme} activeLink={activeLink} setActiveLink={setActiveLink} setIsLoggedIn={setIsLoggedIn} />
                       <Routes>
                         <Route path="/dashboard" element={(appContext.superUser || dashboardKey) ? <Dashboard theme={theme} /> : <ComingSoon />} />
                         <Route path="*" element={<Navigate to="/static-matrix-short" />} />
@@ -332,7 +318,7 @@ const App = () => {
                     </div>
                   </> : <>
                     <div className="w-full max-w-[1530px]">
-                      <AdminHeader  isDarkMode={isDarkMode} isDarkTheme={isDarkTheme} activeLink={activeLink} setActiveLink={setActiveLink} setIsLoggedIn={setIsLoggedIn} />
+                      <AdminHeader toggleTheme={toggleTheme} isDarkMode={isDarkMode} isDarkTheme={isDarkTheme} activeLink={activeLink} setActiveLink={setActiveLink} setIsLoggedIn={setIsLoggedIn} />
                       <Routes>
                         <Route path="/admin-dashboard" element={<AdminDashboard />} />
                         <Route path="*" element={<Navigate to="/admin-dashboard" />} />

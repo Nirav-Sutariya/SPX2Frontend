@@ -31,43 +31,26 @@ const EmailVerification = () => {
         window.location.href = "/"
 
     async function resend() {
-
         setIsDisabled(true);
         setTimer(30);
-
         if (!appContext.signupData.email1) {
-            setMsg({
-                type: "error",
-                msg: "Somethig went wrong pleas try again"
-            })
+            setMsg({ type: "error", msg: "Somethig went wrong pleas try again" })
             navigate("/")
         } else {
             try {
-                setMsg({
-                    type: "info",
-                    msg: "Please wait we are processing your request"
-                })
+                setMsg({ type: "info", msg: "Please wait we are processing your request" })
                 let response = await axios.post((process.env.REACT_APP_BASE_URL + process.env.REACT_APP_RESET_RESUEST_URL), { email: appContext.signupData.email1 })
                 if (response.status === 200) {
-                    setMsg({
-                        type: "error",
-                        msg: "email id is already exists"
-                    })
+                    setMsg({ type: "error", msg: "email id is already exists" })
                     return false
                 }
                 if (response.status !== 200) {
-                    setMsg({
-                        type: "error",
-                        msg: "Something went wrong"
-                    })
+                    setMsg({ type: "error", msg: "Something went wrong" })
                     return false
                 }
             } catch (error) {
                 if (error.message.includes('Network Error')) {
-                    setMsg({
-                        type: "error",
-                        msg: 'Could not connect to the server. Please check your connection.'
-                    });
+                    setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
                 }
             }
         }
@@ -91,32 +74,20 @@ const EmailVerification = () => {
                 setUserName(response.data.first_name)
                 window.location.href = "/"
             } else {
-                setMsg({
-                    type: "error",
-                    msg: "Something went wrong"
-                })
+                setMsg({ type: "error", msg: "Something went wrong" })
             }
         } catch (error) {
             if (error.message.includes('Network Error')) {
-                setMsg({
-                    type: "error",
-                    msg: 'Could not connect to the server. Please check your connection.'
-                });
+                setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
             } else {
-                setMsg({
-                    type: "error",
-                    msg: 'A user with that username already exists." ? "A user with that email already exists.'
-                });
+                setMsg({ type: "error", msg: 'A user with that username already exists." ? "A user with that email already exists.' });
             }
         }
     }
 
     async function verifyOTP() {
         if (appContext.signupData.email1 && (digit1.length === 1) && (digit2.length === 1) && (digit3.length === 1) && (digit4.length === 1) && (digit5.length === 1) && (digit6.length === 1)) {
-            setMsg({
-                type: "info",
-                msg: "Please wait we are processing your request"
-            })
+            setMsg({ type: "info", msg: "Please wait we are processing your request" })
             try {
                 let response = await axios.post((process.env.REACT_APP_BASE_URL + process.env.REACT_APP_VERIFY_OTP), { email: appContext.signupData.email1, otp: (digit1 + digit2 + digit3 + digit4 + digit5 + digit6) })
                 if (response.status === 200) {
@@ -124,19 +95,12 @@ const EmailVerification = () => {
                 }
             } catch (error) {
                 if (error.message.includes('Network Error')) {
-                    setMsg({
-                        type: "error",
-                        msg: 'Could not connect to the server. Please check your connection.'
-                    });
+                    setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
                 }
             }
         }
-
         else {
-            setMsg({
-                type: "error",
-                msg: "Please enter 6 digit OTP"
-            })
+            setMsg({ type: "error", msg: "Please enter 6 digit OTP" })
         }
     }
 

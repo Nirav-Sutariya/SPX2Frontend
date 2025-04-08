@@ -17,9 +17,9 @@ const getUserId = () => localStorage.getItem("userId");
 const isTokenExpired = (token) => {
   try {
     const { exp } = jwtDecode(token);
-    return exp < Date.now() / 1000; // Check if expiration time has passed
+    return exp < Date.now() / 1000;
   } catch {
-    return true; // Invalid token = expired
+    return true;
   }
 };
 

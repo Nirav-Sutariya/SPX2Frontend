@@ -20,9 +20,8 @@ export const AppContext = createContext({
     slackID: "",
     phone: "",
     email: "",
-    profilePhoto: "",
-    theme: "",
   },
+  theme: "",
   signupData: {
     first_name: "",
     email1: "",
@@ -53,6 +52,5 @@ export const AppContext = createContext({
   selectedUser: null,
   shortMatrixLength: 6,
   longMatrixLength: 12,
-  planToPurchase: null,
   setAppContext: () => { },
 });

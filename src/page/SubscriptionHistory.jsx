@@ -21,7 +21,9 @@ const generatePDF = async (data, name, emailId, subscriptionStartDate) => {
         window.location.href = response.data.data
         return
       }
-    } catch (error) { }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
   } else {
     // Invoice PDF generate
     const doc = new jsPDF();
@@ -95,7 +97,11 @@ const SubscriptionHistory = () => {
           return { ...curr, subscriptionHistory: response.data.data }
         })
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // User Subscription Check ID For invoice available 
@@ -111,7 +117,11 @@ const SubscriptionHistory = () => {
         const userEmail = appContext.userData.email || "No Email Provided";
         generatePDF(response.data.data, userName, userEmail, subscriptionStartDate);
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   useMemo(() => {
@@ -135,8 +145,7 @@ const SubscriptionHistory = () => {
       </div>
 
       <div className='flex justify-end gap-5 mt-5 lg:mt-10 mb-3'>
-        {isActiveSub ? <li className='text-base lg:text-lg text-[#6FBA47]'>Active</li> :
-          <li className='text-base lg:text-lg text-[#EF4646]'>Cancelled</li>}
+        {isActiveSub ? <li className='text-base lg:text-lg text-[#6FBA47]'>Active</li> : <li className='text-base lg:text-lg text-[#EF4646]'>Cancelled</li>}
       </div>
 
       <div className="overflow-x-auto text-center rounded-md">
@@ -152,7 +161,7 @@ const SubscriptionHistory = () => {
             </tr>
           </thead>
           <tbody>
-            {plansData.map((item, index) => (
+            {plansData.map((item) => (
               <tr key={item._id} className={(item.subscriptionStatus && 'bg-green-400')}>
                 <td className="text-sm lg:text-base text-Secondary py-3 lg:py-5 px-3 lg:px-4 border-t border-gray-300">{item.subscriptionName[0].toUpperCase() + item.subscriptionName.slice(1)}</td>
                 <td className="text-sm lg:text-base text-Secondary py-3 lg:py-5 px-3 lg:px-4 border-t border-x border-gray-300">{formattedDate(item.subscriptionStartDate)}</td>

@@ -42,7 +42,7 @@ const AdminDashboard = () => {
     try {
       let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_DASHBOARD_URL, { userId: getUserId(), matrixMonth: selectedMonth2, userMonth: selectedMonth }, {
         headers: {
-          "x-access-token": `${getToken()}`,
+          "x-access-token": getToken()
         }
       })
       if (response.status === 200) {
@@ -278,14 +278,14 @@ const AdminDashboard = () => {
           <div className='mt-10 flex justify-between items-center gap-3 py-3 px-5 border border-borderColor rounded-md bg-background3 max-w-[350px] mx-auto'>
             <span className='flex items-center gap-3'>
               <img src={BasicPlanIcon} alt="" />
-              <p className='text-base text-Secondary2'>Basic Plan</p>
+              <p className='text-base text-Secondary2'>7 Day Trial</p>
             </span>
             <h3 className='text-lg font-medium text-Primary'>{adminDashboardData.basePlanCount || 0}</h3>
           </div>
           <div className='mt-2 flex justify-between items-center gap-3 py-3 px-5 border border-borderColor rounded-md bg-background3 max-w-[350px] mx-auto'>
             <span className='flex items-center gap-3'>
               <img src={AdvancePlanIcon} alt="" />
-              <p className='text-base text-Secondary2'>Advance Plan</p>
+              <p className='text-base text-Secondary2'>Plus Plan</p>
             </span>
             <h3 className='text-lg font-medium text-Primary'>{adminDashboardData.plusPlanCount || 0}</h3>
           </div>

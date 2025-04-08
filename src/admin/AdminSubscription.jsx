@@ -38,10 +38,7 @@ function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsg({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
       }
     }
     setShowLogoutModal(false)
@@ -128,8 +125,8 @@ function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
                 <div className="flex gap-2 text-xs lg:text-sm text-Primary mt-2 px-3 md:px-5 py-[10px] md:py-[13px] border border-borderColor rounded-md bg-textBoxBg w-full focus:outline-none focus:border-borderColor7">
                   <label className='flex items-center gap-1 text-xs md:text-sm text-Primary'>
                     <input className='accent-Primary' type="radio" name={`available-plain${plainId}-${featureIndex}`} value="available" checked={feature.available} onChange={() => {
-                      let temp = [...plan.features]; // Create a copy of features
-                      temp[featureIndex].available = true; // Set to true for "Available"
+                      let temp = [...plan.features];
+                      temp[featureIndex].available = true;
                       setPlan({ ...plan, features: temp });
                     }}
                     />
@@ -137,8 +134,8 @@ function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
                   </label>
                   <label className='flex items-center gap-1 text-xs md:text-sm text-Primary'>
                     <input className='accent-Primary' type="radio" name={`available-plain${plainId}-${featureIndex}`} value="unavailable" checked={!feature.available} onChange={() => {
-                      let temp = [...plan.features]; // Create a copy of features
-                      temp[featureIndex].available = false; // Set to false for "Unavailable"
+                      let temp = [...plan.features];
+                      temp[featureIndex].available = false;
                       setPlan({ ...plan, features: temp });
                     }}
                     />
@@ -175,7 +172,7 @@ function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
           </button>
         </span>
 
-        <div className="flex justify-end mt-4 md:mt-[30px]"> {/*onclick = handleUpdate */}
+        <div className="flex justify-end mt-4 md:mt-[30px]">
           <button type="button" onClick={() => setShowLogoutModal(true)} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]">
             Update
           </button>
@@ -195,8 +192,7 @@ function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
             <p className='text-base text-Secondary2 text-center mt-2 mx-auto max-w-[270px] '>Are you sure you want to update your subscription plan Details?</p>
 
             <div className="flex justify-between gap-5 mt-5 lg:mt-9">
-              <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 rounded-md w-full"
-                onClick={() => setShowLogoutModal(false)}>
+              <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 rounded-md w-full" onClick={() => setShowLogoutModal(false)}>
                 Cancel
               </button>
               <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full" onClick={(_) => updatePlan(plan, plainId)}>
@@ -241,11 +237,13 @@ const AdminSubscription = () => {
             name: feature.name
           }))
         }));
-
         setPlans(planData);
         appContext.setAppContext({ ...appContext, plans: planData })
       }
     } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
     }
   }
 
@@ -262,7 +260,11 @@ const AdminSubscription = () => {
         fetchComparisonFeatures()
         setShowLogoutModal2(false);
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // Get List Comparison Features Api
@@ -274,7 +276,7 @@ const AdminSubscription = () => {
         }
       });
       if (response.status === 200) {
-        const data = response.data?.data; // Ensure correct extraction
+        const data = response.data?.data;
 
         if (Array.isArray(data)) {
           setComparisonFeatures(data);
@@ -283,10 +285,14 @@ const AdminSubscription = () => {
             comparisonFeatures: data,
           }));
         } else {
-          setComparisonFeatures([]); // Ensure state remains an array
+          setComparisonFeatures([]);
         }
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // Get Api Ket List Api
@@ -298,7 +304,7 @@ const AdminSubscription = () => {
         }
       })
       if (response.status === 200) {
-        setApiKeys(response.data.data || []); // Ensure fallback to an empty array
+        setApiKeys(response.data.data || []);
       }
     } catch (error) {
       setMessage("Failed to fetch API keys.");
@@ -314,10 +320,9 @@ const AdminSubscription = () => {
         }
       })
       if (response.status === 200) {
-        console.log("response.data", response.data);
-        setFeatures(response.data.data || []); // Load existing features
-        setApiKeys(response.data.data.map((item) => item.apiKey) || []); // Extract API keys
-        appContext.setAppContext({ ...appContext, feature: response.data.data })
+        const features = response.data.data || [];
+        setFeatures(features);
+        appContext.setAppContext({ ...appContext, feature: features });
       }
     } catch (error) {
       setMessage("Failed to fetch API keys.");
@@ -338,9 +343,8 @@ const AdminSubscription = () => {
     setFeatures([...features, { name: '', apiKey: '' }]);
   };
 
-  // Create Feature Api
+  // Create Feature Api && Validation: Check if any feature name is empty
   async function createApiKey() {
-    // Validation: Check if any feature name is empty
     let validationErrors = {};
     features.forEach((feature, index) => {
       if (!feature.name.trim()) {
@@ -362,7 +366,7 @@ const AdminSubscription = () => {
       })
       if (response.status === 201) {
         setMessage("Feature created/updated successfully.");
-        getApiKeyList(); // Refresh the list
+        getApiKeyList();
       }
     } catch (error) {
       setMessage("Failed to create/update features.");
@@ -395,6 +399,9 @@ const AdminSubscription = () => {
 
   useEffect(() => {
     getApiKey();
+  }, []);
+
+  useEffect(() => {
     document.body.classList.toggle('no-scroll', showLogoutModal2);
     return () => document.body.classList.remove('no-scroll');
   }, [showLogoutModal2]);
@@ -408,29 +415,40 @@ const AdminSubscription = () => {
       <div className='mt-5 lg:mt-10 px-5 md:px-[30px] py-5 md:py-[34px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-full'>
         <h2 className='text-base lg:text-[20px] leading-[30px] text-Primary font-medium'>Create Feature</h2>
         {/* Features List */}
-        {features.map((feature, index) => (<>
+        {features.map((feature, index) => (
           <div key={feature._id} className="flex justify-between items-center gap-5 mb-4 mt-2 lg:mt-3 w-full max-w-[870px]">
             <div className='w-full'>
-              <input type="text" value={feature.name} onChange={(e) => handleFeatureChange(index, 'name', e.target.value)} placeholder='Enter your features name' title='Max Length 70' maxLength={70} className="text-Primary w-full px-3 md:px-5 py-2 md:py-[13px] text-xs lg:text-sm border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7" />
+              <input
+                type="text"
+                value={feature.name}
+                onChange={(e) => handleFeatureChange(index, 'name', e.target.value)}
+                placeholder='Enter your features name'
+                title='Max Length 70'
+                maxLength={70}
+                className="text-Primary w-full px-3 md:px-5 py-2 md:py-[13px] text-xs lg:text-sm border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
+              />
             </div>
-            <div className="relative w-full max-w-[220px] sm:max-w-[250px] lg:max-w-[300px] sm:mt-2">
+            <div className="relative w-full max-w-[220px] sm:max-w-[250px] lg:max-w-[300px]">
               <div className="absolute inset-y-0 right-2 top-0 flex items-center pointer-events-none">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
               </div>
-              <select value={feature.apiKey} onChange={(e) => handleFeatureChange(index, 'apiKey', e.target.value)} className="text-xs lg:text-sm text-Primary px-2 md:px-5 py-2 md:py-3 border border-borderColor rounded-md bg-textBoxBg w-full focus:outline-none focus:border-borderColor7 appearance-none" >
+              <select
+                value={feature.apiKey}
+                onChange={(e) => handleFeatureChange(index, 'apiKey', e.target.value)}
+                className="text-xs lg:text-sm text-Primary px-2 md:px-5 py-2 md:py-3 border border-borderColor rounded-md bg-textBoxBg w-full focus:outline-none focus:border-borderColor7 appearance-none"
+              >
                 <option value="">Select an API/Key</option>
                 {apiKeys.map((key, keyIndex) => (
-                  <option key={keyIndex} value={key}>
-                    {key}
-                  </option>))}
+                  <option key={keyIndex} value={key}>{key}</option>
+                ))}
               </select>
             </div>
+            {errors[index] && <p className="text-red-500 text-xs">{errors[index]}</p>}
           </div>
-          {errors[index] && <p className="text-red-500 text-xs">{errors[index]}</p>}
-        </>
         ))}
+
         <span className='flex justify-end w-full max-w-[870px]'>
           <button className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3" onClick={addFeature}>
             <img className='w-[17px] lg:w-auto' src={PlusIcon} alt="" /> Feature
@@ -445,9 +463,7 @@ const AdminSubscription = () => {
       </div>
 
       {plans.map((plan) => (
-        <PlainDisplay
-          key={plan._id}
-          plan={plan}
+        <PlainDisplay key={plan._id} plan={plan}
           setPlan={(updatedPlan) => {
             setPlans(plans.map(p => p._id === plan._id ? updatedPlan : p));
           }}
@@ -534,8 +550,7 @@ const AdminSubscription = () => {
             <p className='text-base text-Secondary2 text-center mt-2 mx-auto max-w-[270px] '>Are you sure you want to update your subscription plan Details?</p>
 
             <div className="flex justify-between gap-5 mt-5 lg:mt-9">
-              <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 rounded-md w-full"
-                onClick={() => setShowLogoutModal2(false)}>
+              <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 rounded-md w-full" onClick={() => setShowLogoutModal2(false)}>
                 Cancel
               </button>
               <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full" onClick={updateComparisonFeatures}>

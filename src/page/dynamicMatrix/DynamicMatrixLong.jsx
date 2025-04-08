@@ -106,13 +106,10 @@ const DynamicMatrixLong = () => {
   const [dynamicNextGameKey, setDynamicNextGameKey] = useState(appContext.dynamicNextGameShortKey);
 
 
-  // Determine how many rows to show
-  const visibleRows = showAllRows ? LevelTable.length : 5; // Show 5 rows initially
-
   // Table 6 level Visible Condtion 
   const visibleLevels = showAll
-    ? Math.max(appContext.longMatrixLength, Object.keys(levels).length) // Show all
-    : Math.min(5, Math.max(appContext.longMatrixLength, Object.keys(levels).length)); // Show only first 6
+    ? Math.max(appContext.longMatrixLength, Object.keys(levels).length)
+    : Math.min(5, Math.max(appContext.longMatrixLength, Object.keys(levels).length));
 
   // Call API only if firstKey exists and API hasn't been called yet
   if (firstKey && !selectedName) {
@@ -135,7 +132,11 @@ const DynamicMatrixLong = () => {
           dynamicShortKey: response.data.data, // Store static key in context
         }));
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // Get Admin This Page Access For Admin Api 
@@ -153,11 +154,14 @@ const DynamicMatrixLong = () => {
           dynamicNextGameShortKey: response.data.data, // Store static key in context
         }));
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
-  // Matrix List Section Api Call Section  
-  // Get Matrix List  Api
+  // Get Matrix List Api && Matrix List Section Api Call Section
   async function getMatrixFromAPI() {
     let temp = {}
     try {
@@ -182,10 +186,7 @@ const DynamicMatrixLong = () => {
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
     }
   }
@@ -203,10 +204,7 @@ const DynamicMatrixLong = () => {
         await getMatrixFromAPI()
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
     }
   }
@@ -226,10 +224,7 @@ const DynamicMatrixLong = () => {
       return response
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
     }
   }
@@ -261,10 +256,7 @@ const DynamicMatrixLong = () => {
           }
         } catch (error) {
           if (error.message.includes('Network Error')) {
-            setMsgM1({
-              type: "error",
-              msg: 'Could not connect to the server. Please check your connection.'
-            });
+            setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
           }
         }
       },
@@ -287,10 +279,7 @@ const DynamicMatrixLong = () => {
         setNewName('');
       } catch (error) {
         if (error.message.includes('Network Error')) {
-          setMsgM1({
-            type: "error",
-            msg: 'Could not connect to the server. Please check your connection.'
-          });
+          setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
         }
       }
     }
@@ -299,10 +288,7 @@ const DynamicMatrixLong = () => {
   // Dropdown Edit Name Function
   const handleEditNameChange = (e) => {
     if (e.target.value.length > 25) {
-      setMsgM1({
-        type: "error",
-        msg: "length should be less than 25"
-      })
+      setMsgM1({ type: "error", msg: "length should be less than 25" })
       return
     }
     setEditName(e.target.value);
@@ -338,10 +324,10 @@ const DynamicMatrixLong = () => {
         await getSingleLevelAPI(response.data.data[0]._id);
 
       } else {
-        setStaticLevelDefaultValue([]); // Handle invalid response
+        setStaticLevelDefaultValue([]);
       }
     } catch (error) {
-      setStaticLevelDefaultValue([]); // Reset to empty array on error
+      setStaticLevelDefaultValue([]);
     }
   }
 
@@ -357,14 +343,16 @@ const DynamicMatrixLong = () => {
       if (response.status === 200 && Array.isArray(response.data.data)) {
         const formattedData = response.data.data.map(({ buyingPower, _id }) => ({ buyingPower, _id }));
         setStaticLevelDefaultValue(formattedData);
-
-        // Store values in app context
         appContext.setAppContext((prev) => ({
           ...prev,
           buyingPowerDynamicLong: formattedData.map((item) => item.buyingPower),
         }));
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // Get Single level
@@ -400,6 +388,9 @@ const DynamicMatrixLong = () => {
       }
       return null;
     } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
     }
   }
 
@@ -412,13 +403,10 @@ const DynamicMatrixLong = () => {
         },
       });
       if (response.status === 200) {
-        // Apply saved matrix data if it exists
         setSelectedValue(response.data.data.spread ?? 5);
         setAllocation(response.data.data.allocation ?? defaultAllocation);
         setCommission(response.data.data.commission ?? defaultCommission);
         setOriginalSize(response.data.data.originalSize ?? 5000);
-
-        // Convert levels array to object format (level1, level2, etc.)
         const savedLevelsObject = response.data.data.levels.reduce((obj, level) => {
           obj[level.level] = {
             value: level.value || 0,
@@ -458,10 +446,7 @@ const DynamicMatrixLong = () => {
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
       return false
     }
@@ -470,22 +455,19 @@ const DynamicMatrixLong = () => {
   // Matrix Save Data Api
   const handleSaveMatrix = async () => {
     if (!selectedName) {
-      setMsgM4({
-        type: "error",
-        msg: "Please select one of matrix from dropdown"
-      });
+      setMsgM4({ type: "error", msg: "Please select one of matrix from dropdown" });
       return;
     }
     const arrayDataWithKeys = Object.entries(levels).map(([level, value]) => ({
       level,
-      value: Number(value.value),  // Ensure value is a number
+      value: Number(value.value),
       active: value.active,
-      premium: Number(value.premium) || 0, // Include premium, default to 0 if missing
-      stopLevel: Number(value.stopLevel) || 0, // Include stopLevel
+      premium: Number(value.premium) || 0,
+      stopLevel: Number(value.stopLevel) || 0,
       levelSpread: Number(value.levelSpread) || selectedValue,
-      fullIcClose: value.fullIcClose || false, // Include fullIcClose (default false)
-      oneSideClose: value.oneSideClose || false, // Include oneSideClose (default false)
-      outSide: value.outSide || false // Include outSide (default false)
+      fullIcClose: value.fullIcClose || false,
+      oneSideClose: value.oneSideClose || false,
+      outSide: value.outSide || false
     }));
 
     const LevelData = {
@@ -519,17 +501,11 @@ const DynamicMatrixLong = () => {
         }
       });
       if (response.status === 201) {
-        setMsgM4({
-          type: "info",
-          msg: "Matrix saved successfully"
-        });
+        setMsgM4({ type: "info", msg: "Matrix saved successfully" });
       }
     } catch (error) {
       if (error.message.includes("Network Error")) {
-        setMsgM1({
-          type: "error",
-          msg: "Could not connect to the server. Please check your connection."
-        });
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
     }
   };
@@ -572,7 +548,6 @@ const DynamicMatrixLong = () => {
   function ShiftMatrix() {
     let temp = { ...levels };
     let levelKeys = Object.keys(temp);
-    // Check if shifting is possible
     let hasChecked = levelKeys.some(key => temp[key].active);
     let hasValues = levelKeys.some(key => temp[key].value > 0);
     let onlyLastLevelHasValue =
@@ -591,7 +566,6 @@ const DynamicMatrixLong = () => {
     levelKeys.forEach((key, index) => {
       let currentCheck = temp[key].active;
       let currentValue = temp[key].value;
-      // Shift checkmark and value
       temp[key].active = prevCheck;
       temp[key].value = prevValue;
       prevCheck = currentCheck;
@@ -687,8 +661,6 @@ const DynamicMatrixLong = () => {
       ...levels,
       [level]: { ...levels[level], [field]: (currentValue + DefaultInDeCrement).toFixed(2) }
     });
-
-    // Clear error state when the value is valid
     setErrorState(prevState => ({ ...prevState, [level]: false }));
   };
 
@@ -721,10 +693,7 @@ const DynamicMatrixLong = () => {
 
   const handleInputChange = (level, value) => {
     if (isNaN(value) || (value || "").includes(".") || (value < 0)) {
-      setMsgM3({
-        type: "error",
-        msg: "Only positive number should allow"
-      })
+      setMsgM3({ type: "error", msg: "Only positive number should allow" })
       return
     }
     setLevels({
@@ -743,32 +712,18 @@ const DynamicMatrixLong = () => {
   // Handle change for Premium Level input
   const handlePremiumLevelChange = (level, value) => {
     const numericValue = Number(value);
-
     if (numericValue <= 10) {
-      // Update the premium value when it's valid
       setLevels({
         ...levels,
         [level]: { ...levels[level], premium: value }
       });
-
-      // Clear the error message if the value is valid
-      setMsgM3({
-        type: "",
-        msg: ""
-      });
-
+      setMsgM3({ type: "", msg: "" });
       setTimeout(() => {
         setErrorState(prevState => ({ ...prevState, [level]: false }));
         setMsgM3({ type: "", msg: "" });
-      }, 3000); // 4 seconds delay
+      }, 3000);
     } else {
-      // If the value is more than 10, set the error state and show the error message
-      setMsgM3({
-        type: "error",
-        msg: "Value must be less than or equal to 10"
-      });
-
-      // Set the error state to true
+      setMsgM3({ type: "error", msg: "Value must be less than or equal to 10" });
       setErrorState(prevState => ({ ...prevState, [level]: true }));
     }
   };
@@ -1051,18 +1006,15 @@ const DynamicMatrixLong = () => {
   };
 
   const handleNameClick = (key) => {
-    setSelectedName(key); // Set the clicked name as the selected one
-    setDropdownVisible(false); // Hide the dropdown after selection
+    setSelectedName(key);
+    setDropdownVisible(false);
     sessionStorage.setItem('dyLongMatrix', JSON.stringify(key));
   };
 
   const handleNewNameChange = (e) => {
     const value = e.target.value;
     if (value.length > 25) {
-      setMsgM1({
-        type: "error",
-        msg: "Length should be less than 25",
-      });
+      setMsgM1({ type: "error", msg: "Length should be less than 25", });
       return;
     }
     setNewName(value);

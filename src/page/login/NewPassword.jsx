@@ -23,42 +23,27 @@ const NewPassword = () => {
 
   async function setNewPassword() {
     if ((!appContext.email) || (!appContext.otp)) {
-      setMsg({
-        type: "error",
-        msg: "Something went wrong please try again"
-      });
+      setMsg({ type: "error", msg: "Something went wrong please try again" });
       return false
     }
     if (password1 !== password2) {
-      setMsg({
-        type: "error",
-        msg: "Passwords do not match"
-      });
+      setMsg({ type: "error", msg: "Passwords do not match" });
       return false
     }
     if (!PASSWORD_REGEX.test(password1)) {
-      setMsg({
-        type: "error",
-        msg: `Password should be at least 1 upper, 1 lower, 1 special character, 1 digit, length min 8 - max 30`
-      })
+      setMsg({ type: "error", msg: "Password should be at least 1 upper, 1 lower, 1 special character, 1 digit, length min 8 - max 30" })
       return false
     }
-    // API call to set new password
+    
     try {
       let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_RESET_PASSWORD_URL), { email: appContext.email, password: password1, confirmPassword: password2, otp: appContext.otp })
       if (response.status === 201) {
-        setMsg({
-          type: "info",
-          msg: "Password reset successfully"
-        });
+        setMsg({ type: "info", msg: "Password reset successfully" });
         navigate("/")
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsg({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
       }
     }
   }

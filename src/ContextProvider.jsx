@@ -24,7 +24,6 @@ export default function ContextProvider() {
       slackID: '',
       phone: '',
       email: '',
-      profilePhoto: "",
       theme: "",
     },
     signupData: {
@@ -57,7 +56,6 @@ export default function ContextProvider() {
     selectedUser: null,
     shortMatrixLength: 6,
     longMatrixLength: 12,
-    planToPurchase: null,
   });
 
   return (<>

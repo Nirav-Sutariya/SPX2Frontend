@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useRef, useState, useEffect } from 'react';
-import Manimg from '../assets/Images/Manimg.png';
+import Man from '../assets/Images/Man.png';
 import PlusIcon from '../assets/svg/PlusIcon.svg';
 import BanIcon from '../assets/Images/UserData/BanIcon.svg';
 import ProfilePicture from '../assets/svg/ProfilePicture.svg';
@@ -19,7 +19,7 @@ const MAX_FILE_SIZE = 1
 
 const UserData = () => {
 
-  const rowsLimit = 10;
+  const rowsLimit = 20;
   let navigate = useNavigate();
   const emailRef = useRef(null);
   const phoneRef = useRef(null);
@@ -498,7 +498,7 @@ const UserData = () => {
                 userList.map((item, index) => (
                   <tr key={index} >
                     <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-borderColor">{totalCount - ((currentPage - 1) * rowsLimit + index)}</td>
-                    <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor"><span className='flex items-center gap-3'><img src={item.profilePicture ? item.profilePicture : Manimg} className='w-8 h-8 rounded-full object-cover' alt="" /> {item.firstName}</span> </td>
+                    <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor"><span className='flex items-center gap-3'><img src={item.profilePicture ? item.profilePicture : Man} className='w-8 h-8 rounded-full object-cover' alt="" /> {item.firstName}</span> </td>
                     <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor">{item.email}</td>
                     <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor">{item.phoneNo || "-"}</td>
                     <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor">{item?.subscriptionDetails?.subscriptionName || "-"}</td>
@@ -546,7 +546,7 @@ const UserData = () => {
                                 email: item.email,
                                 phone: item.phoneNo,
                                 slackID: item.slackId,
-                                selectedImage: (item.profilePicture ? item.profilePicture : Manimg),
+                                selectedImage: (item.profilePicture ? item.profilePicture : Man),
                                 activePlanView: item?.subscriptionDetails?.subscriptionName || "-"
                               }
                             })

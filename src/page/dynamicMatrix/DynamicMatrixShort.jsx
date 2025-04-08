@@ -21,8 +21,8 @@ import { defaultDynamicTradePrice, defaultCommission, defaultAllocation, Default
 
 const DynamicMatrixShort = () => {
 
-  const MINIMUM_VALUE = 0; // Define the minimum value
-  const MAXIMUM_VALUE = 999; // Define the maximum value
+  const MINIMUM_VALUE = 0;
+  const MAXIMUM_VALUE = 999;
   const menuRef = useRef(null);
   const dropdownRef = useRef(null);
   const containerRef = useRef(null);
@@ -104,12 +104,12 @@ const DynamicMatrixShort = () => {
   const [dynamicNextGameKey, setDynamicNextGameKey] = useState(appContext.dynamicNextGameLongKey);
 
   // Determine how many rows to show
-  const visibleRows = showAllRows ? LevelTable.length : 5; // Show 5 rows initially
+  const visibleRows = showAllRows ? LevelTable.length : 5
 
   // Table 6 level Visible Condtion 
   const visibleLevels = showAll
-    ? Math.max(appContext.shortMatrixLength, Object.keys(levels).length) // Show all
-    : Math.min(5, Math.max(appContext.shortMatrixLength, Object.keys(levels).length)); // Show only first 6
+    ? Math.max(appContext.shortMatrixLength, Object.keys(levels).length)
+    : Math.min(5, Math.max(appContext.shortMatrixLength, Object.keys(levels).length));
 
   // Call API only if firstKey exists and API hasn't been called yet
   if (firstKey && !selectedName) {
@@ -129,10 +129,14 @@ const DynamicMatrixShort = () => {
         setDynamicKey(response.data.data);
         appContext.setAppContext((curr) => ({
           ...curr,
-          dynamicLongKey: response.data.data, // Store static key in context
+          dynamicLongKey: response.data.data,
         }));
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // Get Admin This Page Access For Admin Api 
@@ -147,14 +151,17 @@ const DynamicMatrixShort = () => {
         setDynamicNextGameKey(response.data.data);
         appContext.setAppContext((curr) => ({
           ...curr,
-          dynamicNextGameLongKey: response.data.data, // Store static key in context
+          dynamicNextGameLongKey: response.data.data,
         }));
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
-  // Matrix List Section Api Call Section  
-  // Get Matrix List  Api
+  // Get Matrix List Api && Matrix List Section Api Call Section  
   async function getMatrixFromAPI() {
     let temp = {}
     try {
@@ -164,13 +171,12 @@ const DynamicMatrixShort = () => {
         }
       })
       if (response.status === 200) {
-        let data = response.data.data; // Extract actual data array
+        let data = response.data.data;
         if (Array.isArray(data)) {
           data.forEach(item => {
-            temp[item._id] = item.matrixName; // Store ID and Name correctly
+            temp[item._id] = item.matrixName;
           });
         }
-
         appContext.setAppContext(curr => ({
           ...curr,
           namesDynamicShort: temp,
@@ -179,10 +185,7 @@ const DynamicMatrixShort = () => {
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
     }
   }
@@ -200,10 +203,7 @@ const DynamicMatrixShort = () => {
         await getMatrixFromAPI()
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
     }
   }
@@ -223,10 +223,7 @@ const DynamicMatrixShort = () => {
       return response
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
     }
   }
@@ -239,39 +236,31 @@ const DynamicMatrixShort = () => {
       message: "Are you sure you want to delete this Matrix?",
       onConfirm: async () => {
         try {
-          // Perform the axios delete request using the key or editIndex
           let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_DELETE_DYNAMIC_MATRIX_URL), { userId: getUserId(), dynamicMatrixId: key }, {
             headers: {
               'x-access-token': getToken()
             }
           })
 
-          // Handle successful deletion response
           if (response.status === 200) {
             setMsgM1({ type: "info", msg: 'Matrix was deleted...' });
-            // Remove the matrix from the state (update the names object)
             const updatedNames = { ...names };
-            delete updatedNames[key]; // Delete the specific matrix by key
-            setNames(updatedNames); // Update the state
+            delete updatedNames[key];
+            setNames(updatedNames);
             setSelectedName(Object.keys(updatedNames)[0])
-
-            // Close the modal and reset relevant states
             setEditIndex(null);
             setEditName('');
             setDropdownVisible(false);
-            setShowModal(false); // Close the modal
+            setShowModal(false);
           }
         } catch (error) {
           if (error.message.includes('Network Error')) {
-            setMsgM1({
-              type: "error",
-              msg: 'Could not connect to the server. Please check your connection.'
-            });
+            setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
           }
         }
       },
     });
-    setShowModal(true); // Show the modal for confirmation
+    setShowModal(true);
   };
 
   // Edit Name Function
@@ -289,10 +278,7 @@ const DynamicMatrixShort = () => {
         setNewName('');
       } catch (error) {
         if (error.message.includes('Network Error')) {
-          setMsgM1({
-            type: "error",
-            msg: 'Could not connect to the server. Please check your connection.'
-          });
+          setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
         }
       }
     }
@@ -301,10 +287,7 @@ const DynamicMatrixShort = () => {
   // Dropdown Edit Name Function
   const handleEditNameChange = (e) => {
     if (e.target.value.length > 25) {
-      setMsgM1({
-        type: "error",
-        msg: "length should be less than 25"
-      })
+      setMsgM1({ type: "error", msg: "length should be less than 25" })
       return
     }
     setEditName(e.target.value);
@@ -345,7 +328,9 @@ const DynamicMatrixShort = () => {
         setStaticLevelDefaultValue([]); // Handle invalid response
       }
     } catch (error) {
-      console.error("Error fetching allocation levels:", error);
+      if (error.message.includes('Network Error')) {
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
       setStaticLevelDefaultValue([]); // Reset to empty array on error
     }
   }
@@ -361,14 +346,16 @@ const DynamicMatrixShort = () => {
       if (response.status === 200 && Array.isArray(response.data.data)) {
         const formattedData = response.data.data.map(({ buyingPower, _id }) => ({ buyingPower, _id }));
         setStaticLevelDefaultValue(formattedData);
-
-        // Store values in app context
         appContext.setAppContext((prev) => ({
           ...prev,
           buyingPowerDynamicShort: formattedData.map((item) => item.buyingPower),
         }));
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // Get Single level
@@ -382,8 +369,6 @@ const DynamicMatrixShort = () => {
 
       if (response.status === 200 && response.data.status === 1) {
         const levelData = response.data.data;
-
-        // Extract only level fields (level1, level2, etc.)
         const levelsOnly = Object.keys(levelData)
           .filter((key) => key.startsWith('level'))
           .reduce((obj, key) => {
@@ -404,7 +389,9 @@ const DynamicMatrixShort = () => {
       }
       return null;
     } catch (error) {
-      console.error("API Request Failed:", error);
+      if (error.message.includes('Network Error')) {
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
     }
   }
 
@@ -417,13 +404,10 @@ const DynamicMatrixShort = () => {
         },
       });
       if (response.status === 200) {
-        // Apply saved matrix data if it exists
         setSelectedValue(response.data.data.spread ?? 5);
         setAllocation(response.data.data.allocation ?? defaultAllocation);
         setCommission(response.data.data.commission ?? defaultCommission);
         setOriginalSize(response.data.data.originalSize ?? 5000);
-
-        // Convert levels array to object format (level1, level2, etc.)
         const savedLevelsObject = response.data.data.levels.reduce((obj, level) => {
           obj[level.level] = {
             value: level.value || 0,
@@ -464,10 +448,7 @@ const DynamicMatrixShort = () => {
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
       return false
     }
@@ -476,22 +457,19 @@ const DynamicMatrixShort = () => {
   // Matrix Save Data Api
   const handleSaveMatrix = async () => {
     if (!selectedName) {
-      setMsgM4({
-        type: "error",
-        msg: "Please select one of matrix from dropdown"
-      });
+      setMsgM4({ type: "error", msg: "Please select one of matrix from dropdown" });
       return;
     }
     const arrayDataWithKeys = Object.entries(levels).map(([level, value]) => ({
       level,
-      value: Number(value.value),  // Ensure value is a number
+      value: Number(value.value),
       active: value.active,
-      premium: Number(value.premium) || 0, // Include premium, default to 0 if missing
+      premium: Number(value.premium) || 0,
       levelSpread: Number(value.levelSpread) || selectedValue,
-      stopLevel: Number(value.stopLevel) || 0, // Include stopLevel
-      fullIcClose: value.fullIcClose || false, // Include fullIcClose (default false)
-      oneSideClose: value.oneSideClose || false, // Include oneSideClose (default false)
-      outSide: value.outSide || false // Include outSide (default false)
+      stopLevel: Number(value.stopLevel) || 0,
+      fullIcClose: value.fullIcClose || false,
+      oneSideClose: value.oneSideClose || false,
+      outSide: value.outSide || false
     }));
 
     const LevelData = {
@@ -528,11 +506,8 @@ const DynamicMatrixShort = () => {
         setMsgM4({ type: "info", msg: "Matrix saved successfully" });
       }
     } catch (error) {
-      if (error.message.includes("Network Error")) {
-        setMsgM1({
-          type: "error",
-          msg: "Could not connect to the server. Please check your connection."
-        });
+      if (error.message.includes('Network Error')) {
+        setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
     }
   };
@@ -575,26 +550,21 @@ const DynamicMatrixShort = () => {
   function ShiftMatrix() {
     let temp = { ...levels };
     let levelKeys = Object.keys(temp);
-    // Check if shifting is possible
     let hasChecked = levelKeys.some(key => temp[key].active);
     let hasValues = levelKeys.some(key => temp[key].value > 0);
     let onlyLastLevelHasValue =
       temp[levelKeys[levelKeys.length - 1]].value > 0 &&
       levelKeys.slice(0, -1).every(key => temp[key].value === 0);
     if (!hasChecked || !hasValues || onlyLastLevelHasValue) {
-      setMsgM3({
-        type: "error",
-        msg: "Shift can't be performed due to selection or value conditions."
-      });
+      setMsgM3({ type: "error", msg: "Shift can't be performed due to selection or value conditions." });
       return;
     }
     // Perform the shift operation
     let prevCheck = false;
     let prevValue = 0;
-    levelKeys.forEach((key, index) => {
+    levelKeys.forEach((key) => {
       let currentCheck = temp[key].active;
       let currentValue = temp[key].value;
-      // Shift checkmark and value
       temp[key].active = prevCheck;
       temp[key].value = prevValue;
       prevCheck = currentCheck;
@@ -668,29 +638,19 @@ const DynamicMatrixShort = () => {
 
   const handleIncrement = (level, field) => {
     const currentValue = Number(levels[level][field]);
-    // If the value exceeds 10, set an error and change background color to red
     if (currentValue >= 9.99) {
-      setMsgM3({
-        type: "error",
-        msg: "Value must be less than or equal to 10"
-      });
-      setErrorState(prevState => ({ ...prevState, [level]: true })); // Set error state to true
-
+      setMsgM3({ type: "error", msg: "Value must be less than or equal to 10"  });
+      setErrorState(prevState => ({ ...prevState, [level]: true }));
       setTimeout(() => {
         setMsgM3({ type: "", msg: "" });
         setErrorState(prevState => ({ ...prevState, [level]: false }));
       }, 3000);
-
       return;
     }
-
-    // Increment value when it's less than or equal to 10
     setLevels({
       ...levels,
       [level]: { ...levels[level], [field]: (currentValue + DefaultInDeCrement).toFixed(2) }
     });
-
-    // Clear error state when the value is valid
     setErrorState(prevState => ({ ...prevState, [level]: false }));
   };
 
@@ -716,17 +676,14 @@ const DynamicMatrixShort = () => {
       ...levels,
       [level]: {
         ...levels[level],
-        [field]: Math.max(0, (Number(levels[level][field]) || 0) - DefaultInDeCrement).toFixed(2) // Ensure value doesn't go below 1
+        [field]: Math.max(0, (Number(levels[level][field]) || 0) - DefaultInDeCrement).toFixed(2)
       }
     });
   };
 
   const handleInputChange = (level, value) => {
     if (isNaN(value) || (value || "").includes(".") || (value < 0)) {
-      setMsgM3({
-        type: "error",
-        msg: "Only positive number should allow"
-      })
+      setMsgM3({ type: "error",  msg: "Only positive number should allow" })
       return
     }
     setLevels({
@@ -745,32 +702,18 @@ const DynamicMatrixShort = () => {
   // Handle change for Premium Level input
   const handlePremiumLevelChange = (level, value) => {
     const numericValue = Number(value);
-
     if (numericValue <= 10) {
-      // Update the premium value when it's valid
       setLevels({
         ...levels,
         [level]: { ...levels[level], premium: value }
       });
-
-      // Clear the error message if the value is valid
-      setMsgM3({
-        type: "",
-        msg: ""
-      });
-
+      setMsgM3({ type: "", msg: "" });
       setTimeout(() => {
         setErrorState(prevState => ({ ...prevState, [level]: false }));
         setMsgM3({ type: "", msg: "" });
-      }, 3000); // 4 seconds delay
+      }, 3000); 
     } else {
-      // If the value is more than 10, set the error state and show the error message
-      setMsgM3({
-        type: "error",
-        msg: "Value must be less than or equal to 10"
-      });
-
-      // Set the error state to true
+      setMsgM3({ type: "error", msg: "Value must be less than or equal to 10" });
       setErrorState(prevState => ({ ...prevState, [level]: true }));
     }
   };
@@ -1106,8 +1049,8 @@ const DynamicMatrixShort = () => {
   };
 
   const handleNameClick = (key) => {
-    setSelectedName(key); // Set the clicked name as the selected one
-    setDropdownVisible(false); // Hide the dropdown after selection
+    setSelectedName(key); 
+    setDropdownVisible(false);
     sessionStorage.setItem('dyShortMatrix', JSON.stringify(key));
     getSPXMatrixAPI(key);
   };
@@ -1162,21 +1105,18 @@ const DynamicMatrixShort = () => {
       ...prevLevels,
       [levelKey]: {
         ...prevLevels[levelKey],
-        levelSpread: value, // Store selected value per level
+        levelSpread: value,
       },
     }));
   };
 
-  // Handle Spread Dropdwon
+  // Handle Spread Dropdown
   const handleChange = (event) => {
     const newValue = event.target.value;
-
-    // Reset buyingPowerStatic to prevent stale data
     appContext.setAppContext((prev) => ({
       ...prev,
-      buyingPowerStatic: [], // Clear previous data
+      buyingPowerStatic: [],
     }));
-
     setSelectedValue(newValue);
   };
 

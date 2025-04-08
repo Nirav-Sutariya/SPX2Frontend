@@ -125,8 +125,8 @@ function DynamicLongCalculations({ savedData, nextGamePlan, DynamicShowHandel })
         return [...pre, "Level " + (index + 1)]
       })
 
-      let t = (levels[level]?.active ? levels[level].value : 0) || 0;  // Contract
-      let tradePrice = levels[level].premium || 0  // tradePrice
+      let t = (levels[level]?.active ? levels[level].value : 0) || 0;
+      let tradePrice = levels[level].premium || 0
       let stopPrice = levels[level].stopLevel || 0
 
       setContractsTable((pre) => {
@@ -188,7 +188,7 @@ function DynamicLongCalculations({ savedData, nextGamePlan, DynamicShowHandel })
 
       let lossData = 0
 
-      if (obj.active) {  // Check if the level is active
+      if (obj.active) {
         if (obj.outSide) {
           lossData = 0 - debitValue - commissionData;
         } else if (stopData > 0 && (obj.fullICClose || obj.oneSideClose)) {
@@ -207,7 +207,6 @@ function DynamicLongCalculations({ savedData, nextGamePlan, DynamicShowHandel })
 
       const previousValueData = seriesGainRefValue.current[index - 1] || 0;
       let CumulativeLossTable = 0;
-
       let previousStateCumulativeLossData = previousValueData === 0 ? ((CumulativeLossTable[index - 1] === 0 ? lossData : CumulativeLossTable[index - 1]) || 0) : (previousValueData < 0 ? (previousValueData) : 0);
 
       if (lossData < 0) {
@@ -218,7 +217,6 @@ function DynamicLongCalculations({ savedData, nextGamePlan, DynamicShowHandel })
       });
 
       cumulativeLossRef.current = [...cumulativeLossRef.current, previousStateCumulativeLossData];
-
       let seriesGainLossData = 0;
       seriesGainLossData = (profitData > 0 ? profitData : lossData) + (seriesGainRefValue.current[index - 1] || 0)
 
@@ -227,7 +225,6 @@ function DynamicLongCalculations({ savedData, nextGamePlan, DynamicShowHandel })
       });
 
       seriesGainRefValue.current = [...SeriesGainLossTable, seriesGainLossData]
-
       let AfterWinData = 0;
       AfterWinData = parseFloat(currentAllocation) + seriesGainLossData;
 

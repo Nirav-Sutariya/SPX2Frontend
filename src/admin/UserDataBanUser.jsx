@@ -1,5 +1,5 @@
 import React, { useState, useContext, useRef, useEffect, useMemo } from 'react';
-import ManImg from '../assets/Images/Manimg.png';
+import ManImg from '../assets/Images/Man.png';
 import DropdownIcon from '../assets/svg/DropdownIcon.svg';
 import BanIcon from '../assets/Images/UserData/BanIcon.svg';
 import ActionIcon from '../assets/Images/UserData/ActionIcon.svg';

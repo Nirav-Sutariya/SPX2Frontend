@@ -25,39 +25,25 @@ const SignUp = () => {
   const [msg, setMsg] = useState({ type: "", msg: "", });
   const [showPassword, setShowPassword] = useState(false);
 
+  
   function validateFormData() {
     if (first_name === "" || email1 === "" || email2 === "" || password === "") {
-      setMsg({
-        type: "error",
-        msg: "Please fill all the fields"
-      });
+      setMsg({ type: "error", msg: "Please fill all the fields" });
       return false
     }
 
     if (first_name.split(" ").length !== 2 || first_name.split(" ")[0].length < 3 || first_name.split(" ")[1].length < 1 || (/\d/.test(first_name))) {
-      setMsg({
-        type: "error",
-        msg: "Please full name (fname lname)"
-      });
+      setMsg({ type: "error", msg: "Please full name (fname lname)" });
       return false
     }
 
     else if (validateEmail(email1) === false) {
-      setMsg({
-        type: "error",
-        msg: "Please enter valid email id"
-      })
+      setMsg({ type: "error", msg: "Please enter valid email id" })
     }
     else if (email1.toLowerCase() !== email2.toLowerCase())
-      setMsg({
-        type: "error",
-        msg: "Email id not match"
-      })
+      setMsg({ type: "error", msg: "Email id not match" })
     else if (!PASSWORD_REGEX.test(password)) {
-      setMsg({
-        type: "error",
-        msg: `Password should be at least 1 upper, 1 lower, 1 special character, 1 digit, length min 8 - max 30`
-      })
+      setMsg({ type: "error", msg: "Password should be at least 1 upper, 1 lower, 1 special character, 1 digit, length min 8 - max 30" })
     } else
       return true
     return false
@@ -67,23 +53,14 @@ const SignUp = () => {
     e.preventDefault();
     if (validateFormData()) {
       try {
-        setMsg({
-          type: "info",
-          msg: "Please wait we are processing your request"
-        })
+        setMsg({ type: "info", msg: "Please wait we are processing your request" })
         let response = await axios.post((process.env.REACT_APP_BASE_URL + process.env.REACT_APP_RESET_RESUEST_URL), { email: email1.toLocaleLowerCase() })
         if (response.status === 200) {
-          setMsg({
-            type: "error",
-            msg: "email id is already exists"
-          })
+          setMsg({ type: "error", msg: "email id is already exists" })
           return false
         }
         if (response.status !== 200) {
-          setMsg({
-            type: "error",
-            msg: "Something went wrong"
-          })
+          setMsg({ type: "error", msg: "Something went wrong" })
           return false
         }
       } catch (error) {
@@ -97,17 +74,11 @@ const SignUp = () => {
               password: password,
             },
           }))
-          setMsg({
-            type: "info",
-            msg: "Please check signup otp we have sent on email id"
-          })
+          setMsg({ type: "info", msg: "Please check signup otp we have sent on email id" })
           navigate("/email-verification")
         }
         if (error.message.includes('Network Error')) {
-          setMsg({
-            type: "error",
-            msg: 'Could not connect to the server. Please check your connection.'
-          });
+          setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
         }
       }
     }
@@ -127,9 +98,8 @@ const SignUp = () => {
   };
 
   const handleNameChange = (e) => {
-    const regex = /^[a-zA-Z\s]*$/; // Regular expression to allow only alphabets and spaces
+    const regex = /^[a-zA-Z\s]*$/;
     const value = e.target.value;
-
     if (!regex.test(value)) {
       setMsg({
         type: "error",
@@ -137,9 +107,8 @@ const SignUp = () => {
       });
       return;
     }
-
     setFirst_Name(value);
-    setMsg({ type: "", msg: "" }); // Clear the error message if input is valid
+    setMsg({ type: "", msg: "" });
   };
 
   return (

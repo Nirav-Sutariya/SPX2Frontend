@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useState } from 'react';
-import Manimg from '../assets/Images/Manimg.png';
+import Man from '../assets/Images/Man.png';
 import DateIcon from '../assets/Images/SuperDashboard/DateIcon.svg';
 import EmailIcon from '../assets/Images/SuperDashboard/EmailIcon.svg';
 import ProfileIcon from '../assets/Images/SuperDashboard/ProfileIcon.svg';
@@ -26,10 +26,10 @@ const SupportUser = () => {
         }
       })
       if (response.status === 200) {
-        const data = response.data?.data || []; // Ensure it's an array
+        const data = response.data?.data || [];
         appContext.setAppContext((curr) => ({
           ...curr,
-          supportUserData: data, // Store the array
+          supportUserData: data,
         }));
         setSupportUserData(data);
       }
@@ -67,6 +67,9 @@ const SupportUser = () => {
     setSelectedUser(null);
   };
 
+  console.log("supportUserData", supportUserData);
+  
+
 
   return (
     <div className='px-5 lg:pl-10 lg:px-6 mb-10 h-auto'>
@@ -95,7 +98,7 @@ const SupportUser = () => {
               supportUserData.map((item, index) => (
                 <tr key={index} >
                   <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-borderColor">{index + 1}</td>
-                  <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-x border-borderColor"><span className='flex items-center gap-3'><img src={item.profilePicture ? process.env.REACT_APP_MEDIA_URL + item.profilePicture : Manimg} className='w-8 h-8 rounded-full object-cover' alt="" /> {item.name}</span></td>
+                  <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-x border-borderColor"><span className='flex items-center gap-3'><img src={item.profilePicture ? item.profilePicture : Man} className='w-8 h-8 rounded-full object-cover' alt="" /> {item.name}</span></td>
                   <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-x border-borderColor">{item.email}</td>
                   <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-x border-borderColor"> <a href='#' onClick={() => window.open(item.file)}>Image</a></td>
                   <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-x border-borderColor">{formattedDate(item.createdAt)}</td>

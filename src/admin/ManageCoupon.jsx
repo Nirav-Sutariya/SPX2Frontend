@@ -12,10 +12,12 @@ const ManageCoupon = () => {
   const submitButtonRef = useRef(null);
   let appContext = useContext(AppContext);
   const [msg, setMsg] = useState({ type: "", msg: "", });
+  const [msgM1, setMsgM1] = useState({ type: "", msg: "", });
   const [couponList, setCouponList] = useState(appContext.couponList);
   const [couponList2, setCouponList2] = useState(appContext.couponList2);
   const [coupon, setCoupon] = useState({ name: '', discount: '', maxLimitUse: '', startDate: '', endDate: '' });
 
+  
   // Form Validate function 
   function validateCoupon() {
     if (coupon.name === '' || coupon.discount === '' || coupon.maxLimitUse === '' || coupon.startDate === '' || coupon.endDate === '') {
@@ -59,7 +61,11 @@ const ManageCoupon = () => {
         fetchCouponList()
         fetchCouponList2()
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // Activated Coupons List Api
@@ -77,7 +83,11 @@ const ManageCoupon = () => {
           couponList: response.data.data,
         }));
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // Deactivated Coupons List Api
@@ -95,7 +105,11 @@ const ManageCoupon = () => {
           couponList2: response.data.data,
         }));
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   useMemo(() => {
@@ -273,6 +287,8 @@ const ManageCoupon = () => {
           </tbody>
         </table>
       </div>
+
+      {(msgM1.msg !== "") && <p className={`text-sm mt-2 text-end ${msgM1.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msgM1.msg}.</p>}
     </div>
   );
 }

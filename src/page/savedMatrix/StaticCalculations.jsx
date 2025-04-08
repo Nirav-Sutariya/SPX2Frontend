@@ -56,7 +56,6 @@ function StaticCalculations({ savedData }) {
         setIsFilterModalVisible(false);
       }
     }
-    // Bind the event listener
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -130,7 +129,7 @@ function StaticCalculations({ savedData }) {
         setAllocation(Number(savedData.allocation) || 100);
         setTradePrice(Number(savedData.tradePrice) || 1.6);
         setCommission(Number(savedData.commission) || 5);
-        setLevels(savedData.levels || {}); // Ensure levels is assigned correctly
+        setLevels(savedData.levels || {});
         let tableVisibility = savedData.tableVisibility;
         if (tableVisibility) {
           setShowContracts(tableVisibility.showContracts);
@@ -147,6 +146,7 @@ function StaticCalculations({ savedData }) {
           setShowLossPercentage(tableVisibility.showLossPercentage);
         }
       } catch (error) {
+        console.error("Error fetching user data:", error);
       }
     }
   }, [savedData]);
@@ -164,7 +164,7 @@ function StaticCalculations({ savedData }) {
   useEffect(() => {
     let indx = 0;
     setCumulativeLossTable([])
-    Object.keys(levels).map((level, index) => {
+    Object.keys(levels).map((level) => {
       if (levels[level].active) {
         let t = LossTable.slice(0, indx + 1)
         setCumulativeLossTable((pre) => {
@@ -178,7 +178,7 @@ function StaticCalculations({ savedData }) {
   useEffect(() => {
     let indx = 0;
     setSeriesGainLossTable([])
-    Object.keys(levels).map((level, index) => {
+    Object.keys(levels).map((level) => {
       if (levels[level].active) {
         if (indx === 0) {
           let t = ProfitTable[indx]
@@ -208,7 +208,7 @@ function StaticCalculations({ savedData }) {
     setAfterLossTable([])
     setLossPreTable([])
 
-    Object.keys(levels).map((level, index) => {
+    Object.keys(levels).map((level) => {
       if (levels[level].active) {
         let temp = Number(currentAllocation) + SeriesGainLossTable[indx]
         setAfterWinTable((pre) => {

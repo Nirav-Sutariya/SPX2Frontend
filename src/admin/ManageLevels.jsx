@@ -59,6 +59,7 @@ const ManageLevels = ({ }) => {
         appContext.setAppContext({ ...appContext, shortMatrixLength: data.shortMatrix, longMatrixLength: data.longMatrix })
       }
     } catch (error) {
+      
     }
   }
 

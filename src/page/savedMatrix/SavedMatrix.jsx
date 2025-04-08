@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import MatrixIcon from '../../assets/svg/MatrixIcon.svg';
 import DropdownIcon from '../../assets/svg/DropdownIcon.svg';
 import StaticMatrixIcon from '../../assets/svg/StaticMatrixIcon.svg';
 import DropdownIconWhite from '../../assets/svg/DropDwonIconWite.svg';
-import DynamicMatrixIcon from '../../assets/svg/DynamicMatrixIcon.svg';
+import DynamicMatrixIcon from '../../assets/Images/DynamicMatrix/DynamicMatrixIcon.svg';
 import axios from 'axios';
 import StaticCalculations from './StaticCalculations';
 import DynamicCalculations from './DynamicCalculations';
@@ -21,12 +21,14 @@ const SavedMatrix = () => {
   const [savedData, setSavedData] = useState({});
   const [totalSaved, setTotalSaved] = useState(0);
   const [recordLimit, setRecordLimit] = useState(0);
+  const [msg, setMsg] = useState({ type: "", msg: "", });
   const [selectedName, setSelectedName] = useState(null);
   const [staticMatrix, setStaticMatrix] = useState(false);
   const [dynamicMatrix, setDynamicMatrix] = useState(false);
   const [selectedMatrix, setSelectedMatrix] = useState("static");
   const [selectedStaticOption, setSelectedStaticOption] = useState("short");
   const [selectedDynamicOption, setSelectedDynamicOption] = useState(null);
+
 
   // Subscription By Detail Find on Record Limit
   async function fetchUserSubscription() {
@@ -39,7 +41,11 @@ const SavedMatrix = () => {
       if (response.status === 200) {
         setRecordLimit(response.data.data.recordLimit)
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // Get Total Saved Matrix Count
@@ -53,13 +59,12 @@ const SavedMatrix = () => {
       if (response.status === 200) {
         setTotalSaved(response.data.data)
       }
-
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
-
-  // Toggle dropdowns
-  const toggleDropdown = () => setStaticMatrix((prev) => !prev);
-  const toggleDropdown2 = () => setDynamicMatrix((prev) => !prev);
 
   // Handle Static Matrix selection
   const handleStaticOptionClick = async (option) => {
@@ -95,19 +100,26 @@ const SavedMatrix = () => {
         if (Array.isArray(data)) {
           fetchedData = data;
           data.forEach((item) => {
-            temp[item._id] = item.matrixName; // Store ID and Name
+            temp[item._id] = item.matrixName;
           });
         }
         setNames(temp);
         setSavedData(fetchedData);
       }
     } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
     }
   };
 
-  const toggleMatrix = () => {
-    setMatrix((prev) => !prev);
-  }
+  useMemo(() => {
+    if (msg.type !== "")
+      setTimeout(() => {
+        setMsg({ type: "", msg: "" })
+      }, 20 * 100);
+  }, [msg])
+
 
   useEffect(() => {
     getMatrixFromAPI("static", "short");
@@ -136,7 +148,7 @@ const SavedMatrix = () => {
     <div className='px-3 lg:pl-10 lg:px-6 h-screen sm:h-auto mb-10'>
       <div className='sm:flex'>
         <div className='relative'>
-          <div className='flex items-center gap-3 md:gap-[18px] px-5 lg:px-[30px] py-[10px] mb-3 sm:mt-0 rounded-md sm:rounded-l-md sm:rounded-r-none bg-userBg w-fit lg:max-w-[270px] shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={toggleDropdown}>
+          <div className='flex items-center gap-3 md:gap-[18px] px-5 lg:px-[30px] py-[10px] mb-3 sm:mt-0 rounded-md sm:rounded-l-md sm:rounded-r-none bg-userBg w-fit lg:max-w-[270px] shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setStaticMatrix((prev) => !prev)}>
             <img className='w-5 lg:w-auto' src={StaticMatrixIcon} alt="" />
             <p className='text-sm lg:text-[20px] lg:leading-[30px] font-semibold text-white'>Static Matrix</p>
             <img className='w-3 lg:w-auto' src={DropdownIconWhite} alt="" />
@@ -149,7 +161,7 @@ const SavedMatrix = () => {
           )}
         </div>
         <div className='relative'>
-          <div className='flex items-center gap-3 md:gap-[18px] px-5 lg:px-[30px] py-[10px] rounded-md sm:rounded-r-md sm:rounded-l-none w-fit lg:max-w-[303px] bg-background6 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={toggleDropdown2}>
+          <div className='flex items-center gap-3 md:gap-[18px] px-5 lg:px-[30px] py-[10px] rounded-md sm:rounded-r-md sm:rounded-l-none w-fit lg:max-w-[303px] bg-background6 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setDynamicMatrix((prev) => !prev)}>
             <img className='w-5 lg:w-auto' src={DynamicMatrixIcon} alt="" />
             <p className='text-sm lg:text-[20px] lg:leading-[30px] font-semibold text-Primary'>Dynamic Matrix</p>
             <img className='w-3 lg:w-auto' src={DropdownIcon} alt="" />
@@ -162,10 +174,11 @@ const SavedMatrix = () => {
           )}
         </div>
       </div>
+      {(msg.msg !== "") && <p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msg.msg}.</p>}
 
       <div className='flex flex-wrap justify-between gap-3 lg:gap-5 mt-3 lg:mt-[30px]'>
         <div className='relative max-w-[350px]'>
-          <div className='flex justify-between items-center gap-2 md:gap-3 px-5 py-[9px] rounded-md bg-background6 w-fit max-w-[350px] shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={toggleMatrix}>
+          <div className='flex justify-between items-center gap-2 md:gap-3 px-5 py-[9px] rounded-md bg-background6 w-fit max-w-[350px] shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setMatrix((prev) => !prev)}>
             <span className='flex gap-3'>
               <img className='w-5 lg:w-auto' src={MatrixIcon} alt="" />
               <p className='text-sm lg:text-base font-medium text-Primary'>{names[selectedName] || "Select Matrix"}</p>

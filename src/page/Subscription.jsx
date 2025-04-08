@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useState, useRef, useEffect } from "react";
 import DropdownIcon from "../assets/svg/DropdownIcon.svg";
 import TrueIcon from "../assets/Images/Subscription/TrueIcon.svg";
-import FlaseIcon from "../assets/Images/Subscription/FlaseIcon.svg";
+import FalseIcon from "../assets/Images/Subscription/FalseIcon.svg";
 import True2Icon from "../assets/Images/Subscription/True2Icon.svg";
 import False2Icon from "../assets/Images/Subscription/False2Icon.svg";
 import CancelPlanIcon from "../assets/Images/Subscription/CancelPlanIcon.svg";
@@ -17,9 +17,7 @@ const Subscription = () => {
   const emailRef = useRef(null);
   const couponRef = useRef(null);
   const [msg, setMsg] = useState("");
-  const [plan1, setPlan1] = useState("");
-  const [plan2, setPlan2] = useState("");
-  const [plan3, setPlan3] = useState("");
+  const [plans, setPlans] = useState([]);
   let appContext = useContext(AppContext);
   const [plan, setPlan] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,58 +25,37 @@ const Subscription = () => {
   const [extraLimit, setExtraLimit] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [termsChecked, setTermsChecked] = useState(false);
+  const [msgM1, setMsgM1] = useState({ msg: "", type: "" });
+  const [selectedPlanId, setSelectedPlanId] = useState(null);
   const [showChoosePlanModal, setShowChoosePlanModal] = useState(false);
   const [currentPlan, setCurrentPlan] = useState(appContext.subscription);
   const [isMatrixLimitModalOpen, setMatrixLimitModalOpen] = useState(false);
   const [comparisonFeatures, setComparisonFeatures] = useState(appContext.feature);
   const [email, setEmail] = useState(sessionStorage.getItem("userEmail") || appContext.userData.email);
 
-  // Plan 1 Find Api 
-  async function fetchPlan1() {
-    try {
-      let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_GET_SUBSCRIPTION, { userId: getUserId(), subscriptionPlanId: "67c18ee7467f06eec321a313" }, {
-        headers: {
-          'x-access-token': getToken()
-        }
-      });
-      if (response.status === 200) {
-        setPlan1(response.data.data);
-      }
-    } catch (error) { }
-  }
 
-  // Plan 2 Find Api
-  async function fetchPlan2() {
+  // Find Plan List
+  async function fetchPlan() {
     try {
-      let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_GET_SUBSCRIPTION, { userId: getUserId(), subscriptionPlanId: "67af0b81108e32c80e5b03a0" }, {
+      let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_GET_SUBSCRIPTION_PLAN_LIST, { userId: getUserId() }, {
         headers: {
           'x-access-token': getToken()
         }
       });
       if (response.status === 200) {
-        setPlan2(response.data.data);
+        setPlans(response.data.data);
       }
-    } catch (error) { }
-  }
-
-  // Plan 3 Find Api
-  async function fetchPlan3() {
-    try {
-      let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_GET_SUBSCRIPTION, { userId: getUserId(), subscriptionPlanId: "67af0b81108e32c80e5b03a0" }, {
-        headers: {
-          'x-access-token': getToken()
-        }
-      });
-      if (response.status === 200) {
-        setPlan3(response.data.data);
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
-    } catch (error) { }
+    }
   }
 
   // Get Subscription Purchase Plan
-  async function getPurchasePlan() {
+  async function getPurchasePlan(selectedPlanId) {
     try {
-      let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_PURCHASE_PLAN, { userId: getUserId(), email, subscriptionId: plan2._id, couponName: couponName }, {
+      let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_PURCHASE_PLAN, { userId: getUserId(), email, subscriptionId: selectedPlanId, couponName: couponName }, {
         headers: {
           'x-access-token': getToken()
         }
@@ -86,7 +63,17 @@ const Subscription = () => {
       if (response.status === 200) {
         window.location.href = response.data.data;
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes("Network Error")) {
+        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      } else if (error.response?.status === 404) {
+        const message = error.response?.data?.message || "Coupon not found with given data.";
+        setMsg({ type: "error", msg: message });
+      } else if (error.response?.status === 409) {
+        const message = error.response?.data?.message || "This plan cannot be selected.";
+        setMsgM1({ type: "error", msg: message });
+      }
+    }
   }
 
   // Get Subscription Purchase Extra Record Limit
@@ -100,7 +87,11 @@ const Subscription = () => {
       if (response.status === 200) {
         window.location.href = response.data.data;
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // Comparison Features Get Api 
@@ -115,7 +106,11 @@ const Subscription = () => {
         setComparisonFeatures(response.data.data);
         appContext.setAppContext({ ...appContext, feature: response.data.data });
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // Subscription By Detail Find
@@ -132,7 +127,11 @@ const Subscription = () => {
           return { ...curr, subscription: response.data.data }
         })
       }
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   }
 
   // Cancel Subscription Plan
@@ -140,7 +139,7 @@ const Subscription = () => {
     try {
       let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_CANCEL_USER_SUBSCRIPTION, { userId: getUserId() }, {
         headers: {
-          'x-access-token': `${getToken()}`
+          'x-access-token': getToken()
         }
       })
       if (response.status === 200) {
@@ -151,15 +150,17 @@ const Subscription = () => {
       }
       await fetchUserSubscription();
       setShowModal(false);
-    } catch (error) { }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
   };
 
   useMemo(async () => {
     if (isLoading) {
       await fetchComparisonFeatures();
-      await fetchPlan1();
-      await fetchPlan2();
-      await fetchPlan3();
+      await fetchPlan();
       await fetchUserSubscription();
       setIsLoading(false);
     }
@@ -170,7 +171,11 @@ const Subscription = () => {
       setTimeout(() => {
         setMsg({ type: "", msg: "" });
       }, 20 * 100);
-  }, [msg]);
+    else if (msgM1.type !== "")
+      setTimeout(() => {
+        setMsgM1({ type: "", msg: "" });
+      }, 20 * 100);
+  }, [msg, msgM1]);
 
   useEffect(() => {
     document.body.classList.toggle('no-scroll', showModal || showChoosePlanModal);
@@ -209,27 +214,25 @@ const Subscription = () => {
 
   return (<>
     {isLoading ?
-      <>
-        <div className="flex justify-center items-center h-[100vh]">
-          <div role="status">
-            <svg aria-hidden="true" className="w-14 h-14 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
-              <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
-            </svg>
-            <span className="sr-only">Loading...</span>
-          </div>
+      <div className="flex justify-center items-center h-[100vh]">
+        <div role="status">
+          <svg aria-hidden="true" className="w-14 h-14 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
+          </svg>
+          <span className="sr-only">Loading...</span>
         </div>
-      </>
+      </div>
       :
       <div className="px-3 lg:pl-10 lg:px-6">
         <div className="flex flex-wrap items-center gap-3 sm:gap-5 lg:gap-7">
           <h2 className="text-xl lg:text-[32px] lg:leading-[48px] text-Primary font-semibold"> Subscription </h2>
           <Link to="/subscription-history" className="text-base lg:text-xl font-semibold text-white py-[6px] px-5 sm:px-[30px] rounded-md bg-[#2C7CAC]"> Subscription History </Link>
-          {/* {msg.msg !== "" && (<p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}> {msg.msg}. </p>)} */}
+          {msg.msg !== "" && (<p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}> {msg.msg}. </p>)}
         </div>
 
         {/* Only Current Active Plan Detail Visible on Section */}
-        {currentPlan.subscriptionName === plan2.name && <div className="mt-11 p-5 lg:p-[30px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
+        {currentPlan.subscriptionName === plans[1].name && <div className="mt-11 p-5 lg:p-[30px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
           <div className="flex flex-wrap">
             <div className="sm:border-r border-borderColor sm:max-w-[302px] md:max-w-[352px] lg:max-w-[402px] 2xl:max-w-[552px] w-full pr-4 lg:pr-8">
               <div className="flex items-center gap-5">
@@ -246,10 +249,10 @@ const Subscription = () => {
             </div>
             <div className="mt-5 sm:mt-0 sm:pl-4 md:pl-8">
               <li className="text-sm lg:text-lg font-medium text-Primary mb-[11px]"> Features Included: </li>
-              <p className="text-xs lg:text-base text-Secondary2 mt-1 flex gap-[22px]"><img src={currentPlan.recordLimit === 0 ? FlaseIcon : TrueIcon} alt="" /> Allow To Save {currentPlan.recordLimit > 0 && (currentPlan.recordLimit)} Records </p>
+              <p className="text-xs lg:text-base text-Secondary2 mt-1 flex gap-[22px]"><img src={currentPlan.recordLimit === 0 ? FalseIcon : TrueIcon} alt="" /> Allow To Save {currentPlan.recordLimit > 0 && (currentPlan.recordLimit)} Records </p>
               {currentPlan.subscriptionFeatures.map((item) => (
                 <p key={item.subscriptionFeatureId} className="text-xs lg:text-base text-Secondary2 mt-1 flex gap-[22px]">
-                  <img src={item.available ? TrueIcon : FlaseIcon} alt="Feature Icon" />{item.name}
+                  <img src={item.available ? TrueIcon : FalseIcon} alt="Feature Icon" />{item.name}
                 </p>
               ))}
             </div>
@@ -285,7 +288,7 @@ const Subscription = () => {
             </div>
           </div>
 
-          {((!appContext.superUser) && (currentPlan.subscriptionName === plan2.name)) && (
+          {((!appContext.superUser) && (currentPlan.subscriptionName === plans[1].name)) && (
             <p className="text-xs lg:text-base text-Primary font-medium text-end underline mt-[6px] cursor-pointer" onClick={() => { setShowModal(true); }}> Cancel Plan </p>
           )}
 
@@ -313,68 +316,55 @@ const Subscription = () => {
 
         {/* All 3 Plan */}
         <div className="grid lg:flex lg:flex-none justify-center gap-5 xl:gap-10 mt-4 lg:mt-[30px]">
-          {/* Plan 1 */}
-          <div className="flex flex-col justify-between py-[23px] max-w-[360px] w-full border border-borderColor4 rounded-md bg-background6 shadow-[0px_0px_10px_0px_#2823664D]">
-            <div>
-              <p className="text-base lg:text-xl font-semibold text-Primary p-[5px] lg:p-2 border border-borderColor3 rounded-md text-center w-[150px] mx-auto"> {plan1.name || "Basic"} </p>
-              <p className="text-3xl lg:text-[60px] lg:leading-[70px] font-semibold text-Primary text-center mt-3"> ${Number(plan1.price).toFixed(0) || 0} </p>
-              <p className="text-sm font-semibold text-Primary text-center"> User </p>
-              <div className="px-5 2xl:px-10 mx-auto">
-                {plan1?.features?.length > 0 && (
-                  plan1.features.map((feature, index) => (
-                    <p key={feature.subscriptionFeatureId || index} className="text-sm font-medium text-Primary flex items-center gap-[22px] mt-3">
-                      <img src={feature.available ? TrueIcon : FlaseIcon} alt="" />  <span>{feature.name}</span>
-                    </p>
-                  ))
-                )}
-                <p className="text-sm font-medium text-Primary flex items-center gap-[22px] mt-3">
-                  <img src={plan1.recordLimit === 0 ? FlaseIcon : TrueIcon} alt="" /> Allow To Save {plan1.recordLimit > 0 && (plan1.recordLimit)} Matrix
-                </p>
-              </div>
-            </div>
-            <button disabled={(currentPlan.subscriptionName === plan1.name)} className={`text-base lg:text-xl font-semibold text-white bg-ButtonBg py-2 lg:py-[13px] px-5 lg:px-9 text-center mt-10 w-[170px] lg:w-[229px] mx-auto rounded-md ${(currentPlan.subscriptionName === plan1.name) ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}>
-              {currentPlan.subscriptionName === plan1.name ? "Activated Plan" : "Choose Plan"}
-            </button>
-          </div>
 
-          {/* Plan 2 */}
-          <div className="flex flex-col justify-between py-[25px] rounded-md max-w-[360px] w-full shadow-[0px_0px_10px_0px_#2823664D] bg-ButtonBg">
-            <div>
-              <p className="text-base lg:text-xl font-semibold text-white p-[5px] lg:p-2 border border-borderColor2 rounded-md text-center w-[150px] mx-auto"> {plan2.name || "Plus"} </p>
-              <p className="text-3xl lg:text-[60px] lg:leading-[70px] font-semibold text-white text-center mt-3"> ${Number(plan2.price).toFixed(0) || 0} </p>
-              <p className="text-sm font-semibold text-white text-center"> User/Year </p>
-              <div className="px-5 2xl:px-10 mx-auto">
-                {plan2?.features?.length > 0 && (
-                  plan2.features.map((feature, index) => (
-                    <p key={feature.subscriptionFeatureId || index} className="text-sm font-medium text-white flex items-center gap-[22px] mt-3">
-                      <img src={feature.available ? TrueIcon : FlaseIcon} alt="" /> <span>{feature.name}</span>
-                    </p>
-                  ))
-                )}
-                <p className="text-sm font-medium text-white flex items-center gap-[22px] mt-3">
-                  <img src={plan2.recordLimit === 0 ? FlaseIcon : TrueIcon} alt="" /> Allow To Save {plan2.recordLimit > 0 && (plan2.recordLimit)} Matrix
+          {/* Plan 1 And Plan 2 */}
+          {Array.isArray(plans) && plans.slice(0, 2).map((plan, index) => (
+            <div key={index} className={`flex flex-col justify-between py-[23px] max-w-[360px] w-full border border-borderColor4 rounded-md ${index === 1 ? 'bg-ButtonBg' : 'bg-background6'} shadow-[0px_0px_10px_0px_#2823664D]`} >
+              <div>
+                <p className={`text-base lg:text-xl font-semibold ${index === 1 ? 'text-white border border-white' : 'text-Primary border border-borderColor3'} p-[5px] lg:p-2  rounded-md text-center w-[150px] mx-auto `}>
+                  {plan.name || "Basic"}
                 </p>
+                <p className={`text-3xl lg:text-[60px] lg:leading-[70px] font-semibold ${index === 1 ? 'text-white' : 'text-Primary'} text-center mt-3`}>
+                  ${Number(plan.price).toFixed(0) || 0}
+                </p>
+                <p className={`text-sm font-semibold ${index === 1 ? 'text-white' : 'text-Primary'} text-center`}>User</p>
+                <div className="px-5 2xl:px-10 mx-auto">
+                  {plan?.features?.length > 0 &&
+                    plan.features.map((feature, i) => (
+                      <p
+                        key={feature.subscriptionFeatureId || i}
+                        className={`text-sm font-medium ${index === 1 ? 'text-white' : 'text-Primary'} flex items-center gap-[22px] mt-3 `} >
+                        <img src={feature.available ? TrueIcon : FalseIcon} alt="" />
+                        <span>{feature.name}</span>
+                      </p>
+                    ))}
+                  <p className={`text-sm font-medium ${index === 1 ? 'text-white' : 'text-Primary'} flex items-center gap-[22px] mt-3`}>
+                    <img src={plan.recordLimit === 0 ? FalseIcon : TrueIcon} alt="" /> Allow To Save {plan.recordLimit > 0 && plan.recordLimit} Matrix
+                  </p>
+                </div>
               </div>
+
+              {index === 0 ? (
+                <button onClick={() => { getPurchasePlan(plan._id); }} disabled={(currentPlan.subscriptionName === plans[1].name)} className={`text-base lg:text-xl font-semibold text-white bg-ButtonBg py-2 lg:py-[13px] px-5 lg:px-9 text-center mt-10 w-[170px] lg:w-[229px] mx-auto rounded-md ${(currentPlan.subscriptionName === plans[1].name) ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}>
+                  {currentPlan.subscriptionName === plans[0].name ? "Activated Plan" : "Choose Plan"}
+                </button>
+              ) : (
+                <button onClick={() => { setShowChoosePlanModal(true); setSelectedPlanId(plan._id); }} disabled={(currentPlan.subscriptionName === plans[1].name)} className={`text-base lg:text-xl font-semibold text-Primary bg-background5 py-2 mt-[10px] lg:py-[13px] px-5 lg:px-9 text-center w-[170px] lg:w-[229px] mx-auto rounded-md ${(currentPlan.subscriptionName === plans[1].name) ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}>
+                  {currentPlan.subscriptionName === plans[1].name ? "Activated Plan" : "Choose Plan"}
+                </button>
+              )}
             </div>
-            <div className="grid">
-              <p className="text-xs font-medium text-[#B7D1E0] text-center mt-7 px-5">
-                *The subscription will be billed on a yearly basis.
-              </p>
-              <button onClick={() => { setShowChoosePlanModal(true); appContext.setAppContext({ ...appContext, planToPurchase: 2 }) }} disabled={(currentPlan.subscriptionName === plan2.name)} className={`text-base lg:text-xl font-semibold text-Primary bg-background5 py-2 mt-[10px] lg:py-[13px] px-5 lg:px-9 text-center w-[170px] lg:w-[229px] mx-auto rounded-md ${(currentPlan.subscriptionName === plan2.name) ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}>
-                {currentPlan.subscriptionName === plan2.name ? "Activated Plan" : "Choose Plan"}
-              </button>
-            </div>
-          </div>
+          ))}
 
           {/* Plan 3 */}
           <div className="flex flex-col justify-between py-[23px] max-w-[360px] w-full border border-borderColor4 rounded-md bg-background6 shadow-[0px_0px_10px_0px_#2823664D]">
             <div>
               <p className="text-base lg:text-xl font-semibold text-Primary p-[5px] lg:p-2 border border-borderColor3 rounded-md text-center w-[147px] mx-auto"> Premium</p>
-              <p className="text-3xl lg:text-[34px] lg:leading-[70px] font-semibold text-Primary text-center mt-3"> {/* ${Number(plan3.price).toFixed(0) || 0} */} Coming Soon </p>
+              <p className="text-3xl lg:text-[34px] lg:leading-[70px] font-semibold text-Primary text-center mt-3">  Coming Soon </p>
               <p className="text-sm font-semibold text-Primary text-center"> User/Year </p>
               <div className="px-5 2xl:px-10 mx-auto">
                 <p className="text-sm font-medium text-Primary flex items-center gap-[22px] mt-3">
-                  <img src={plan3.recordLimit === 0 ? FlaseIcon : TrueIcon} alt="" /> Allow To Save {plan3.recordLimit > 0 && (plan3.recordLimit)} Matrix
+                  <img src={TrueIcon} alt="" /> Allow To Save 80 Matrix
                 </p>
                 <p className="text-sm font-medium text-Primary flex items-center gap-[22px] mt-3">
                   <img src={TrueIcon} alt="" /><span>Everything in the Plus Plan</span>
@@ -413,14 +403,14 @@ const Subscription = () => {
           </div>
         </div>
 
+        {msgM1.msg && (<div className={`text-sm mt-2 text-red-500`}> {msgM1.msg} </div>)}
+
         {/* Extra Matrix Limit Section */}
-        {currentPlan.subscriptionName === plan2.name && <div className="mt-11 p-5 lg:p-[30px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
+        {currentPlan.subscriptionName === plans[1].name && <div className="mt-11 p-5 lg:p-[30px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
           <p className="block text-lg lg:text-2xl text-Primary font-medium">Purchase Extra Limit</p>
           <p className="text-sm text-Primary mt-2">Need more access? Upgrade your plan with our Purchase Extra Limit feature! Whether you're hitting usage caps or need additional resources, this option lets you extend your limits seamlessly. No need to change your entire subscription—just add extra limits as needed.</p>
           <div className="flex justify-end">
-            <button className="text-base lg:text-xl font-semibold text-white bg-ButtonBg py-2 lg:py-3 px-5 lg:px-10 mt-3 text-center w-auto rounded-md" onClick={() => setMatrixLimitModalOpen(true)}>
-              Get
-            </button>
+            <button className="text-base lg:text-xl font-semibold text-white bg-ButtonBg py-2 lg:py-3 px-5 lg:px-10 mt-3 text-center w-auto rounded-md" onClick={() => setMatrixLimitModalOpen(true)}> Get </button>
           </div>
         </div>}
 
@@ -442,11 +432,9 @@ const Subscription = () => {
                 <label htmlFor="terms-checkbox" className="text-sm text-Primary"> I agree to the <Link to="/help-support?openTerms=true" className="font-medium">Terms of Service</Link> And <Link to="/help-support?openTerms=true" className="font-medium">Privacy Policy</Link> </label>
               </div>
               {msg.msg !== "" && (
-                <p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>
-                  {msg.msg}
-                </p>
+                <p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}> {msg.msg} </p>
               )}
-              <button className={`text-base lg:text-xl font-semibold text-white bg-ButtonBg py-2 lg:py-3 px-5 lg:px-10 mt-5 text-center w-full rounded-md ${!termsChecked ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={!termsChecked} onClick={getPurchasePlan} >
+              <button className={`text-base lg:text-xl font-semibold text-white bg-ButtonBg py-2 lg:py-3 px-5 lg:px-10 mt-5 text-center w-full rounded-md ${!termsChecked ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={!termsChecked} onClick={() => { if (selectedPlanId) { getPurchasePlan(selectedPlanId); } }} >
                 Pay By Card
               </button>
             </div>
@@ -492,9 +480,9 @@ const Subscription = () => {
                   <thead>
                     <tr>
                       <th className="text-sm lg:text-[20px] lg:leading-[30px] font-semibold text-white bg-background2 text-center py-2 border-r border-[#BABABA] rounded-ss-md"> Feature </th>
-                      <th className="text-sm lg:text-[20px] lg:leading-[30px] font-semibold text-white bg-background2 text-center py-2 border-r border-[#BABABA]"> {plan1.name || "Basic"} </th>
-                      <th className="text-sm lg:text-[20px] lg:leading-[30px] font-semibold text-white bg-background2 text-center py-2 border-r border-[#BABABA]"> {plan2.name || "Plus"} </th>
-                      <th className="text-sm lg:text-[20px] lg:leading-[30px] font-semibold text-white bg-background2 text-center py-2 rounded-se-md"> {plan3.name || "Premium"} </th>
+                      <th className="text-sm lg:text-[20px] lg:leading-[30px] font-semibold text-white bg-background2 text-center py-2 border-r border-[#BABABA]"> {plans[0].name || "Basic"} </th>
+                      <th className="text-sm lg:text-[20px] lg:leading-[30px] font-semibold text-white bg-background2 text-center py-2 border-r border-[#BABABA]"> {plans[1].name || "Plus"} </th>
+                      <th className="text-sm lg:text-[20px] lg:leading-[30px] font-semibold text-white bg-background2 text-center py-2 rounded-se-md"> {plans[0].name || "Premium"} </th>
                     </tr>
                   </thead>
                   <tbody>

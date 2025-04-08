@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import Logout2 from '../assets/svg/logout2.svg';
-import ManImag from '../assets/Images/Manimg.png';
+import ManImag from '../assets/Images/Man.png';
 import MenuIcon from '../assets/svg/MenuIcon.svg';
 import LogoIconMenu from '../assets/svg/LogoIcon.svg';
 import LogoutIcon from '../assets/svg/LogoutIcon.svg';
@@ -55,20 +55,22 @@ const AdminHeader = ({ toggleTheme, isDarkTheme, isDarkMode, activeLink, setActi
           }
         })
         if (response.status === 200) {
-          const { firstName, lastName, email, profilePicture, slackId, phoneNo } = response.data.data;
+          const { firstName, lastName, email, slackId, phoneNo } = response.data.data;
           appContext.setAppContext((curr) => ({
             ...curr,
             userData: {
               first_name: firstName || "",
               last_name: lastName || "",
               email: email || "",
-              profilePhoto: profilePicture || "",
               slackID: slackId || "",
               phone: phoneNo || "",
             },
+            profilePhoto: response.data.data.profilePicture,
           }));
         }
-      } catch (error) { }
+      } catch (error) {
+        console.error("Could not connect to the server. Please check your connection.");
+      }
   }
 
   useEffect(() => {
@@ -125,7 +127,7 @@ const AdminHeader = ({ toggleTheme, isDarkTheme, isDarkMode, activeLink, setActi
 
 
   return (
-    <div>
+    <>
       <div className='lg:hidden bg-background2 w-full flex justify-between items-center px-3 py-[19px] rounded-b-xl'>
         <a href='/'><img className='w-[200px]' src={LogoIconMenu} alt="" /></a>
         <img onClick={() => setMenuVisible(prev => !prev)} className='bg-userBg px-[6px] py-[9px] rounded-[6px] shadow-[0px_0px_6px_0px_#28236633]' src={MenuIcon} alt="MenuIcon" />
@@ -135,7 +137,7 @@ const AdminHeader = ({ toggleTheme, isDarkTheme, isDarkMode, activeLink, setActi
             <div ref={menuRef} className={`absolute z-10 w-full max-w-[318px] h-full bg-background6 top-0 right-0 p-3 ${isMenuVisible ? 'slide-in' : 'slide-out'}`}>
               <div className='flex justify-between items-center gap-[30px] FilterModalVisibleMenu border-b border-[#B7D1E0] pt-5 pb-3'>
                 <div className='flex items-center gap-5 cursor-pointer'>
-                  <img className='w-[52px]' src={`${appContext.userData.profilePhoto || ManImag}?t=${Date.now()}`} alt="" />
+                  <img className='w-[52px]' src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} alt="" />
                   <div>
                     <p className='text-base text-Primary font-medium'>{appContext.userData.first_name}</p>
                   </div>
@@ -193,7 +195,7 @@ const AdminHeader = ({ toggleTheme, isDarkTheme, isDarkMode, activeLink, setActi
           </div>
           <div className='flex items-center gap-3 py-1 px-[14px] bg-userBg rounded-[6px] cursor-pointer' onClick={() => setIsOpen(prev => !prev)}>
             <p className='text-[16px] leading-[28px] text-white font-medium'>{appContext.userData.first_name}</p>
-            <img src={`${appContext.userData.profilePhoto || ManImag}?t=${Date.now()}`} className='w-8 h-8 rounded-full object-cover' alt="" />
+            <img src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} className='w-8 h-8 rounded-full object-cover' alt="" />
           </div>
           {isOpen && (
             <div ref={dropdownRef} className='absolute top-10 right-0 mt-2 bg-background5 shadow-[0px_0px_6px_0px_#28236633] rounded-md z-10 w-[158px]'>
@@ -225,7 +227,7 @@ const AdminHeader = ({ toggleTheme, isDarkTheme, isDarkMode, activeLink, setActi
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

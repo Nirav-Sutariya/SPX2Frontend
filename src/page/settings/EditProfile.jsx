@@ -1,8 +1,8 @@
 import React, { useState, useRef, useContext, useMemo, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { AppContext } from '../../components/AppContext';
 import { getToken, getUserId } from '../login/loginAPI';
+import { AppContext } from '../../components/AppContext';
 import BackIcon from '../../assets/svg/BackIcon.svg';
 import ProfilePicture from '../../assets/svg/ProfilePicture.svg';
 import PasswordIIcon from '../../assets/Images/Login/PasswordIIcon.svg';
@@ -33,7 +33,7 @@ const EditProfile = () => {
   const [msgM2, setMsgM2] = useState({ type: "", msg: "" });
   const [showPassword2, setShowPassword2] = useState(false);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-  const [selectedImage, setSelectedImage] = useState(appContext.userData.profilePhoto);
+  const [selectedImage, setSelectedImage] = useState(appContext.profilePhoto);
   const [errors, setErrors] = useState({ first_name: "", last_name: "", slackID: "", phone: "", });
   const [passwordFrom, setPasswordFrom] = useState({ "password1": "", "password2": "", "oldPassword": "" });
   const [formData, setFormData] = useState({ first_name: "", last_name: "", slackID: "", phone: "", email: "", });
@@ -57,15 +57,12 @@ const EditProfile = () => {
         email: appContext.userData.email || "",
       });
     }
-  }, [appContext?.userData]); // Runs when userData updates
+  }, [appContext?.userData]);
 
   const handlePasswordInputChange = (e) => {
     const { name, value } = e.target;
     if (name === 'password1' && value === passwordFrom.oldPassword) {
-      setMsg({
-        type: 'error',
-        msg: 'New password cannot be the same as the old password.',
-      });
+      setMsg({ type: 'error', msg: 'New password cannot be the same as the old password.', });
     } else {
       setMsg({ type: '', msg: '' });
     }
@@ -92,10 +89,7 @@ const EditProfile = () => {
       }
       appContext.setAppContext((curr) => ({
         ...curr,
-        userData: {
-          ...curr.userData,
-          profilePhoto: null,
-        }
+        profilePhoto: null,
       }));
       setSelectedImage(null)
       await getProfilePhoto(file)
@@ -115,22 +109,13 @@ const EditProfile = () => {
         setSelectedImage("");
         appContext.setAppContext((curr) => ({
           ...curr,
-          userData: {
-            ...curr.userData,
-            profilePhoto: "",
-          },
+          profilePhoto: "",
         }))
-        setMsgM1({
-          type: "info",
-          msg: "Image has been deleted. Default image restored.",
-        });
+        setMsgM1({ type: "info", msg: "Image has been deleted. Default image restored.", });
       }
     } catch (error) {
-      if (error.message.includes("Network Error")) {
-        setMsgM1({
-          type: "error",
-          msg: "Could not connect to the server. Please check your connection.",
-        });
+      if (error.message.includes('Network Error')) {
+        setMsgM1({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
       }
     }
     setDeleteUser(false);
@@ -141,7 +126,7 @@ const EditProfile = () => {
     const userId = getUserId();
     const formData = new FormData();
     formData.append("userId", userId);
-    formData.append("profilePicture", file); // Ensure the file is appended correctly
+    formData.append("profilePicture", file);
 
     try {
       let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_PROFILE_UPDATE_URL), formData, {
@@ -149,14 +134,12 @@ const EditProfile = () => {
           'x-access-token': getToken()
         }
       })
-      if (response.status === 201 && response.data?.profilePicture) {
-        setSelectedImage(response.data.profilePicture);
+      if (response.status === 201) {
+        console.log("response", response.data.data.profilePicture);
+        setSelectedImage(response.data.data.profilePicture);
         appContext.setAppContext((curr) => ({
           ...curr,
-          userData: {
-            ...curr.userData, // Preserve other user data
-            profilePhoto: response.data.profilePicture // ✅ Correctly update profilePhoto inside userData
-          },
+          profilePhoto: response.data.data.profilePicture
         }));
       }
     } catch (error) {
@@ -185,7 +168,6 @@ const EditProfile = () => {
       errorMsg = "Slack ID should not be more than 20 characters";
     }
 
-    // Phone number validation (integrated inside handleInputChange)
     if (name === "phone") {
       value = value.replace(/\D/g, '');
       if (value.length > 12) {
@@ -207,7 +189,6 @@ const EditProfile = () => {
       });
     }
 
-    // Hide the error message after 4 seconds
     if (errorMsg) {
       setTimeout(() => {
         setErrors((prevErrors) => ({
@@ -252,7 +233,6 @@ const EditProfile = () => {
     return Object.keys(errors).length === 0;
   };
 
-
   // User Data Update Api
   async function updatedUserData(e) {
     e.preventDefault();
@@ -280,10 +260,7 @@ const EditProfile = () => {
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsgM1({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
       }
     }
   }
@@ -368,16 +345,14 @@ const EditProfile = () => {
 
       <p className='text-base lg:text-[22px] lg:leading-[33px] text-Primary font-medium mt-5 lg:mt-10 flex gap-5'>Profile Picture </p>
       <div className='relative mt-5 px-5 lg:px-[34px] py-10 lg:py-[62px] border border-borderColor rounded-md bg-background6 max-w-[170px] lg:max-w-[213px] w-full cursor-pointer'>
-        {appContext.userData.profilePhoto && <img className='absolute top-3 right-3 cursor-pointer' onClick={() => setDeleteUser(true)} src={DeleteIcon} alt="" />}
+        {selectedImage && <img className='absolute top-3 right-3 cursor-pointer' onClick={() => setDeleteUser(true)} src={DeleteIcon} alt="" />}
         <div onClick={() => fileInputRef.current.click()}>
-          <input type="file" ref={fileInputRef} accept=".png, .jpg, .jpeg" style={{ display: 'none' }} // Hide the file input field
-            onChange={handleImageChange} // Trigger the change event when an image is selected
-          />
+          <input type="file" ref={fileInputRef} accept=".png, .jpg, .jpeg" style={{ display: 'none' }} onChange={handleImageChange} />
           <div className='flex justify-center'>
-            {appContext.userData.profilePhoto ? (
-              <img src={`${appContext.userData.profilePhoto || selectedImage}?t=${Date.now()}`} className="rounded-full w-[70px] lg:w-[100px] h-[70px] lg:h-[100px] object-cover" alt="Selected" />
+            {selectedImage ? (
+              <img src={`${selectedImage || appContext.profilePhoto}?t=${Date.now()}`} className="rounded-full w-[70px] lg:w-[100px] h-[70px] lg:h-[100px] object-cover" alt="Selected" />
             ) : (
-              <img src={ProfilePicture} className='w-[70px] lg:w-[100px] h-[70px] lg:h-[100px]' alt="Placeholder" /> // Replace with a default placeholder image
+              <img src={ProfilePicture} className='w-[70px] lg:w-[100px] h-[70px] lg:h-[100px]' alt="Placeholder" />
             )}
           </div>
           <p className='text-sm lg:text-lg text-Primary text-center mt-[14px]'>Choose A Photo</p>

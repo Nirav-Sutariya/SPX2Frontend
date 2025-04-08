@@ -1,70 +1,46 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import MenuIcon from '../assets/svg/MenuIcon.svg';
 import Icon1 from '../assets/Images/Landing/1.svg';
 import Icon2 from '../assets/Images/Landing/2.svg';
 import Icon3 from '../assets/Images/Landing/3.svg';
 import Icon4 from '../assets/Images/Landing/4.svg';
 import Icon5 from '../assets/Images/Landing/5.svg';
 import Icon6 from '../assets/Images/Landing/6.svg';
-import MenuIcon from '../assets/Images/MenuIcon.png';
 import PlusIcon from '../assets/Images/Halp/PlusIcon.svg';
-import MinmumIcon from '../assets/Images/Halp/MinmumIcon.svg';
+import MinimumIcon from '../assets/Images/Halp/MinimumIcon.svg';
 import EmailIcon from '../assets/Images/Landing/EmailIcon.svg';
 import TrueIcon from "../assets/Images/Subscription/TrueIcon.svg";
-import FlaseIcon from "../assets/Images/Subscription/FlaseIcon.svg";
+import FalseIcon from "../assets/Images/Subscription/FalseIcon.svg";
 import OptionMatrixLogoIcon from '../assets/Images/Landing/OptionMatrixLogoIcon.svg';
 import axios from "axios";
 import { Link } from 'react-router-dom';
-import { getToken, getUserId } from './login/loginAPI';
 
 const Landing = () => {
 
   const menuRef = useRef(null);
-  const [plan1, setPlan1] = useState("");
-  const [plan2, setPlan2] = useState("");
+  const [plans, setPlans] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [FAQActiveIndex, setFAQActiveIndex] = useState(null);
 
   const toggleAccordionFAQ = (index) => {
-    setFAQActiveIndex(index === FAQActiveIndex ? -1 : index); // If clicked section is active, close it
+    setFAQActiveIndex(index === FAQActiveIndex ? -1 : index);
   };
 
-  // Plan 1 Find Api 
-  async function fetchPlan1() {
+  // Plans Find Api 
+  async function fetchPlans() {
     try {
-      let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_GET_SUBSCRIPTION, { userId: getUserId(), subscriptionPlanId: "67c18ee7467f06eec321a313" }, {
-        headers: {
-          'x-access-token': getToken()
-        }
-      });
+      let response = await axios.get(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_GET_SUBSCRIPTION_LANDING_PAGE);
       if (response.status === 200) {
-        setPlan1(response.data.data);
+        setPlans(response.data.data);
       }
-    } catch (error) { }
-  }
-
-  // Plan 2 Find Api
-  async function fetchPlan2() {
-    try {
-      let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_GET_SUBSCRIPTION, { userId: getUserId(), subscriptionPlanId: "67af0b81108e32c80e5b03a0" }, {
-        headers: {
-          'x-access-token': getToken()
-        }
-      });
-      if (response.status === 200) {
-        setPlan2(response.data.data);
-      }
-    } catch (error) { }
+    } catch (error) {
+      console.error("Fetch Error:", error);
+    }
   }
 
   useMemo(async () => {
-    await fetchPlan1();
-    await fetchPlan2();
+    await fetchPlans();
   }, []);
-
-  useEffect(() => {
-    fetchPlan1();
-    fetchPlan2();
-  }, [])
 
   const Close = () => {
     setMenuOpen(false);
@@ -82,7 +58,6 @@ const Landing = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
 
   return (
     <>
@@ -166,59 +141,40 @@ const Landing = () => {
       </div>
 
       <div className="grid md:flex md:flex-none justify-center gap-5 xl:gap-10 mt-4 lg:mt-[30px]">
-        {/* Plan 1 */}
-        <div className="flex flex-col justify-between py-[23px] max-w-[360px] w-full border border-borderColor4 rounded-md bg-background6 shadow-[0px_0px_10px_0px_#2823664D]">
-          <div>
-            <p className="text-base lg:text-xl font-semibold text-Primary p-[5px] lg:p-2 border border-borderColor3 rounded-md text-center w-[150px] mx-auto"> {plan1.name || "Basic"} </p>
-            <p className="text-3xl lg:text-[60px] lg:leading-[70px] font-semibold text-Primary text-center mt-3"> ${Number(plan1.price).toFixed(0) || 0} </p>
-            <p className="text-sm font-semibold text-Primary text-center"> User </p>
-            <div className="px-5 2xl:px-10 mx-auto">
-              {plan1?.features?.length > 0 && (
-                plan1.features.map((feature, index) => (
-                  <p key={feature.subscriptionFeatureId || index} className="text-sm font-medium text-Primary flex items-center gap-[22px] mt-3">
-                    <img src={feature.available ? TrueIcon : FlaseIcon} alt="" />  <span>{feature.name}</span>
-                  </p>
-                ))
-              )}
-              <p className="text-sm font-medium text-Primary flex items-center gap-[22px] mt-3">
-                <img src={plan1.recordLimit === 0 ? FlaseIcon : TrueIcon} alt="" /> Allow To Save {plan1.recordLimit > 0 && (plan1.recordLimit)} Matrix
+        {Array.isArray(plans) && plans.slice(0, 2).map((plan, index) => (
+          <div
+            key={index}
+            className={`flex flex-col justify-between py-[23px] max-w-[360px] w-full border border-borderColor4 rounded-md ${index === 1 ? 'bg-ButtonBg' : 'bg-background6'} shadow-[0px_0px_10px_0px_#2823664D]`}
+          >
+            <div>
+              <p className={`text-base lg:text-xl font-semibold ${index === 1 ? 'text-white border border-white' : 'text-Primary border border-borderColor3'} p-[5px] lg:p-2  rounded-md text-center w-[150px] mx-auto `}>
+                {plan.name || "Basic"}
               </p>
+              <p className={`text-3xl lg:text-[60px] lg:leading-[70px] font-semibold ${index === 1 ? 'text-white' : 'text-Primary'} text-center mt-3`}>
+                ${Number(plan.price).toFixed(0) || 0}
+              </p>
+              <p className={`text-sm font-semibold ${index === 1 ? 'text-white' : 'text-Primary'} text-center`}>User</p>
+              <div className="px-5 2xl:px-10 mx-auto">
+                {plan?.features?.length > 0 &&
+                  plan.features.map((feature, i) => (
+                    <p
+                      key={feature.subscriptionFeatureId || i}
+                      className={`text-sm font-medium ${index === 1 ? 'text-white' : 'text-Primary'} flex items-center gap-[22px] mt-3 `} >
+                      <img src={feature.available ? TrueIcon : FalseIcon} alt="" />
+                      <span>{feature.name}</span>
+                    </p>
+                  ))}
+                <p className={`text-sm font-medium ${index === 1 ? 'text-white' : 'text-Primary'} flex items-center gap-[22px] mt-3`}>
+                  <img src={plan.recordLimit === 0 ? FalseIcon : TrueIcon} alt="" /> Allow To Save {plan.recordLimit > 0 && plan.recordLimit} Matrix
+                </p>
+              </div>
             </div>
-          </div>
-          <button className="text-base lg:text-xl font-semibold text-white bg-ButtonBg py-2 lg:py-[13px] px-5 lg:px-9 text-center mt-10 w-[170px] lg:w-[229px] mx-auto rounded-md">
-            Choose Plan
-          </button>
-        </div>
 
-        {/* Plan 2 */}
-        <div className="flex flex-col justify-between py-[25px] rounded-md max-w-[360px] w-full shadow-[0px_0px_10px_0px_#2823664D] bg-ButtonBg">
-          <div>
-            <p className="text-base lg:text-xl font-semibold text-white p-[5px] lg:p-2 border border-borderColor2 rounded-md text-center w-[150px] mx-auto"> {plan2.name || "Plus"} </p>
-            <p className="text-3xl lg:text-[60px] lg:leading-[70px] font-semibold text-white text-center mt-3"> ${Number(plan2.price).toFixed(0) || 0} </p>
-            <p className="text-sm font-semibold text-white text-center"> User/Year </p>
-            <div className="px-5 2xl:px-10 mx-auto">
-              {plan2?.features?.length > 0 && (
-                plan2.features.map((feature, index) => (
-                  <p key={feature.subscriptionFeatureId || index} className="text-sm font-medium text-white flex items-center gap-[22px] mt-3">
-                    <img src={feature.available ? TrueIcon : FlaseIcon} alt="" /> <span>{feature.name}</span>
-                  </p>
-                ))
-              )}
-              <p className="text-sm font-medium text-white flex items-center gap-[22px] mt-3">
-                <img src={plan2.recordLimit === 0 ? FlaseIcon : TrueIcon} alt="" /> Allow To Save {plan2.recordLimit > 0 && (plan2.recordLimit)} Matrix
-              </p>
-            </div>
-          </div>
-          <div className="grid">
-            <p className="text-xs font-medium text-[#B7D1E0] text-center mt-7 px-5">
-              *The subscription will be billed on a yearly basis.
-            </p>
-            <button className="text-base lg:text-xl font-semibold text-Primary bg-background5 py-2 mt-[10px] lg:py-[13px] px-5 lg:px-9 text-center w-[170px] lg:w-[229px] mx-auto rounded-md">
+            <Link to="/login" className={`text-base lg:text-xl font-semibold ${index === 1 ? 'text-Primary bg-white' : 'text-white bg-ButtonBg'} py-2 lg:py-[13px] px-5 lg:px-9 text-center mt-10 w-[170px] lg:w-[229px] mx-auto rounded-md`}>
               Choose Plan
-            </button>
+            </Link>
           </div>
-        </div>
-
+        ))}
       </div>
 
       <div id='FAQs' className='px-5 mt-10 lg:mt-[100px] mx-auto max-w-[1400px]'>
@@ -228,7 +184,7 @@ const Landing = () => {
 
       <div className='mt-5 lg:mt-10 mx-auto p-5 lg:p-[30px] rounded-md bg-background3 max-w-[1400px]'>
         <div onClick={() => toggleAccordionFAQ(0)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 0 ? MinmumIcon : PlusIcon} alt="" /> Mechanics of Short Iron condor
+          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 0 ? MinimumIcon : PlusIcon} alt="" /> Mechanics of Short Iron condor
         </div>
         {FAQActiveIndex === 0 && (
           <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>
@@ -277,7 +233,7 @@ const Landing = () => {
         )}
 
         <div onClick={() => toggleAccordionFAQ(1)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] mt-3 border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 1 ? MinmumIcon : PlusIcon} alt="" /> What Payment Methods Are Accepted?
+          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 1 ? MinimumIcon : PlusIcon} alt="" /> What Payment Methods Are Accepted?
         </div>
         {FAQActiveIndex === 1 && (
           <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>
@@ -289,7 +245,7 @@ const Landing = () => {
         )}
 
         <div onClick={() => toggleAccordionFAQ(2)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] mt-3 border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 2 ? MinmumIcon : PlusIcon} alt="" /> Can I upgrade or downgrade my subscription?
+          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 2 ? MinimumIcon : PlusIcon} alt="" /> Can I upgrade or downgrade my subscription?
         </div>
         {FAQActiveIndex === 2 && (
           <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>
@@ -299,7 +255,7 @@ const Landing = () => {
         )}
 
         <div onClick={() => toggleAccordionFAQ(3)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] mt-3 border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 3 ? MinmumIcon : PlusIcon} alt="" /> Is there a refund policy?
+          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 3 ? MinimumIcon : PlusIcon} alt="" /> Is there a refund policy?
         </div>
         {FAQActiveIndex === 3 && (
           <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>
@@ -310,7 +266,7 @@ const Landing = () => {
         )}
 
         <div onClick={() => toggleAccordionFAQ(4)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] mt-3 border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 4 ? MinmumIcon : PlusIcon} alt="" /> Need Help? Here’s How to Reach Us!
+          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 4 ? MinimumIcon : PlusIcon} alt="" /> Need Help? Here’s How to Reach Us!
         </div>
         {FAQActiveIndex === 4 && (
           <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>
@@ -324,7 +280,7 @@ const Landing = () => {
         )}
 
         <div onClick={() => toggleAccordionFAQ(5)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] mt-3 border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 5 ? MinmumIcon : PlusIcon} alt="" /> Matrix table column discription
+          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 5 ? MinimumIcon : PlusIcon} alt="" /> Matrix table column discription
         </div>
         {FAQActiveIndex === 5 && (
           <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>
@@ -345,7 +301,7 @@ const Landing = () => {
         )}
 
         <div onClick={() => toggleAccordionFAQ(6)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] mt-3 border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 6 ? MinmumIcon : PlusIcon} alt="" />  How to Save a Matrix
+          <img className='w-4 lg:w-auto' src={FAQActiveIndex === 6 ? MinimumIcon : PlusIcon} alt="" />  How to Save a Matrix
         </div>
         {FAQActiveIndex === 6 && (
           <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>

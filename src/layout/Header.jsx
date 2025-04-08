@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import Logout from '../assets/svg/Logout.svg';
 import Logout2 from '../assets/svg/logout2.svg';
-import HelpIcon from '../assets/svg/HelpIcon.svg';
 import MenuIcon from '../assets/svg/MenuIcon.svg';
 import LogoIcon from '../assets/svg/LogoIcon.svg';
-import ManImag from '../assets/Images/Manimg.png';
+import ManImag from '../assets/Images/Man.png';
 import LogoutIcon from '../assets/svg/LogoutIcon.svg';
+import HelpIcon from '../assets/Images/Menu/HelpIcon.svg';
 import SettingsIcon from '../assets/svg/SettingsIcon.svg';
 import EditProfileIcon from '../assets/svg/EditProfileIcon.svg';
-import DynamicMatrixIcon from '../assets/svg/DynamicMatrixIcon.svg';
 import SaveMatrixIcon from '../assets/Images/Menu/SaveMatrixIcon.svg';
 import StaticMatrixIcon from '../assets/Images/Menu/StaticMatrixIcon.svg';
 import SubscriptionIcon from '../assets/Images/Menu/SubscriptionIcon.svg';
 import DashboardIcon from '../assets/Images/AdminHeader/DashboardIcon.svg';
+import DynamicMatrixIcon from '../assets/Images/DynamicMatrix/DynamicMatrixIcon.svg';
 import axios from 'axios';
 import { AppContext } from '../components/AppContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -24,7 +24,7 @@ const handleLogout = async (setIsLoggedIn) => {
   window.location.href = '/';
 };
 
-const Header = ({ isDarkMode, activeLink, setActiveLink, setIsLoggedIn }) => {
+const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLink, setIsLoggedIn }) => {
 
   let navigate = useNavigate();
   const menuRef = useRef(null);
@@ -32,14 +32,9 @@ const Header = ({ isDarkMode, activeLink, setActiveLink, setIsLoggedIn }) => {
   const dropdownRef = useRef(null);
   let appContext = useContext(AppContext);
   const [isOpen, setIsOpen] = useState(false);
-  const [isDarkTheme, setIsDarkTheme] = useState(
-    localStorage.getItem("theme") === "dark"
-  );
   const [isMenuVisible, setMenuVisible] = useState(false);
   const [isAdmin, setIsAdmin] = useState(appContext.isAdmin);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-
-  console.log("isDarkTheme", isDarkTheme);
 
 
   // Function to handle when a link is clicked
@@ -62,48 +57,25 @@ const Header = ({ isDarkMode, activeLink, setActiveLink, setIsLoggedIn }) => {
           }
         })
         if (response.status === 200) {
-          const { firstName, lastName, email, profilePicture, slackId, phoneNo, theme } = response.data.data;
+          const { firstName, lastName, email, slackId, phoneNo } = response.data.data;
           appContext.setAppContext((curr) => ({
             ...curr,
             userData: {
               first_name: firstName || "",
               last_name: lastName || "",
               email: email || "",
-              profilePhoto: profilePicture || "",
               slackID: slackId || "",
               phone: phoneNo || "",
-              theme: theme || "light",
             },
+            profilePhoto: response.data.data.profilePicture,
           }));
         }
-      } catch (error) { }
+      } catch (error) { 
+        
+      }
   }
 
   // Toggle theme and update API
-  const toggleTheme = async () => {
-    const newTheme = isDarkTheme ? "light" : "dark";
-    setIsDarkTheme(!isDarkTheme);
-    localStorage.setItem("theme", newTheme);
-
-    try {
-      const response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_UPDATE_USER_THEME, { userId: getUserId(), theme: newTheme }, {
-        headers: {
-          "x-access-token": getToken()
-        }
-      }
-      );
-
-      if (response.status === 200) {
-        appContext.setAppContext((curr) => ({
-          ...curr,
-          userData: { theme: newTheme },
-        }));
-      }
-    } catch (error) {
-      console.error("Error updating theme:", error);
-    }
-  };
-
   useEffect(() => {
     const path = location.pathname;
     if (path === '/') {
@@ -143,7 +115,7 @@ const Header = ({ isDarkMode, activeLink, setActiveLink, setIsLoggedIn }) => {
       await getUserData();
     };
 
-    fetchData(); // Fetch user data on mount
+    fetchData();
     document.addEventListener('mousedown', handleClickOutside);
 
     return () => {
@@ -168,7 +140,7 @@ const Header = ({ isDarkMode, activeLink, setActiveLink, setIsLoggedIn }) => {
             <div ref={menuRef} className={`absolute z-10 w-full max-w-[318px] h-full bg-background5 top-0 right-0 p-3 ${isMenuVisible ? 'slide-in' : 'slide-out'}`}>
               <div className='flex justify-between items-center gap-[30px] FilterModalVisibleMenu border-b border-[#B7D1E0] pt-5 pb-3'>
                 <div className='flex items-center gap-5 cursor-pointer'>
-                  <img className='w-[52px]' src={`${appContext.userData.profilePhoto || ManImag}?t=${Date.now()}`} alt="" />
+                  <img className='w-[52px]' src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} alt="" />
                   <div>
                     <p className='text-base text-Primary font-medium'>{appContext.userData.first_name || "Loading..."}</p>
                     <Link to="/edit-profile" className='text-xs text-Primary font-medium' onClick={() => handleLinkClick('edit-profile')} >Edit Profile</Link>
@@ -261,7 +233,7 @@ const Header = ({ isDarkMode, activeLink, setActiveLink, setIsLoggedIn }) => {
           </div>
           <div className='flex items-center gap-3 py-1 px-[14px] bg-userBg rounded-[6px] cursor-pointer' onClick={() => setIsOpen(prev => !prev)}>
             <p className='text-[16px] leading-[28px] text-white font-medium'>{appContext.userData.first_name || "Loading..."}</p>
-            <img src={`${appContext.userData.profilePhoto || ManImag}?t=${Date.now()}`} className='w-8 h-8 rounded-full object-cover' alt="" />
+            <img src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} className='w-8 h-8 rounded-full object-cover' alt="" />
           </div>
           {isOpen && (
             <div ref={dropdownRef} className='absolute top-10 right-0 mt-2 bg-background5 shadow-[0px_0px_6px_0px_#28236633] rounded-md z-10 w-[158px]'>

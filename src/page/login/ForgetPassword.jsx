@@ -7,24 +7,24 @@ import WelcomeBg from '../../assets/Images/Login/WelcomeBg.png';
 
 const ForgetPassword = () => {
 
-    const navigate = useNavigate();
-    const submitButtonRef = useRef(null);
-    const [timer, setTimer] = useState(30);
-    const appContext = useContext(AppContext)
-    const [isDisabled, setIsDisabled] = useState(true);
-    const [digit1, setDigit1] = useState("")
-    const [digit2, setDigit2] = useState("")
-    const [digit3, setDigit3] = useState("")
-    const [digit4, setDigit4] = useState("")
-    const [digit5, setDigit5] = useState("")
-    const [digit6, setDigit6] = useState("")
-    const [msg, setMsg] = useState({ type: "", msg: "", })
     const ref1 = useRef(null);
     const ref2 = useRef(null);
     const ref3 = useRef(null);
     const ref4 = useRef(null);
     const ref5 = useRef(null);
     const ref6 = useRef(null);
+    const navigate = useNavigate();
+    const submitButtonRef = useRef(null);
+    const [timer, setTimer] = useState(30);
+    const [digit1, setDigit1] = useState("");
+    const [digit2, setDigit2] = useState("");
+    const [digit3, setDigit3] = useState("");
+    const [digit4, setDigit4] = useState("");
+    const [digit5, setDigit5] = useState("");
+    const [digit6, setDigit6] = useState("");
+    const appContext = useContext(AppContext);
+    const [isDisabled, setIsDisabled] = useState(true);
+    const [msg, setMsg] = useState({ type: "", msg: "", });
 
     if (!appContext.email)
         window.location.href = "/"
@@ -34,17 +34,11 @@ const ForgetPassword = () => {
         setTimer(30);
 
         if (!appContext.email) {
-            setMsg({
-                type: "error",
-                msg: "Somethig went wrong pleas try again"
-            })
+            setMsg({ type: "error", msg: "Somethig went wrong pleas try again" })
             navigate("/")
         } else {
             try {
-                setMsg({
-                    type: "info",
-                    msg: "Please wait we are processing your request"
-                })
+                setMsg({ type: "info", msg: "Please wait we are processing your request" })
                 let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_RESET_RESUEST_URL), { email: appContext.email })
                 if (response.status === 200) {
                     setMsg({
@@ -53,26 +47,17 @@ const ForgetPassword = () => {
                     })
                 }
                 if (response.status === 404) {
-                    setMsg({
-                        type: "error",
-                        msg: "Email not found"
-                    })
+                    setMsg({ type: "error", msg: "Email not found" })
                     return
                 }
                 if (response.status !== 200) {
-                    setMsg({
-                        type: "error",
-                        msg: "Something went wrong"
-                    })
+                    setMsg({ type: "error", msg: "Something went wrong" })
                     return false
                 }
 
             } catch (error) {
                 if (error.message.includes('Network Error')) {
-                    setMsg({
-                        type: "error",
-                        msg: 'Could not connect to the server. Please check your connection.'
-                    });
+                    setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
                 }
             }
         }
@@ -104,10 +89,7 @@ const ForgetPassword = () => {
 
     async function verifyOTP() {
         if (appContext.email && (digit1.length === 1) && (digit2.length === 1) && (digit3.length === 1) && (digit4.length === 1) && (digit5.length === 1) && (digit6.length === 1)) {
-            setMsg({
-                type: "info",
-                msg: "Please wait we are processing your request"
-            })
+            setMsg({ type: "info", msg: "Please wait we are processing your request" })
             try {
                 let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_VERIFY_OTP), { email: appContext.email, otp: (digit1 + digit2 + digit3 + digit4 + digit5 + digit6) })
                 if (response.status === 200) {
@@ -119,18 +101,12 @@ const ForgetPassword = () => {
                 }
             } catch (error) {
                 if (error.message.includes('Network Error')) {
-                    setMsg({
-                        type: "error",
-                        msg: 'Could not connect to the server. Please check your connection.'
-                    });
+                    setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
                 }
             }
         }
         else {
-            setMsg({
-                type: "error",
-                msg: "Please enter 6 digit OTP"
-            })
+            setMsg({ type: "error", msg: "Please enter 6 digit OTP" })
         }
     }
 

@@ -43,6 +43,7 @@ function StaticLongCalculations({ savedData }) {
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   // const visibleRows = showAllRows ? LevelTable.length : 5;
 
+
   const handleToggle = (toggleSetter) => {
     toggleSetter((prevState) => !prevState);
   };
@@ -57,7 +58,6 @@ function StaticLongCalculations({ savedData }) {
         setIsFilterModalVisible(false);
       }
     }
-    // Bind the event listener
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -71,7 +71,6 @@ function StaticLongCalculations({ savedData }) {
   function getProfit(contract) {
     return ((500 * contract) - tradePrice * contract * 100 - commission * contract)
   }
-
   function getBPValue(contract) {
     return (tradePrice * contract * 100 + commission * contract)
   }
@@ -90,7 +89,7 @@ function StaticLongCalculations({ savedData }) {
       setLevelTable((pre) => {
         return [...pre, (index + 1)]
       })
-      let t = (levels[level]?.active ? levels[level].value : 0) || 0;  // Contract
+      let t = (levels[level]?.active ? levels[level].value : 0) || 0;
       setContractsTable((pre) => {
         return [...pre, t]
       })
@@ -120,7 +119,7 @@ function StaticLongCalculations({ savedData }) {
         setAllocation(Number(savedData.allocation) || 100);
         setTradePrice(Number(savedData.tradePrice) || 1.6);
         setCommission(Number(savedData.commission) || 5);
-        setLevels(savedData.levels || {}); // Ensure levels is assigned correctly
+        setLevels(savedData.levels || {});
         let tableVisibility = savedData.tableVisibility;
         if (tableVisibility) {
           setShowContracts(tableVisibility.showContracts);
@@ -137,6 +136,7 @@ function StaticLongCalculations({ savedData }) {
           setShowLossPercentage(tableVisibility.showLossPercentage);
         }
       } catch (error) {
+        console.error("Error fetching user data:", error);
       }
     }
   }, [savedData]);
@@ -147,7 +147,6 @@ function StaticLongCalculations({ savedData }) {
 
   // Cumulative Loss calculate
   useEffect(() => {
-    // let indx = 0;
     setCumulativeLossTable([])
     let result = [];
     let sum = 0;
@@ -162,7 +161,7 @@ function StaticLongCalculations({ savedData }) {
   useEffect(() => {
     let indx = 0;
     setSeriesGainLossTable([])
-    Object.keys(levels).map((level, index) => {
+    Object.keys(levels).map((level) => {
       if (indx === 0) {
         let t = ProfitTable[indx]
         setSeriesGainLossTable((pre) => {
@@ -185,7 +184,7 @@ function StaticLongCalculations({ savedData }) {
     setAfterLossTable([])
     setLossPreTable([])
 
-    Object.keys(levels).map((level, index) => {
+    Object.keys(levels).map((level) => {
       let temp = Number(currentAllocation) + SeriesGainLossTable[indx]
       setAfterWinTable((pre) => {
         return [...pre, (temp)]

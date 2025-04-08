@@ -4,7 +4,7 @@ import MatrixIcon from '../assets/svg/MatrixIcon.svg';
 import MinimumIcon from '../assets/svg/MinmumIcon.svg';
 import DropdownIcon from '../assets/svg/DropdownIcon.svg';
 import DownArrowIcon from '../assets/svg/DownArrowIcon.svg';
-import DynamicMatrixIcon from '../assets/svg/DynamicMatrixIcon.svg';
+import DynamicMatrixIcon from '../assets/Images/DynamicMatrix/DynamicMatrixIcon.svg';
 import axios from 'axios';
 import ICChart from '../components/ICChart';
 import ICChart2 from '../components/ICChart2';
@@ -99,10 +99,7 @@ const Dashboard = ({ theme }) => {
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsg({
-          type: "error",
-          msg: 'Could not connect to the server. Please check your connection.'
-        });
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
     }
   }
@@ -115,27 +112,20 @@ const Dashboard = ({ theme }) => {
   }, [msg])
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (DynamicMatrixRef.current && !DynamicMatrixRef.current.contains(event.target)) {
+    const handleClickOutside = (event) => {
+      if (
+        DynamicMatrixRef.current &&
+        !DynamicMatrixRef.current.contains(event.target)
+      ) {
         setDynamicMatrixToggle(false);
       }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [DynamicMatrixRef]);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
       if (MatrixRef.current && !MatrixRef.current.contains(event.target)) {
         setMatrix(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const DynamicShowHandel = () => {
@@ -484,10 +474,6 @@ const Dashboard = ({ theme }) => {
     }
   };
 
-  const toggleMatrix = () => {
-    setMatrix((prev) => !prev);
-  };
-
   const handleDynamicMatrixSelection = async (type) => {
     setTypeIC(type);
     await getMatrixFromAPI(type);
@@ -517,7 +503,7 @@ const Dashboard = ({ theme }) => {
           )}
         </div>
         <div className='relative max-w-[350px]'>
-          <div className='flex justify-between items-center gap-2 md:gap-3 px-5 py-[9px] rounded-md bg-background6 w-fit max-w-[350px] shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={toggleMatrix}>
+          <div className='flex justify-between items-center gap-2 md:gap-3 px-5 py-[9px] rounded-md bg-background6 w-fit max-w-[350px] shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setMatrix((prev) => !prev)}>
             <span className='flex gap-3'>
               <img className='w-5 lg:w-auto' src={MatrixIcon} alt="" />
               <p className='text-sm lg:text-base font-medium text-Primary'>{names[selectedName] || "Please Select Matrix"}</p>
@@ -545,13 +531,11 @@ const Dashboard = ({ theme }) => {
       </div>
 
       {dynamicShow && (savedData === null ?
-        <>
-          <div className="flex justify-center items-center h-[10vh]">
-            <div role="status">
-              <span className="text-Secondary2 text-lg">No saved record found on this matrix...</span>
-            </div>
+        <div className="flex justify-center items-center h-[10vh]">
+          <div role="status">
+            <span className="text-Secondary2 text-lg">No saved record found on this matrix...</span>
           </div>
-        </> :
+        </div> :
         <>
           {typeIC === "short" ? (
             names[selectedName] ? (

@@ -21,24 +21,19 @@ function NextGamePlanDynamicLongMatrix({
   // Function to calculate BE Contracts dynamically (adapted from your JS code)
   const calculateDynamicBEContracts = (dynamicCumulativeLoss, premium, commission) => {
     if (isNaN(dynamicCumulativeLoss) || isNaN(premium) || isNaN(commission) || premium <= 0) {
-      return 0; // Return 0 if inputs are invalid
+      return 0;
     }
-
     let beContracts = Math.ceil(dynamicCumulativeLoss / (premium * 100));
-
     while (true) {
-      if (isNaN(beContracts)) break; // Exit loop if NaN
-
+      if (isNaN(beContracts)) break;
       const totalCommission = beContracts * commission;
       const adjustedLoss = dynamicCumulativeLoss + totalCommission;
       const newBEContracts = Math.ceil(adjustedLoss / (premium * 100));
-
       if (isNaN(newBEContracts) || newBEContracts === beContracts) {
-        break; // Break if NaN or the values are stable
+        break;
       }
       beContracts = newBEContracts;
     }
-
     return beContracts;
   };
 
@@ -57,8 +52,7 @@ function NextGamePlanDynamicLongMatrix({
       BE3GainTable[index] = (Number(beContract) > 0 ? (((premium * 100 * (Number(beContract) + 3)) - ((Number(beContract) + 3) * commission)) - CumulativeLossTable) : 0).toFixed(2);
       BE4GainTable[index] = (Number(beContract) > 0 ? (((premium * 100 * (Number(beContract) + 4)) - ((Number(beContract) + 4) * commission)) - CumulativeLossTable) : 0).toFixed(2);
       BE5GainTable[index] = (Number(beContract) > 0 ? (((premium * 100 * (Number(beContract) + 5)) - ((Number(beContract) + 5) * commission)) - CumulativeLossTable) : 0).toFixed(2);
-
-      return beContract; // Return the BEContract value for this premium
+      return beContract;
     });
   }
 
