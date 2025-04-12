@@ -13,10 +13,9 @@ import StaticMatrixIcon from '../assets/Images/Menu/StaticMatrixIcon.svg';
 import SubscriptionIcon from '../assets/Images/Menu/SubscriptionIcon.svg';
 import DashboardIcon from '../assets/Images/AdminHeader/DashboardIcon.svg';
 import DynamicMatrixIcon from '../assets/Images/DynamicMatrix/DynamicMatrixIcon.svg';
-import axios from 'axios';
 import { AppContext } from '../components/AppContext';
+import { removeTokens } from '../page/login/loginAPI';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { getToken, getUserId, removeTokens } from '../page/login/loginAPI';
 
 const handleLogout = async (setIsLoggedIn) => {
   removeTokens();
@@ -47,33 +46,6 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
   const getLinkClass = (link) => {
     return activeLink === link ? 'bg-background4 text-Secondary font-medium' : '';
   };
-
-  async function getUserData() {
-    if (appContext.userData.first_name === '' && appContext.userData.last_name === '')
-      try {
-        let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_PROFILE_GET_URL), { userId: getUserId() }, {
-          headers: {
-            'x-access-token': getToken()
-          }
-        })
-        if (response.status === 200) {
-          const { firstName, lastName, email, slackId, phoneNo } = response.data.data;
-          appContext.setAppContext((curr) => ({
-            ...curr,
-            userData: {
-              first_name: firstName || "",
-              last_name: lastName || "",
-              email: email || "",
-              slackID: slackId || "",
-              phone: phoneNo || "",
-            },
-            profilePhoto: response.data.data.profilePicture,
-          }));
-        }
-      } catch (error) { 
-        
-      }
-  }
 
   // Toggle theme and update API
   useEffect(() => {
@@ -110,14 +82,7 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
         setIsOpen(false);
       }
     };
-
-    const fetchData = async () => {
-      await getUserData();
-    };
-
-    fetchData();
     document.addEventListener('mousedown', handleClickOutside);
-
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };

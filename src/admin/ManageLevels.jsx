@@ -59,7 +59,9 @@ const ManageLevels = ({ }) => {
         appContext.setAppContext({ ...appContext, shortMatrixLength: data.shortMatrix, longMatrixLength: data.longMatrix })
       }
     } catch (error) {
-      
+      if (error.message.includes("Network Error")) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
     }
   }
 
@@ -95,23 +97,36 @@ const ManageLevels = ({ }) => {
     }
   }
 
-  // Find Defult Level Value
+  // Find Default Level Value
   async function fetchDefaultLevelValues() {
     try {
-      let response = await axios.post((process.env.REACT_APP_LEVELS_URL + process.env.REACT_APP_GET_LEVEL_VALUE_URL), { userId: getUserId(), spread: selectedValue, matrixType: matrixTypeValue }, {
+      const response = await axios.post((process.env.REACT_APP_LEVELS_URL) + (process.env.REACT_APP_GET_LEVEL_VALUE_URL), { userId: getUserId(), spread: selectedValue, matrixType: matrixTypeValue }, {
         headers: {
-          'x-access-token': getToken()
+          'x-access-token': getToken(),
         }
-      })
-      if (response.status === 200) {
-        // Remove _id, rename it to levelId, and remove matrixType & spread
-        const formattedData = response.data.data.map(({ _id, matrixType, spread, ...rest }) => ({
-          ...rest,
-          levelId: _id, // Rename _id to levelId
-        }));
-        setLevelValues(formattedData || []);
+      });
+
+      const resData = response.data;
+
+      if (resData.data && Array.isArray(resData.data)) {
+        if (resData.data.length === 0) {
+          console.log("No level data received.");
+          setLevelValues([]);
+        } else {
+          const formattedData = resData.data.map(({ _id, matrixType, spread, ...rest }) => ({
+            ...rest,
+            levelId: _id,
+          }));
+          console.log("Level values received:", formattedData);
+          setLevelValues(formattedData);
+        }
+      } else {
+        console.warn("Unexpected response format:", resData);
+        setLevelValues([]);
       }
     } catch (error) {
+      console.error("Error fetching level values:", error);
+      setLevelValues([]);
     }
   }
 
@@ -189,7 +204,10 @@ const ManageLevels = ({ }) => {
 
   // Spread and MatrixType UseMemo
   useMemo(() => {
-    fetchLevelLength()
+    if (!appContext.shortMatrixLength || !appContext.longMatrixLength) {
+      fetchLevelLength();
+    }
+
     fetchDefaultLevelValues();
   }, [selectedValue, matrixTypeValue])
 
@@ -247,7 +265,7 @@ const ManageLevels = ({ }) => {
   }
 
   const handleCancelNewRow = () => {
-    setAddNewRow(false); // Cancel the new row addition
+    setAddNewRow(false);
     setBuyingPower("");
     setLevel1("");
     setLevel2("");
@@ -258,7 +276,7 @@ const ManageLevels = ({ }) => {
 
   const handleClickOutside = (event) => {
     if (filterModalRef.current && !filterModalRef.current.contains(event.target)) {
-      setIsFilterModalVisible(false); // Close dropdown if clicking outside
+      setIsFilterModalVisible(false);
     }
   };
 
@@ -273,9 +291,6 @@ const ManageLevels = ({ }) => {
     document.body.classList.toggle('no-scroll', isDeleteConfirmVisible);
     return () => document.body.classList.remove('no-scroll');
   }, [isDeleteConfirmVisible]);
-
-  const [matrixType, setMatrixType] = useState("Static Short");
-  const [spread, setSpread] = useState("5");
 
 
   return (
@@ -374,6 +389,11 @@ const ManageLevels = ({ }) => {
               <option value="" disabled>Select an option</option>
               <option value="5">5</option>
               <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+              <option value="40">40</option>
+              <option value="50">50</option>
             </select>
           </div>
         </div>
@@ -411,177 +431,175 @@ const ManageLevels = ({ }) => {
 
       {/* Manage Default Levels With Account Size Table */}
       <div className='mt-3 lg:mt-5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
-        {levelValues.length > 0 ? (
-          <>
-            <div className='overflow-x-auto rounded-md'>
-              <table className="text-center min-w-full ">
-                <thead>
-                  <tr>
-                    <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[150px] lg:min-w-[120px] 2xl:min-w-[150px] border-r border-borderColor rounded-ss-md bg-background2 ">Buying Power</th>
-                    {showLevel1 && <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[120px] 2xl:min-w-[140px] border-r border-borderColor bg-background2">Level 1</th>}
-                    {showLevel2 && <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[120px] 2xl:min-w-[140px] border-r border-borderColor bg-background2">Level 2</th>}
-                    {showLevel3 && <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[120px] 2xl:min-w-[140px] border-r border-borderColor bg-background2">Level 3</th>}
-                    {showLevel4 && <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[120px] 2xl:min-w-[140px] border-r border-borderColor bg-background2">Level 4</th>}
-                    {showLevel5 && <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[120px] 2xl:min-w-[140px] border-r border-borderColor bg-background2">Level 5</th>}
-                    {showAction && <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[160px] lg:min-w-[120px] 2xl:min-w-[160px] rounded-tr-md bg-background2">Action</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-borderColor"></td>
-                    {showLevel1 && <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-x border-borderColor">Quantity</td>}
-                    {showLevel2 && <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-x border-borderColor">Quantity</td>}
-                    {showLevel3 && <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-x border-borderColor">Quantity</td>}
-                    {showLevel4 && <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-x border-borderColor">Quantity</td>}
-                    {showLevel5 && <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-x border-borderColor">Quantity</td>}
-                    {showAction && <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-borderColor"></td>}
-                  </tr>
+        <div className='overflow-x-auto rounded-md'>
+          <table className="text-center min-w-full ">
+            <thead>
+              <tr>
+                <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[150px] lg:min-w-[120px] 2xl:min-w-[150px] border-r border-borderColor rounded-ss-md bg-background2 ">Buying Power</th>
+                {showLevel1 && <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[120px] 2xl:min-w-[140px] border-r border-borderColor bg-background2">Level 1</th>}
+                {showLevel2 && <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[120px] 2xl:min-w-[140px] border-r border-borderColor bg-background2">Level 2</th>}
+                {showLevel3 && <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[120px] 2xl:min-w-[140px] border-r border-borderColor bg-background2">Level 3</th>}
+                {showLevel4 && <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[120px] 2xl:min-w-[140px] border-r border-borderColor bg-background2">Level 4</th>}
+                {showLevel5 && <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[120px] 2xl:min-w-[140px] border-r border-borderColor bg-background2">Level 5</th>}
+                {showAction && <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-2 lg:p-3 min-w-[160px] lg:min-w-[120px] 2xl:min-w-[160px] rounded-tr-md bg-background2">Action</th>}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-borderColor"></td>
+                {showLevel1 && <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-x border-borderColor">Quantity</td>}
+                {showLevel2 && <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-x border-borderColor">Quantity</td>}
+                {showLevel3 && <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-x border-borderColor">Quantity</td>}
+                {showLevel4 && <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-x border-borderColor">Quantity</td>}
+                {showLevel5 && <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-x border-borderColor">Quantity</td>}
+                {showAction && <td className="text-sm lg:text-base text-Secondary font-semibold p-2 lg:p-3 border-b border-borderColor"></td>}
+              </tr>
 
-                  {levelValues.map((item) => {
-                    const isEditing = editingRowId === item.levelId;
-                    return (
-                      <tr key={item.levelId} className="border-b border-borderColor">
-                        <td className="text-sm text-Secondary p-3 border-r border-borderColor">
+              {levelValues.length > 0 ? (
+                levelValues.map((item) => {
+                  const isEditing = editingRowId === item.levelId;
+                  return (
+                    <tr key={item.levelId} className="border-b border-borderColor">
+                      <td className="text-sm text-Secondary p-3 border-r border-borderColor">
+                        {isEditing ? (
+                          <input type="number" value={editedValues.buyingPower}
+                            onChange={(e) =>
+                              setEditedValues((prev) => ({ ...prev, buyingPower: e.target.value }))
+                            }
+                            className="max-w-[170px] w-full p-1 border rounded"
+                          />
+                        ) : (
+                          item.buyingPower
+                        )}
+                      </td>
+
+                      {showLevel1 && (
+                        <td className="text-sm text-Secondary p-3 border-x border-borderColor">
                           {isEditing ? (
-                            <input type="number" value={editedValues.buyingPower}
+                            <input type="number" value={editedValues.level1}
                               onChange={(e) =>
-                                setEditedValues((prev) => ({ ...prev, buyingPower: e.target.value }))
+                                setEditedValues((prev) => ({ ...prev, level1: e.target.value }))
                               }
-                              className="max-w-[170px] w-full p-1 border rounded"
+                              className="max-w-[120px] w-full p-1 border rounded"
                             />
                           ) : (
-                            item.buyingPower
+                            item.level1
                           )}
                         </td>
+                      )}
 
-                        {showLevel1 && (
-                          <td className="text-sm text-Secondary p-3 border-x border-borderColor">
-                            {isEditing ? (
-                              <input type="number" value={editedValues.level1}
-                                onChange={(e) =>
-                                  setEditedValues((prev) => ({ ...prev, level1: e.target.value }))
-                                }
-                                className="max-w-[120px] w-full p-1 border rounded"
-                              />
-                            ) : (
-                              item.level1
-                            )}
-                          </td>
-                        )}
+                      {showLevel2 && (
+                        <td className="text-sm text-Secondary p-3 border-x border-borderColor">
+                          {isEditing ? (
+                            <input type="number" value={editedValues.level2}
+                              onChange={(e) =>
+                                setEditedValues((prev) => ({ ...prev, level2: e.target.value }))
+                              }
+                              className="max-w-[120px] w-full p-1 border rounded"
+                            />
+                          ) : (
+                            item.level2
+                          )}
+                        </td>
+                      )}
 
-                        {showLevel2 && (
-                          <td className="text-sm text-Secondary p-3 border-x border-borderColor">
-                            {isEditing ? (
-                              <input type="number" value={editedValues.level2}
-                                onChange={(e) =>
-                                  setEditedValues((prev) => ({ ...prev, level2: e.target.value }))
-                                }
-                                className="max-w-[120px] w-full p-1 border rounded"
-                              />
-                            ) : (
-                              item.level2
-                            )}
-                          </td>
-                        )}
+                      {showLevel3 && (
+                        <td className="text-sm text-Secondary p-3 border-x border-borderColor">
+                          {isEditing ? (
+                            <input type="number" value={editedValues.level3}
+                              onChange={(e) =>
+                                setEditedValues((prev) => ({ ...prev, level3: e.target.value }))
+                              }
+                              className="max-w-[120px] w-full p-1 border rounded"
+                            />
+                          ) : (
+                            item.level3
+                          )}
+                        </td>
+                      )}
 
-                        {showLevel3 && (
-                          <td className="text-sm text-Secondary p-3 border-x border-borderColor">
-                            {isEditing ? (
-                              <input type="number" value={editedValues.level3}
-                                onChange={(e) =>
-                                  setEditedValues((prev) => ({ ...prev, level3: e.target.value }))
-                                }
-                                className="max-w-[120px] w-full p-1 border rounded"
-                              />
-                            ) : (
-                              item.level3
-                            )}
-                          </td>
-                        )}
+                      {showLevel4 && (
+                        <td className="text-sm text-Secondary p-3 border-x border-borderColor">
+                          {isEditing ? (
+                            <input type="number" value={editedValues.level4}
+                              onChange={(e) =>
+                                setEditedValues((prev) => ({ ...prev, level4: e.target.value }))
+                              }
+                              className="max-w-[120px] w-full p-1 border rounded"
+                            />
+                          ) : (
+                            item.level4
+                          )}
+                        </td>
+                      )}
 
-                        {showLevel4 && (
-                          <td className="text-sm text-Secondary p-3 border-x border-borderColor">
-                            {isEditing ? (
-                              <input type="number" value={editedValues.level4}
-                                onChange={(e) =>
-                                  setEditedValues((prev) => ({ ...prev, level4: e.target.value }))
-                                }
-                                className="max-w-[120px] w-full p-1 border rounded"
-                              />
-                            ) : (
-                              item.level4
-                            )}
-                          </td>
-                        )}
+                      {showLevel5 && (
+                        <td className="text-sm text-Secondary p-3 border-x border-borderColor">
+                          {isEditing ? (
+                            <input type="number" value={editedValues.level5}
+                              onChange={(e) =>
+                                setEditedValues((prev) => ({ ...prev, level5: e.target.value }))
+                              }
+                              className="max-w-[120px] w-full p-1 border rounded"
+                            />
+                          ) : (
+                            item.level5
+                          )}
+                        </td>
+                      )}
 
-                        {showLevel5 && (
-                          <td className="text-sm text-Secondary p-3 border-x border-borderColor">
-                            {isEditing ? (
-                              <input type="number" value={editedValues.level5}
-                                onChange={(e) =>
-                                  setEditedValues((prev) => ({ ...prev, level5: e.target.value }))
-                                }
-                                className="max-w-[120px] w-full p-1 border rounded"
-                              />
-                            ) : (
-                              item.level5
-                            )}
-                          </td>
-                        )}
-
-                        {showAction && (
-                          <td className="text-sm text-Secondary p-3">
-                            {isEditing ? (
-                              <>
-                                <button className="text-sm px-2" onClick={() => updateLevelValues(item.levelId, editedValues)}>
-                                  Save
-                                </button>
-                                <button className="border-l text-sm px-2" onClick={() => setEditingRowId(null)}>
-                                  Cancel
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button className="text-sm px-2" onClick={() => { setEditingRowId(item.levelId); setEditedValues({ ...item }); }} >
-                                  Edit
-                                </button>
-                                <button className="border-l border-borderColor text-sm px-2" onClick={() => { setDeletingItemId(item.levelId); setDeleteConfirmVisible(true); }}>
-                                  Delete
-                                </button>
-                              </>
-                            )}
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })}
-
-                  {addNewRow &&
-                    <tr>
-                      <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-borderColor" contentEditable onBlur={(e) => setBuyingPower(e.target.textContent)}>{buyingPower}</td>
-                      <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor" contentEditable onBlur={(e) => setLevel1(e.target.textContent)}>{level1}</td>
-                      <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor" contentEditable onBlur={(e) => setLevel2(e.target.textContent)}>{level2}</td>
-                      <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor" contentEditable onBlur={(e) => setLevel3(e.target.textContent)}>{level3}</td>
-                      <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor" contentEditable onBlur={(e) => setLevel4(e.target.textContent)}>{level4}</td>
-                      <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor" contentEditable onBlur={(e) => setLevel5(e.target.textContent)}>{level5}</td>
-                      <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-borderColor">
-                        <button className="text-sm px-2" onClick={handleSaveNewRow}>Save</button>
-                        <button className="border-l border-borderColor text-sm px-2" onClick={handleCancelNewRow}>Cancel</button>
-                      </td>
+                      {showAction && (
+                        <td className="text-sm text-Secondary p-3">
+                          {isEditing ? (
+                            <>
+                              <button className="text-sm px-2" onClick={() => updateLevelValues(item.levelId, editedValues)}>
+                                Save
+                              </button>
+                              <button className="border-l text-sm px-2" onClick={() => setEditingRowId(null)}>
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button className="text-sm px-2" onClick={() => { setEditingRowId(item.levelId); setEditedValues({ ...item }); }} >
+                                Edit
+                              </button>
+                              <button className="border-l border-borderColor text-sm px-2" onClick={() => { setDeletingItemId(item.levelId); setDeleteConfirmVisible(true); }}>
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </td>
+                      )}
                     </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-            <span className='flex justify-end w-full'>
-              <button className="text-sm lg:text-base text-Primary font-medium flex gap-3 p-3 lg:p-5" onClick={() => { setAddNewRow(true) }}>
-                <img className='w-5 lg:w-auto' src={PlusIcon} alt="Add Icon" /> Add
-              </button>
-            </span>
-          </>
-        ) : (
-          <p className="text-center text-base lg:text-lg text-Primary px-3 py-4"> No User Found, Choose an Matrix Type and Spread </p>
-        )}
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="7" className="text-center text-base lg:text-lg text-Primary px-3 py-7 border-b border-x border-borderColor">  {!matrixTypeValue || !selectedValue ? "Choose a Matrix Type and Spread" : "No Data Found Please Add"} </td>
+                </tr>
+              )}
+
+              {addNewRow && <tr>
+                <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-borderColor" contentEditable onBlur={(e) => setBuyingPower(e.target.textContent)}>{buyingPower}</td>
+                <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor" contentEditable onBlur={(e) => setLevel1(e.target.textContent)}>{level1}</td>
+                <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor" contentEditable onBlur={(e) => setLevel2(e.target.textContent)}>{level2}</td>
+                <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor" contentEditable onBlur={(e) => setLevel3(e.target.textContent)}>{level3}</td>
+                <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor" contentEditable onBlur={(e) => setLevel4(e.target.textContent)}>{level4}</td>
+                <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-x border-borderColor" contentEditable onBlur={(e) => setLevel5(e.target.textContent)}>{level5}</td>
+                <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-borderColor">
+                  <button className="text-sm px-2" onClick={handleSaveNewRow}>Save</button>
+                  <button className="border-l border-borderColor text-sm px-2" onClick={handleCancelNewRow}>Cancel</button>
+                </td>
+              </tr>}
+            </tbody>
+          </table>
+        </div>
+        <span className='flex justify-end w-full'>
+          <button className="text-sm lg:text-base text-Primary font-medium flex gap-3 p-3 lg:p-5" onClick={() => { setAddNewRow(true) }}>
+            <img className='w-5 lg:w-auto' src={PlusIcon} alt="Add Icon" /> Add
+          </button>
+        </span>
         {(msg.msg !== "") && <p className={`text-sm text-end ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}</p>}
       </div>
 

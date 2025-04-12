@@ -324,6 +324,7 @@ const UserData = () => {
         appContext.setAppContext({ ...appContext, plans: planData })
       }
     } catch (error) {
+      console.error("Error fetching user data:", error);
     }
   }
 

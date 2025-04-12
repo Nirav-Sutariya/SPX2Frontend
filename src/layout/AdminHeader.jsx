@@ -10,10 +10,9 @@ import SupportUserIcon from '../assets/Images/AdminHeader/SupportUserIcon.svg';
 import SubscriptionIcon from '../assets/Images/AdminHeader/SubscriptionIcon.svg';
 import ManageCouponIcon from '../assets/Images/AdminHeader/ManageCouponIcon.svg';
 import ManageLevelsIcon from '../assets/Images/AdminHeader/ManageLevelsIcon.svg';
-import axios from 'axios';
 import { AppContext } from '../components/AppContext';
+import { removeTokens } from '../page/login/loginAPI';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { getToken, getUserId, removeTokens } from '../page/login/loginAPI';
 
 
 const handleLogout = async (setIsLoggedIn) => {
@@ -44,34 +43,6 @@ const AdminHeader = ({ toggleTheme, isDarkTheme, isDarkMode, activeLink, setActi
   const getLinkClass = (link) => {
     return activeLink === link ? 'bg-background4 text-Secondary font-medium' : '';
   };
-
-  // Get User Data Fined
-  async function getUserData() {
-    if (appContext.userData.first_name === '' && appContext.userData.last_name === '')
-      try {
-        let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_PROFILE_GET_URL), { userId: getUserId() }, {
-          headers: {
-            'x-access-token': getToken()
-          }
-        })
-        if (response.status === 200) {
-          const { firstName, lastName, email, slackId, phoneNo } = response.data.data;
-          appContext.setAppContext((curr) => ({
-            ...curr,
-            userData: {
-              first_name: firstName || "",
-              last_name: lastName || "",
-              email: email || "",
-              slackID: slackId || "",
-              phone: phoneNo || "",
-            },
-            profilePhoto: response.data.data.profilePicture,
-          }));
-        }
-      } catch (error) {
-        console.error("Could not connect to the server. Please check your connection.");
-      }
-  }
 
   useEffect(() => {
     const path = location.pathname;
@@ -105,14 +76,7 @@ const AdminHeader = ({ toggleTheme, isDarkTheme, isDarkMode, activeLink, setActi
         setMenuVisible(false);
       }
     };
-
-    const fetchData = async () => {
-      await getUserData();
-    };
-
-    fetchData();
     document.addEventListener('mousedown', handleClickOutside);
-
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };

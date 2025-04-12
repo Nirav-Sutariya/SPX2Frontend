@@ -85,7 +85,9 @@ const StaticMatrix = () => {
   const [showGainPercentage, setShowGainPercentage] = useState(true);
   const [showLossPercentage, setShowLossPercentage] = useState(true);
   const [staticKey, setStaticKey] = useState(appContext.staticShortKey);
+  const [recordLimit, setRecordLimit] = useState(appContext.subscription);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState(appContext.subscription);
   const [allocationHintsVisibility, setAllocationHintsVisibility] = useState(false);
   const [msgM1, setMsgM1] = useState({ type: "", msg: "", });
   const [msgM2, setMsgM2] = useState({ type: "", msg: "", });
@@ -100,6 +102,7 @@ const StaticMatrix = () => {
 
   // Get Admin This Page Access For Admin Api 
   async function getStaticKey() {
+    setIsMessageVisible(true);
     try {
       let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_STATIC_SHORT_KRY), { userId: getUserId() }, {
         headers: {
@@ -112,6 +115,28 @@ const StaticMatrix = () => {
           ...curr,
           staticShortKey: response.data.data,
         }));
+      }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
+    finally {
+      setIsMessageVisible(false);
+    }
+  }
+
+  // Subscription By Detail Find
+  async function fetchUserSubscription() {
+    try {
+      let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_GET_SUBSCRIPTION_BY_ID, { userId: getUserId() }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 200) {
+        setCurrentPlan(response.data.data.isBase);
+        setRecordLimit(response.data.data.recordLimit);
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
@@ -214,6 +239,9 @@ const StaticMatrix = () => {
         } catch (error) {
           if (error.message.includes('Network Error')) {
             setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+          } else if (error.response?.status === 400) {
+            const message = error.response?.data?.message || "You can not delete last matrix";
+            setMsgM1({ type: "error", msg: message });
           }
         }
       },
@@ -340,6 +368,9 @@ const StaticMatrix = () => {
 
   // Get Single Static Matrix
   async function getSPXMatrixAPI(key) {
+    if (!key) {
+      return;
+    }
     try {
       const response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_SINGAL_MATRIX_LIST_URL), { userId: getUserId(), staticMatrixId: key }, {
         headers: {
@@ -645,22 +676,22 @@ const StaticMatrix = () => {
         })
         let t = levels[level].value
         setContractsTable((pre) => {
-          return [...pre, t]
+          return [...pre, Math.abs(t)]
         })
         setCreditTable((pre) => {
-          return [...pre, getTradePrice(t)]
+          return [...pre, Math.abs(getTradePrice(t))]
         })
         setCommissionTable((pre) => {
-          return [...pre, getCommission(t)]
+          return [...pre, Math.abs(getCommission(t))]
         })
         setBPTable((pre) => {
           return [...pre, Math.abs(getLoss(t))]
         })
         setProfitTable((pre) => {
-          return [...pre, getProfit(t)]
+          return [...pre, Math.abs(getProfit(t))]
         })
         setLossTable((pre) => {
-          return [...pre, getLoss(t)]
+          return [...pre, Math.abs(getLoss(t))]
         })
         indx += 1
       }
@@ -774,7 +805,8 @@ const StaticMatrix = () => {
   };
 
   useEffect(() => {
-    getMatrixFromAPI()
+    getMatrixFromAPI();
+    fetchUserSubscription();
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownVisible(false);
@@ -883,10 +915,6 @@ const StaticMatrix = () => {
     }
   }, [selectedValue]);
 
-  setTimeout(() => {
-    setIsMessageVisible(true);
-  }, 1000);
-
 
   return (<>
     {staticKey ?
@@ -909,7 +937,7 @@ const StaticMatrix = () => {
             {/* ResetIcon popup section  */}
             <ConfirmationModal show={showModal} onClose={() => setShowModal(false)} onConfirm={modalData.onConfirm} title={modalData.title} icon={modalData.icon} message={modalData.message} />
 
-            <div className='relative' ref={containerRef}>
+            <div className={`relative ${recordLimit === 0 ? 'opacity-70 pointer-events-none' : ''}`} ref={containerRef}>
               <p onClick={toggleDropdown} className='flex items-center gap-[10px] text-sm lg:text-base bg-background6 font-medium text-Primary shadow-[0px_0px_6px_0px_#28236633] rounded-md px-4 py-2 cursor-pointer' >
                 <img src={MatrixIcon} className='h-5 w-5' alt="" /> {names[selectedName]} <img className='w-3' src={DropdownIcon} alt="" />
               </p>
@@ -968,10 +996,15 @@ const StaticMatrix = () => {
                     <select id="dropdown" value={selectedValue} onChange={handleChange} className="text-xs lg:text-sm text-Primary px-1 py-[2px] bg-textBoxBg rounded-md focus:outline-none focus:border-borderColor7 cursor-pointer">
                       <option value="5">5</option>
                       <option value="10">10</option>
+                      <option value="15">15</option>
+                      <option value="20">20</option>
+                      <option value="30">30</option>
+                      <option value="40">40</option>
+                      <option value="50">50</option>
                     </select>
                   </div>
                 </div>
-                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md' >
+                <div className={`flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md ${currentPlan ? 'opacity-70 pointer-events-none' : ''}`}>
                   <span>$</span>
                   <input type='text' maxLength={10} title="Please upgrade your plan" value={originalSize} onChange={handleOriginalSizeChange} className={`bg-transparent w-full focus:outline-none`} />
                   <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
@@ -1199,7 +1232,7 @@ const StaticMatrix = () => {
           </button>
         </div>}
 
-        <Button className="flex items-center gap-2 lg:gap-[17px] h-[38px] lg:h-[55px] mt-5 lg:mt-10 mx-auto" onClick={handleSaveMatrix} >
+        <Button className={`flex items-center gap-2 lg:gap-[17px] h-[38px] lg:h-[55px] mt-5 lg:mt-10 mx-auto ${recordLimit === 0 ? 'opacity-70 pointer-events-none' : ''}`} onClick={handleSaveMatrix} >
           <img className='h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
         </Button>
 
@@ -1209,7 +1242,7 @@ const StaticMatrix = () => {
       </div>
       :
       <>
-        {isMessageVisible ? <Link to={"/subscription"} className='text-lg text-Primary flex justify-center items-center h-3/4'>Please upgrade your plan...</Link> :
+        {isMessageVisible ?
           <div className="flex justify-center items-center h-[100vh]">
             <div role="status">
               <svg aria-hidden="true" className="w-14 h-14 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1218,7 +1251,7 @@ const StaticMatrix = () => {
               </svg>
               <span className="sr-only">Loading...</span>
             </div>
-          </div>}
+          </div> : <Link to={"/subscription"} className='text-lg text-Primary flex justify-center items-center h-3/4'>Please upgrade your plan...</Link>}
       </>
     }
   </>);

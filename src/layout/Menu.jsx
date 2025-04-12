@@ -172,7 +172,7 @@ const UserMenu = ({ activeLink, setActiveLink }) => {
       ) : (
         <>
           <div className='lg:w-[95px]'>
-            <div className='hidden lg:block h-full max-h-[710px] bg-gradient rounded-3xl sticky top-4'>
+            <div className='hidden lg:block h-auto 2xl:h-full max-h-[710px] bg-gradient rounded-3xl sticky top-4 z-10'>
               <img className='px-[27px] pt-[27px]' src={LogoSmall} alt="" />
               <img className='mx-auto mt-5 rotate-180 px-[6px] py-[9px] rounded-[6px] shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setMenuVisible(prev => !prev)} src={MenuIcon} alt="MenuIcon" />
               <div className='grid gap-[10px] py-[34px]'>
@@ -201,11 +201,11 @@ const UserMenu = ({ activeLink, setActiveLink }) => {
                 </div>
                 <Link to='/saved-matrix' className={`w-full py-[18px] px-[7px] flex justify-center ${getLinkClass('saved-matrix')}`}><img src={SavedMatrix} onClick={() => handleLinkClick('saved-matrix')} alt="" /></Link>
                 <Link to='/subscription' className={`w-full py-[18px] px-[7px] flex justify-center ${getLinkClass('subscription')}`}><img src={Subscription} onClick={() => handleLinkClick('subscription')} alt="" /></Link>
-                <div className=' flex justify-center'>
+                <div className='flex justify-center'>
                   {appContext.superUser && <img src={SwitchToAdminIcon} alt='' className='py-[18px] px-[7px] cursor-pointer' onClick={() => { setIsAdmin(!isAdmin); appContext.setAppContext({ ...appContext, isAdmin: !isAdmin }); navigate("/") }} />}
                 </div>
               </div>
-              <div className='pt-3'>
+              <div className='py-5'>
                 <Link to="/setting"><img className={`mx-auto py-[6px] px-[7px] border border-borderColor3 rounded-[6px] shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('setting')}`} onClick={() => handleLinkClick('setting')} src={Settings} alt="" /></Link>
                 <Link to="/help-support"><img className={`mx-auto p-[6px] border border-borderColor3 rounded-[6px] shadow-[0px_0px_4px_0px_#110D3D4D] mt-2 ${getLinkClass('help-support')}`} onClick={() => handleLinkClick('help-support')} src={Help} alt="" /></Link>
               </div>

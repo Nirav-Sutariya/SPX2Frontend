@@ -39,14 +39,30 @@ const HelpSupport = () => {
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
+    const maxSize = 5 * 1024 * 1024; 
+
     if (selectedFile) {
-      if (validateFileType(selectedFile)) {
-        setFile(selectedFile);
-        setErrors((prevErrors) => ({ ...prevErrors, file: "" }));
-      } else {
-        setErrors((prevErrors) => ({ ...prevErrors, file: "File type not supported. Only JPG, JPEG, and PNG allowed." }));
+      if (!validateFileType(selectedFile)) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          file: "File type not supported. Only JPG, JPEG, and PNG allowed.",
+        }));
         setFile(null);
+        return;
       }
+
+      if (selectedFile.size > maxSize) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          file: "File size exceeds 5MB. Please upload a smaller image.",
+        }));
+        setFile(null);
+        return;
+      }
+
+      // If all checks pass
+      setFile(selectedFile);
+      setErrors((prevErrors) => ({ ...prevErrors, file: "" }));
     }
   };
 

@@ -120,7 +120,6 @@ const SavedMatrix = () => {
       }, 20 * 100);
   }, [msg])
 
-
   useEffect(() => {
     getMatrixFromAPI("static", "short");
     fetchUserSubscription();
@@ -142,6 +141,8 @@ const SavedMatrix = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [MatrixRef, StaticMatrixRef, DynamicMatrixRef]);
+
+
 
 
   return (
@@ -187,16 +188,16 @@ const SavedMatrix = () => {
           </div>
           {matrix && (
             <div ref={MatrixRef} className='absolute z-10 mt-2 py-2 lg:py-[10px] px-3 md:px-4 min-w-[140px] border border-[#F8FCFF] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
-              {Object.keys(names).length > 0 ? (
-                Object.keys(names).map((key) => (
-                  <div key={key} className='cursor-pointer py-1 lg:py-[7px]' onClick={() => { setSelectedName(key); setMatrix(false); }}>
-                    <span className='text-sm lg:text-base font-medium text-Primary' title={names[key]}>
-                      {names[key]}
+              {Array.isArray(savedData) && savedData.filter(item => item.levels && item.levels.length > 0).length > 0 ? (
+                savedData.filter(item => item.levels && item.levels.length > 0).map(item => (
+                  <div key={item._id} className='cursor-pointer py-1 lg:py-[7px]' onClick={() => { setSelectedName(item._id); setMatrix(false); }}>
+                    <span className='text-sm lg:text-base font-medium text-Primary' title={item.matrixName}>
+                      {item.matrixName}
                     </span>
                   </div>
                 ))
               ) : (
-                <p className='text-sm text-gray-400 text-center py-1'>Not available</p>
+                <p className='text-sm text-Primary text-center py-1'>Not available</p>
               )}
             </div>
           )}

@@ -105,6 +105,7 @@ const StaticMatrixLong = () => {
 
   // Get Admin This Page Access For Admin Api 
   async function getStaticKey() {
+    setIsMessageVisible(true);
     try {
       let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_STATIC_LONG_KRY), { userId: getUserId() }, {
         headers: {
@@ -122,6 +123,9 @@ const StaticMatrixLong = () => {
       if (error.message.includes('Network Error')) {
         setMsgM1({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
       }
+    }
+    finally {
+      setIsMessageVisible(false);
     }
   }
 
@@ -218,6 +222,9 @@ const StaticMatrixLong = () => {
         } catch (error) {
           if (error.message.includes('Network Error')) {
             setMsgM1({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
+          } else if (error.response?.status === 400) {
+            const message = error.response?.data?.message || "You can not delete last matrix";
+            setMsgM1({ type: "error", msg: message });
           }
         }
       },
@@ -345,6 +352,9 @@ const StaticMatrixLong = () => {
 
   // Get Single Static Matrix
   async function getSPXMatrixAPI(key) {
+    if (!key) {
+      return;
+    }
     try {
       const response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_SINGAL_MATRIX_LIST_URL), { userId: getUserId(), staticMatrixId: key }, {
         headers: {
@@ -452,10 +462,12 @@ const StaticMatrixLong = () => {
   }, [tradePrice])
 
   useMemo(() => {
-    getMatrixFromAPI();
-    fetchAllocationLevelValuesFromAPI2();
-    getSPXMatrixAPI(selectedName);
-  }, [isMatrixSaved, selectedName])
+    if (staticKey) {
+      getMatrixFromAPI();
+      fetchAllocationLevelValuesFromAPI2();
+      getSPXMatrixAPI(selectedName);
+    }
+  }, [staticKey, isMatrixSaved, selectedName])
 
   // Regular Button function
   function Regular() {
@@ -639,19 +651,19 @@ const StaticMatrixLong = () => {
       })
       let t = (levels[level]?.active ? levels[level].value : 0) || 0;
       setContractsTable((pre) => {
-        return [...pre, t]
+        return [...pre, Math.abs(t)]
       })
       setCreditTable((pre) => {
-        return [...pre, (tradePrice * t * 100)]
+        return [...pre, Math.abs(tradePrice * t * 100)]
       })
       setCommissionTable((pre) => {
-        return [...pre, (commission * t)]
+        return [...pre, Math.abs(commission * t)]
       })
       setBPTable((pre) => {
-        return [...pre, getBPValue(t)]
+        return [...pre, Math.abs(getBPValue(t))]
       })
       setProfitTable((pre) => {
-        return [...pre, getProfit(t)]
+        return [...pre, Math.abs(getProfit(t))]
       })
       setLossTable((pre) => {
         return [...pre, getLoss(t)]
@@ -788,7 +800,9 @@ const StaticMatrixLong = () => {
   }, []);
 
   useMemo(() => {
-    getStaticKey();
+    if (!appContext.staticLongKey) {
+      getStaticKey();
+    }
     if (msgM1.type !== "")
       setTimeout(() => {
         setMsgM1({ type: "", msg: "" })
@@ -872,14 +886,10 @@ const StaticMatrixLong = () => {
   };
 
   useEffect(() => {
-    if (selectedValue) {
+    if (selectedValue && staticKey) {
       fetchAllocationLevelValuesFromAPI2();
     }
-  }, [selectedValue]);
-
-  setTimeout(() => {
-    setIsMessageVisible(true);
-  }, 1000);
+  }, [selectedValue, staticKey]);
 
 
   return (<>
@@ -960,6 +970,11 @@ const StaticMatrixLong = () => {
                     <select id="dropdown" value={selectedValue} onChange={handleChange} className="text-xs lg:text-sm text-Primary px-1 py-[2px] bg-textBoxBg rounded-md focus:outline-none focus:border-borderColor7 cursor-pointer">
                       <option value="5">5</option>
                       <option value="10">10</option>
+                      <option value="15">15</option>
+                      <option value="20">20</option>
+                      <option value="30">30</option>
+                      <option value="40">40</option>
+                      <option value="50">50</option>
                     </select>
                   </div>
                 </div>
@@ -1185,13 +1200,13 @@ const StaticMatrixLong = () => {
               })}
             </tbody>
           </table>
-          {LevelTable.length === 0 && <>
+          {LevelTable.length === 0 &&
             <div className="mt-4 text-center">
               <p className="text-base text-Secondary2 font-medium">
                 if any one of level selected and still calculation is not shown, Please click on Regular button
               </p>
             </div>
-          </>}
+          }
         </div>
 
         {/* {Object.values(levels).filter(level => level.active).length > 5 && <div className="mt-4 text-center">
@@ -1210,7 +1225,7 @@ const StaticMatrixLong = () => {
       </div>
       :
       <>
-        {isMessageVisible ? <Link to={"/subscription"} className='text-lg text-Primary flex justify-center items-center h-3/4'>Please upgrade your plan...</Link> :
+        {isMessageVisible ?
           <div className="flex justify-center items-center h-[100vh]">
             <div role="status">
               <svg aria-hidden="true" className="w-14 h-14 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1219,7 +1234,7 @@ const StaticMatrixLong = () => {
               </svg>
               <span className="sr-only">Loading...</span>
             </div>
-          </div>}
+          </div> : <Link to={"/subscription"} className='text-lg text-Primary flex justify-center items-center h-3/4'>Please upgrade your plan...</Link>}
       </>
     }
   </>);

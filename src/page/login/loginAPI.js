@@ -55,4 +55,16 @@ const getValidToken = async () => {
   }
 };
 
-export { PASSWORD_REGEX, getValidToken, getToken, getUserId, isTokenExpired, setToken, getUserName, setUserName, removeTokens }
+const isSuperUser = (token) => {
+  try {
+    const decoded = jwtDecode(token);
+    const isAdmin = decoded?.role === "Admin";
+    return isAdmin;
+  } catch (error) {
+    console.error("Error decoding token:", error);
+    return false;
+  }
+};
+
+
+export { PASSWORD_REGEX, getValidToken, getToken, getUserId, isTokenExpired, setToken, getUserName, setUserName, removeTokens, isSuperUser }

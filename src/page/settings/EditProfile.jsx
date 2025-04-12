@@ -11,7 +11,7 @@ import PasswordIIcon2 from '../../assets/Images/Login/PasswordIIcon2.svg';
 import DeletePopupIcon from '../../assets/Images/UserData/DeletePopupIcon.svg';
 import PopupCloseIcon from '../../assets/Images/SuperDashboard/PopupCloseIcon.svg';
 
-const MAX_FILE_SIZE = 1
+const MAX_FILE_SIZE = 2
 
 const EditProfile = () => {
 
@@ -27,6 +27,7 @@ const EditProfile = () => {
   let appContext = useContext(AppContext);
   const confirmPasswordRef = useRef(null);
   const [deleteUser, setDeleteUser] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [msg, setMsg] = useState({ type: '', msg: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [msgM1, setMsgM1] = useState({ type: "", msg: "" });
@@ -87,12 +88,14 @@ const EditProfile = () => {
         });
         return;
       }
+      setIsUploading(true);
       appContext.setAppContext((curr) => ({
         ...curr,
         profilePhoto: null,
       }));
-      setSelectedImage(null)
-      await getProfilePhoto(file)
+      setSelectedImage(null);
+      await getProfilePhoto(file);
+      setIsUploading(false);
       fileInputRef.current.value = "";
     }
   };
@@ -135,7 +138,6 @@ const EditProfile = () => {
         }
       })
       if (response.status === 201) {
-        console.log("response", response.data.data.profilePicture);
         setSelectedImage(response.data.data.profilePicture);
         appContext.setAppContext((curr) => ({
           ...curr,
@@ -162,10 +164,6 @@ const EditProfile = () => {
       } else {
         value = value.charAt(0).toUpperCase() + value.slice(1);
       }
-    }
-
-    if (name === "slackID" && value.length >= 21) {
-      errorMsg = "Slack ID should not be more than 20 characters";
     }
 
     if (name === "phone") {
@@ -218,12 +216,6 @@ const EditProfile = () => {
       errors.last_name = "Last Name should not exceed 16 characters.";
     }
 
-    if (!formData.slackID.trim()) {
-      errors.slackID = "Slack ID is required.";
-    } else if (formData.slackID.length > 20) {
-      errors.slackID = "Slack ID should not be more than 20 characters.";
-    }
-
     setErrors(errors);
 
     if (Object.keys(errors).length > 0) {
@@ -235,11 +227,9 @@ const EditProfile = () => {
 
   // User Data Update Api
   async function updatedUserData(e) {
-    e.preventDefault();
     if (!validateForm()) {
       return;
     }
-
     const apiData = {
       firstName: formData.first_name,
       lastName: formData.last_name,
@@ -256,7 +246,6 @@ const EditProfile = () => {
       if (response.status === 201) {
         setMsgM1({ type: "info", msg: "User data updated..." })
         setIsButtonDisabled(true);
-        window.location.reload();
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
@@ -308,11 +297,11 @@ const EditProfile = () => {
     if (msgM1.type !== "")
       setTimeout(() => {
         setMsgM1({ type: "", msg: "" })
-      }, 20 * 100);
+      }, 20 * 200);
     if (msgM2.type !== "")
       setTimeout(() => {
         setMsgM2({ type: "", msg: "" })
-      }, 20 * 100);
+      }, 20 * 200);
   }, [msgM1, msgM2])
 
   // Check if form data has changed compared to initial data
@@ -349,7 +338,11 @@ const EditProfile = () => {
         <div onClick={() => fileInputRef.current.click()}>
           <input type="file" ref={fileInputRef} accept=".png, .jpg, .jpeg" style={{ display: 'none' }} onChange={handleImageChange} />
           <div className='flex justify-center'>
-            {selectedImage ? (
+            {isUploading ? (
+              <div className='flex justify-center items-center w-[70px] lg:w-[100px] h-[70px] lg:h-[100px] rounded-full overflow-hidden bg-gray-100'>
+                <div className="loader w-6 h-6 border-4 border-t-Primary border-gray-300 rounded-full animate-spin"></div>
+              </div>
+            ) : selectedImage ? (
               <img src={`${selectedImage || appContext.profilePhoto}?t=${Date.now()}`} className="rounded-full w-[70px] lg:w-[100px] h-[70px] lg:h-[100px] object-cover" alt="Selected" />
             ) : (
               <img src={ProfilePicture} className='w-[70px] lg:w-[100px] h-[70px] lg:h-[100px]' alt="Placeholder" />
@@ -358,6 +351,8 @@ const EditProfile = () => {
           <p className='text-sm lg:text-lg text-Primary text-center mt-[14px]'>Choose A Photo</p>
         </div>
       </div>
+
+      {(msgM1.msg !== "") && <p className={`text-sm ${msgM1.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM1.msg}.</p>}
 
       {deleteUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
@@ -404,7 +399,6 @@ const EditProfile = () => {
             <input type="text" name="slackID" title='Max Length 50' maxLength={50} value={formData.slackID} ref={slackIdRef} onKeyDown={(e) => handleKeyDown(e, phoneRef)} onChange={handleInputChange} placeholder='Enter your slack id'
               className="text-Primary w-full mt-2 px-3 lg:px-5 py-[5px] lg:py-[9px] text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
             />
-            {errors.slackID && (<p className="text-red-500 text-sm mt-1">{errors.slackID}</p>)}
           </div>
         </div>
 
@@ -423,7 +417,7 @@ const EditProfile = () => {
             <input type="text" value={appContext.userData.email} disabled className="text-Primary w-full mt-1 lg:mt-2 px-3 lg:px-5 py-[5px] lg:py-[9px] text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg cursor-not-allowed" />
           </div>
         </div>
-        {(msgM1.msg !== "") && <p className={`text-sm ${msgM1.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM1.msg}.</p>}
+        {(msgM2.msg !== "") && <p className={`text-sm ${msgM2.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM2.msg}.</p>}
 
         <div className="flex justify-end mt-5 md:mt-[30px]">
           <button type="button" ref={submitButtonRef} onClick={updatedUserData} disabled={isButtonDisabled} className={`text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px] ${isButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}`} >

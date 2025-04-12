@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState, useRef } from 'react';
+import React, { useContext, useMemo, useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { validateEmail } from '../../components/utils';
@@ -39,27 +39,34 @@ const Login = ({ setIsLoggedIn }) => {
   }
 
   async function loginSubmit(e) {
-    e.preventDefault()
+    e.preventDefault();
+
     if (validateFormData()) {
       try {
-        const response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_LOGIN_URL), { "email": email.toLocaleLowerCase(), "password": password })
+        const response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_LOGIN_URL, {
+          email: email.toLowerCase(),
+          password: password
+        });
+
         if (response.status === 200) {
           setToken(response.data.data.token);
-          setUserName(response.data.data.firstName)
+          setUserName(response.data.data.firstName);
           setIsLoggedIn(true);
           localStorage.setItem("userId", response.data.data._id);
         } else {
-          setMsg({ type: "error", msg: "Something went wrong" })
+          setMsg({ type: "error", msg: "Something went wrong" });
         }
       } catch (error) {
-        if (error.message.includes('Network Error')) {
-          setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
+        if (error.message.includes("Network Error")) {
+          setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection.", });
         } else {
           setMsg({ type: "error", msg: "An unexpected error occurred.", });
         }
       }
     }
   }
+
+
 
   const handleForgotPassword = async () => {
     if (email.length > 1) {

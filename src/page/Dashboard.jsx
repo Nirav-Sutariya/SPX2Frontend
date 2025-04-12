@@ -511,16 +511,18 @@ const Dashboard = ({ theme }) => {
             <img src={DropdownIcon} alt="" />
           </div>
           {matrix && (
-            <div ref={MatrixRef} className='absolute z-10 mt-2 py-1 lg:py-2 px-2 md:px-4 border border-[#F8FCFF] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
-              {Object.keys(names).length === 0 ? (
-                <p className='text-sm lg:text-base font-medium text-Secondary2 py-[3px] cursor-pointer text-nowrap'> No items found. </p>
-              ) :
-                (Object.keys(names).map((key) => (
-                  <p key={key} className='text-sm lg:text-base font-medium text-Secondary2 py-[3px] cursor-pointer text-nowrap' onClick={() => {
-                    setSelectedName(key);
-                    setMatrix(false);
-                  }}>{names[key]}</p>
-                )))}
+            <div ref={MatrixRef} className='absolute z-10 mt-2 py-1 lg:py-2 px-2 md:px-4 border border-[#F8FCFF] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]' >
+              {Array.isArray(savedData) && savedData.filter(item => item.levels && item.levels.length > 0).length === 0 ? (
+                <p className='text-sm lg:text-base font-medium text-Secondary2 py-[3px] cursor-pointer text-nowrap'>
+                  No items found.
+                </p>
+              ) : (
+                savedData.filter(item => item.levels && item.levels.length > 0).map(item => (
+                  <p key={item._id} className='text-sm lg:text-base font-medium text-Secondary2 py-[3px] cursor-pointer text-nowrap' onClick={() => { setSelectedName(item._id); setMatrix(false); }} >
+                    {item.matrixName}
+                  </p>
+                ))
+              )}
             </div>
           )}
         </div>
@@ -693,7 +695,7 @@ const Dashboard = ({ theme }) => {
             {!longICShow && <h2 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary p-3 lg:p-4 xl:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633] cursor-pointer flex items-center gap-5'>Current Long IC Position <img className=' w-4 xl:w-5' src={DownArrowIcon} alt="" /> </h2>}
           </div>
           {longICShow && <div className='rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
-            <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'>  <h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary p-3 pb-0 lg:p-5 lg:pb-0 flex items-center gap-4 cursor-pointer' onClick={(e) => { LongICShowHandel(false) }}>Current Long IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
+            <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'><h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary flex items-center gap-4 cursor-pointer' onClick={(e) => { LongICShowHandel(false) }}>Current Long IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
               <div className="w-full max-w-[70px] sm:max-w-[80px]">
                 <select id="dropdown" value={matrixTypeValue} onChange={handleChangeMatrixType} className="text-xs lg:text-sm text-Primary px-2 lg:px-3 py-[7px] lg:py-[6px] border border-borderColor rounded-md bg-textBoxBg w-full focus:outline-none focus:border-borderColor7">
                   <option value="SPX">SPX</option>

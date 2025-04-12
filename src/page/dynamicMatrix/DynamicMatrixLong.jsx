@@ -119,6 +119,7 @@ const DynamicMatrixLong = () => {
 
   // Get Admin This Page Access For Admin Api 
   async function getDynamicKey() {
+    setIsMessageVisible(true);
     try {
       let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_DYNAMIC_SHORT_KRY), { userId: getUserId() }, {
         headers: {
@@ -136,6 +137,9 @@ const DynamicMatrixLong = () => {
       if (error.message.includes('Network Error')) {
         setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
+    }
+    finally {
+      setIsMessageVisible(false);
     }
   }
 
@@ -257,6 +261,9 @@ const DynamicMatrixLong = () => {
         } catch (error) {
           if (error.message.includes('Network Error')) {
             setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+          } else if (error.response?.status === 400) {
+            const message = error.response?.data?.message || "You can not delete last matrix";
+            setMsgM1({ type: "error", msg: message });
           }
         }
       },
@@ -396,6 +403,9 @@ const DynamicMatrixLong = () => {
 
   // Get Single Static Matrix
   async function getSPXMatrixAPI(key) {
+    if (!key) {
+      return;
+    }
     try {
       const response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_SINGAL_DYNAMIC_MATRIX_LIST_URL), { userId: getUserId(), dynamicMatrixId: key }, {
         headers: {
@@ -511,10 +521,12 @@ const DynamicMatrixLong = () => {
   };
 
   useMemo(() => {
-    getMatrixFromAPI();
-    fetchAllocationLevelValuesFromAPI2();
-    getSPXMatrixAPI(selectedName);
-  }, [isMatrixSaved, selectedName])
+    if (dynamicKey) {
+      getMatrixFromAPI();
+      fetchAllocationLevelValuesFromAPI2();
+      getSPXMatrixAPI(selectedName);
+    }
+  }, [isMatrixSaved, selectedName, dynamicKey])
 
   useMemo(() => {
     setCurrentAllocation((Number(originalSize) * (allocation / 100)).toFixed(2))
@@ -574,10 +586,6 @@ const DynamicMatrixLong = () => {
     setStackOrShiftFlag("shift");
     setLevels(temp);
   }
-
-  setTimeout(() => {
-    setIsMessageVisible(true);
-  }, 2000);
 
   // Rest Table 
   const ResetTable = () => {
@@ -915,12 +923,18 @@ const DynamicMatrixLong = () => {
       if (arr1.length !== arr2.length) return false;
       return arr1.every((value, index) => value === arr2[index]);
     };
-    if (CumulativeLossTable?.length === 0) {
-      initValueSetup();
+
+    const shouldRunSetup =
+      CumulativeLossTable?.length === 0 ||
+      !areArraysEqual(cumulativeLossRef.current, CumulativeLossTable);
+
+    if (shouldRunSetup) {
+      // Avoid calling setup on every render by checking the ref first
       cumulativeLossRef.current = [...CumulativeLossTable];
-    } else if (CumulativeLossTable.length > 0 && !areArraysEqual(cumulativeLossRef.current, CumulativeLossTable)) {
-      initValueSetup();
-      cumulativeLossRef.current = [...CumulativeLossTable];
+      // Only trigger once to break the cycle
+      setTimeout(() => {
+        initValueSetup();
+      }, 0); // Defer to next render cycle
     }
   }, [CumulativeLossTable]);
 
@@ -1074,10 +1088,10 @@ const DynamicMatrixLong = () => {
   };
 
   useEffect(() => {
-    if (selectedValue) {
+    if (selectedValue && dynamicKey) {
       fetchAllocationLevelValuesFromAPI2();
     }
-  }, [selectedValue]);
+  }, [selectedValue, dynamicKey]);
 
 
   return (<>
@@ -1149,15 +1163,20 @@ const DynamicMatrixLong = () => {
         {(msgM2.msg !== "") && <p className={`text-sm ${msgM2.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM2.msg}.</p>}
 
         <div className='rounded-[6px] max-w-[792px] bg-background6 px-3 py-[16px] lg:p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Size'>
-          <div className='flex flex-wrap items-end min-[430px]:flex-nowrap gap-3 lg:gap-5'>
+          <div className='flex flex-wrap items-end min-[455px]:flex-nowrap gap-3 lg:gap-5'>
             <div className='w-full' ref={containerRef}>
               <div className='flex justify-between items-end gap-2'>
                 <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Original Account Size:</label>
-                <div className="flex items-center px-2 w-full max-w-[100px] sm:max-w-[100px] lg:max-w-[110px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7">
-                  <span className='text-sm text-Primary'>Spread:</span>
+                <div className="flex items-center px-2 w-full max-w-[90px] sm:max-w-[90px] lg:max-w-[95px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7">
+                  <span className='text-xs lg:text-sm text-Primary'>Wide:</span>
                   <select id="dropdown" value={selectedValue} onChange={handleChange} className="text-xs lg:text-sm text-Primary px-1 py-[2px] rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7 cursor-pointer">
                     <option value="5">5</option>
                     <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="40">40</option>
+                    <option value="50">50</option>
                   </select>
                 </div>
               </div>
@@ -1264,10 +1283,15 @@ const DynamicMatrixLong = () => {
                           </label>
                         </div>
                         <div className="flex items-center px-2 w-full max-w-[100px] sm:max-w-[100px] lg:max-w-[100px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7">
-                          <span className='text-xs text-Primary'>Spread:</span>
+                          <span className='text-xs text-Primary'>Wide:</span>
                           <select id={`dropdown-${levelKey}`} value={levelData.levelSpread || selectedValue} onChange={(e) => handleDropdownChange(levelKey, e.target.value)} disabled={!levelData.active} className="text-xs lg:text-sm text-Primary px-1 py-[2px] rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7 cursor-pointer">
                             <option value="5">5</option>
                             <option value="10">10</option>
+                            <option value="15">15</option>
+                            <option value="20">20</option>
+                            <option value="30">30</option>
+                            <option value="40">40</option>
+                            <option value="50">50</option>
                           </select>
                         </div>
                       </div>
@@ -1504,7 +1528,7 @@ const DynamicMatrixLong = () => {
       </div>
       :
       <>
-        {isMessageVisible ? <Link to={"/subscription"} className='text-lg text-Primary flex justify-center items-center h-3/4'>Please upgrade your plan...</Link> :
+        {isMessageVisible ?
           <div className="flex justify-center items-center h-[100vh]">
             <div role="status">
               <svg aria-hidden="true" className="w-14 h-14 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1513,7 +1537,7 @@ const DynamicMatrixLong = () => {
               </svg>
               <span className="sr-only">Loading...</span>
             </div>
-          </div>}
+          </div> : <Link to={"/subscription"} className='text-lg text-Primary flex justify-center items-center h-3/4'>Please upgrade your plan...</Link>}
       </>
     }
   </>);
