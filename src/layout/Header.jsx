@@ -82,17 +82,17 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
         setIsOpen(false);
       }
     };
+  
+    const shouldDisableScroll = showLogoutModal || isMenuVisible;
+    document.body.classList.toggle('no-scroll', shouldDisableScroll);
+  
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.body.classList.remove('no-scroll');
     };
-  }, [isMenuVisible]);
-
-  useEffect(() => {
-    document.body.classList.toggle('no-scroll', showLogoutModal || isMenuVisible);
-    return () => document.body.classList.remove('no-scroll');
   }, [showLogoutModal, isMenuVisible]);
-
+  
 
   return (
     <>
@@ -105,7 +105,7 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
             <div ref={menuRef} className={`absolute z-10 w-full max-w-[318px] h-full bg-background5 top-0 right-0 p-3 ${isMenuVisible ? 'slide-in' : 'slide-out'}`}>
               <div className='flex justify-between items-center gap-[30px] FilterModalVisibleMenu border-b border-[#B7D1E0] pt-5 pb-3'>
                 <div className='flex items-center gap-5 cursor-pointer'>
-                  <img className='w-[52px]' src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} alt="" />
+                  <img className='w-[52px] rounded-full' src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} alt="" />
                   <div>
                     <p className='text-base text-Primary font-medium'>{appContext.userData.first_name || "Loading..."}</p>
                     <Link to="/edit-profile" className='text-xs text-Primary font-medium' onClick={() => handleLinkClick('edit-profile')} >Edit Profile</Link>

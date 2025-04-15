@@ -66,7 +66,6 @@ const UserData = () => {
 
 
   // Get the current data slice
-
   const handleChange = (e) => {
     let { name, value, type, checked } = e.target;
 
@@ -140,7 +139,7 @@ const UserData = () => {
         appContext.setAppContext((curr) => ({ ...curr, userList: userData }));
       }
     } catch (error) {
-      setUserList([]); // Ensure it's always an array
+      setUserList([]);
     }
   }
 
@@ -154,18 +153,18 @@ const UserData = () => {
       return;
     }
 
-    const userId = getUserId(); // Retrieve user ID
+    const userId = getUserId();
     const formDataToSend = new FormData();
     formDataToSend.append("firstName", formData.first_name);
     formDataToSend.append("lastName", formData.last_name);
     formDataToSend.append("email", formData.email);
-    formDataToSend.append("userId", userId); // Assuming userId is needed
+    formDataToSend.append("userId", userId);
     formDataToSend.append("slackId", formData.slackID);
     formDataToSend.append("phoneNo", formData.phone);
     formDataToSend.append("planId", formData.plan);
 
     if (selectedImage) {
-      formDataToSend.append("profilePicture", selectedImage); // Append file correctly
+      formDataToSend.append("profilePicture", selectedImage);
     }
 
     try {
@@ -219,11 +218,9 @@ const UserData = () => {
           formDataToSend.append(key, formData[key]);
     });
     if (profilePicture) {
-      formDataToSend.append('profilePicture', profilePicture); // Append the profile picture
+      formDataToSend.append('profilePicture', profilePicture);
     }
 
-    const userId = getUserId(); // Retrieve user ID
-    // Create the payload object
     let payload = {
       updateUserId: editUserID,
       firstName: formData.first_name,
@@ -236,7 +233,7 @@ const UserData = () => {
     };
 
     try {
-      let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_UPDATE_USER_DATA, { userId, ...payload }, {
+      let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_UPDATE_USER_DATA, { userId:getUserId(), ...payload }, {
         headers: {
           "Content-Type": "multipart/form-data",
           'x-access-token': getToken()
@@ -244,12 +241,12 @@ const UserData = () => {
       })
       if (response.status === 201) {
         setMsg({ type: "info", msg: 'User account data updated successfully...' });
-        setAddUser(false)
+        setAddUser(false);
         setFormData({ first_name: '', last_name: '', slackID: '', phone: '', email: '', plan: '' })
-        setSelectedImage(null)
-        setProfilePicture(null)
-        fetchUserList()
-        editClosePopup()
+        setSelectedImage(null);
+        setProfilePicture(null);
+        fetchUserList();
+        editClosePopup();
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
@@ -267,9 +264,9 @@ const UserData = () => {
         },
       })
       if (response.status === 201) {
-        fetchUserList()
+        fetchUserList();
         setMsg({ type: "info", msg: 'User has been ban user...' });
-        setBanUser(false)
+        setBanUser(false);
       }
     } catch (error) {
       setBanUser(false)
@@ -288,11 +285,11 @@ const UserData = () => {
         }
       })
       if (response.status === 200) {
-        setDeleteUserId(null)
-        setDeleteUserName(null)
-        fetchUserList()
+        setDeleteUserId(null);
+        setDeleteUserName(null);
+        fetchUserList();
         setMsg({ type: "info", msg: 'User has been deleted...' });
-        setDeleteUser(false)
+        setDeleteUser(false);
       }
     } catch (error) {
       setDeleteUser(false)
@@ -349,17 +346,10 @@ const UserData = () => {
   };
 
   useMemo(() => {
-    fetchUserList()
-  }, [])
-
-  useMemo(() => {
     if (msg.type !== "")
       setTimeout(() => {
         setMsg({ type: "", msg: "" })
       }, 20 * 100);
-    if (appContext.plans.length === 0) {
-      fetchPlan(); // Call API only if plans length is 0
-    }
   }, [msg, appContext.plans])
 
   // Close dropdown if clicked outside
@@ -395,13 +385,12 @@ const UserData = () => {
         headers: {
           'x-access-token': getToken()
         },
-        responseType: "blob", // Important for file downloads
+        responseType: "blob",
       })
-      // Create a Blob URL and trigger download
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", "exported_data.xlsx"); // Change filename if needed
+      link.setAttribute("download", "exported_data.xlsx");
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -414,8 +403,8 @@ const UserData = () => {
     try {
       let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_IMPORT_DATA, { userId: getUserId(), excelFile: file }, {
         headers: {
-          "x-access-token": `${getToken()}`,
-          "Content-Type": "multipart/form-data", // Important for file upload
+          "x-access-token": getToken(),
+          "Content-Type": "multipart/form-data",
         },
       })
       setMessage({ type: "success", text: "File uploaded successfully!" });
@@ -437,19 +426,15 @@ const UserData = () => {
     ImportData(file);
   };
 
-  // Auto-hide message after 4 seconds
   useEffect(() => {
+    fetchUserList(currentPage);
     if (message) {
       const timer = setTimeout(() => {
         setMessage(null);
       }, 4000);
       return () => clearTimeout(timer);
     }
-  }, [message]);
-
-  useEffect(() => {
-    fetchUserList(currentPage);
-  }, [currentPage]);
+  }, [currentPage, message]);
 
 
   return (
@@ -468,7 +453,12 @@ const UserData = () => {
           {file && <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px]' onClick={handleUpload}> Import Data </p>}
         </div>
         <div className='flex flex-wrap justify-end gap-5'>
-          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px] flex items-center gap-3' onClick={() => setAddUser(true)}> Add User </p>
+          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px] flex items-center gap-3' onClick={() => {
+            setAddUser(true)
+            if (appContext.plans.length === 0) {
+              fetchPlan();
+            }
+          }}> Add User </p>
           <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px]' onClick={ExportData}> Export Data </p>
           <Link to="/user-data-ban-user" className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px]'> Ban User List </Link>
         </div>
@@ -515,7 +505,12 @@ const UserData = () => {
                       );
                     })()
                       : "-"}</td>
-                    <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-borderColor font-medium underline cursor-pointer " onClick={() => showPopup(index)}> <img className='mx-auto' src={ActionIcon} alt="" />
+                    <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-borderColor font-medium underline cursor-pointer" onClick={() => {
+                      if (appContext.plans.length === 0) {
+                        fetchPlan();
+                      }
+                      showPopup(index);
+                    }} > <img className='mx-auto' src={ActionIcon} alt="" />
                       {activeRow === index && (
                         <div ref={dropdownRef} className="absolute right-0 z-10 bg-background6 border border-borderColor2 text-start py-2 lg:py-3 px-3 lg:px-5 mt-5 rounded-lg shadow-[0px_0px_6px_0px_#28236633] w-[140px] lg:w-[160px]">
                           <p className="text-sm lg:text-base text-Secondary2 mb-2 flex items-center gap-[10px] cursor-pointer"

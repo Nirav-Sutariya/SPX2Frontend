@@ -106,7 +106,7 @@ const DynamicMatrixShort = () => {
   // Determine how many rows to show
   const visibleRows = showAllRows ? LevelTable.length : 5
 
-  // Table 6 level Visible Condtion 
+  // Table 6 level Visible Condition 
   const visibleLevels = showAll
     ? Math.max(appContext.shortMatrixLength, Object.keys(levels).length)
     : Math.min(5, Math.max(appContext.shortMatrixLength, Object.keys(levels).length));
@@ -329,8 +329,11 @@ const DynamicMatrixShort = () => {
           buyingPowerDynamicShort: formattedData.map((item) => item.buyingPower),
         }));
 
-        setOriginalSize(response.data.data[0].buyingPower);
-        await getSingleLevelAPI(response.data.data[0]._id);
+        setOriginalSize(response.data.data[2].buyingPower);
+        await getSingleLevelAPI(response.data.data[2]._id);
+        if (!localStorage.getItem('originalSizeIdDyShort')) {
+          localStorage.setItem('originalSizeIdDyShort', response.data.data[2]._id);
+        }
       } else {
         setStaticLevelDefaultValue([]); // Handle invalid response
       }
@@ -367,6 +370,9 @@ const DynamicMatrixShort = () => {
 
   // Get Single level
   async function getSingleLevelAPI(levelId) {
+    if (!levelId) {
+      return;
+    }
     try {
       const response = await axios.post((process.env.REACT_APP_LEVELS_URL + process.env.REACT_APP_GET_SINGL_LEVEL_VALUE_URL), { userId: getUserId(), levelId }, {
         headers: {
@@ -378,13 +384,14 @@ const DynamicMatrixShort = () => {
         const levelData = response.data.data;
         const levelsOnly = Object.keys(levelData)
           .filter((key) => key.startsWith('level'))
-          .reduce((obj, key) => {
+          .reduce((obj, key, index) => {
             const rawValue = Number(levelData[key]) || 0;
-            const value = rawValue < 0 ? 0 : rawValue; // 🚨 fix: convert negative to 0
+            const value = rawValue < 0 ? 0 : rawValue;
+            const isActive = value > 0 && index === 2;
 
             obj[key] = {
               value: value,
-              active: value > 0,
+              active: isActive,
               premium: 0,
               stopLevel: 0,
               fullIcClose: false,
@@ -420,7 +427,7 @@ const DynamicMatrixShort = () => {
         setSelectedValue(response.data.data.spread ?? 5);
         setAllocation(response.data.data.allocation ?? defaultAllocation);
         setCommission(response.data.data.commission ?? defaultCommission);
-        setOriginalSize(response.data.data.originalSize ?? 5000);
+        setOriginalSize(response.data.data.originalSize ?? 11800);
         const savedLevelsObject = response.data.data.levels.reduce((obj, level) => {
           obj[level.level] = {
             value: level.value || 0,
@@ -431,7 +438,7 @@ const DynamicMatrixShort = () => {
             oneSideClose: level.oneSideClose ?? false,
             outSide: level.outSide ?? false,
             levelSpread: level.levelSpread ?? selectedValue,
-          };;
+          };
           return obj;
         }, {});
 
@@ -541,7 +548,16 @@ const DynamicMatrixShort = () => {
   // Regular Matrix calculation
   function Regular() {
     setStackOrShiftFlag(true);
-    fetchAllocationLevelValuesFromAPI();
+
+    const savedId = localStorage.getItem('originalSizeIdDyShort');
+
+    if (!staticLevelDefaultValue || !savedId) return;
+
+    const matched = staticLevelDefaultValue.find(item => item._id === savedId);
+
+    if (matched && matched.buyingPower === originalSize) {
+      getSingleLevelAPI(savedId);
+    }
   }
 
   // Stack Matrix calculation
@@ -621,7 +637,7 @@ const DynamicMatrixShort = () => {
 
   // Rest All This Page Data
   function resetAllParams() {
-    setOriginalSize(appContext.buyingPowerDynamicShort[0])
+    setOriginalSize(appContext.buyingPowerDynamicShort[2])
     setCommission(defaultCommission);
     setAllocation(defaultAllocation);
     setShowAll(false);
@@ -950,7 +966,6 @@ const DynamicMatrixShort = () => {
     }
   }, [CumulativeLossTable]);
 
-
   function calculateDependentValue() {
     let indx = 0;
     setAfterWinTable([])
@@ -996,14 +1011,6 @@ const DynamicMatrixShort = () => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setMenuVisible(false);
       }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isMenuVisible]);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownVisible(false);
         setEditIndex(null);
@@ -1016,9 +1023,10 @@ const DynamicMatrixShort = () => {
         setEditIndex(null);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isMenuVisible]); // If any state is relevant, include it here, otherwise use []
 
   useMemo(() => {
     getDynamicKey();
@@ -1055,7 +1063,11 @@ const DynamicMatrixShort = () => {
     if (selectedName) {
       sessionStorage.setItem('dyShortMatrix', JSON.stringify(selectedName));
     }
-  }, [selectedName]);
+
+    if (selectedValue && dynamicKey) {
+      fetchAllocationLevelValuesFromAPI2();
+    }
+  }, [selectedName, selectedValue, dynamicKey]);
 
   const toggleDropdown = () => {
     setDropdownVisible(!isDropdownVisible);
@@ -1133,14 +1145,6 @@ const DynamicMatrixShort = () => {
     }));
     setSelectedValue(newValue);
   };
-
-  useEffect(() => {
-    if (selectedValue && dynamicKey) {
-      fetchAllocationLevelValuesFromAPI2();
-    }
-  }, [selectedValue, dynamicKey]);
-
-  console.log("levels", levels);
 
 
   return (
@@ -1251,6 +1255,7 @@ const DynamicMatrixShort = () => {
                                 setOriginalSize(key.buyingPower);
                                 setAllocationHintsVisibility(false);
                                 await getSingleLevelAPI(key._id);
+                                localStorage.setItem('originalSizeIdDyShort', key._id);
                               }}>
                               <span className="text-sm lg:text-base text-Primary font-medium text-wrap flex-1 ml-2">
                                 $ {Number(key.buyingPower).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1287,10 +1292,19 @@ const DynamicMatrixShort = () => {
           </div>
 
           <div className='rounded-[6px] p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
-            <div className='flex gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
-              <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-[6px]`} onClick={Regular}>Regular</button>
-              <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-[6px] ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
-              <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-[6px] ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
+            <div className='flex flex-wrap justify-between items-start md:items-center gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
+              <div className='flex gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium'>
+                <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-[6px]`} onClick={Regular}>Regular</button>
+                <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-[6px] ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
+                <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-[6px] ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
+              </div>
+              <div className='md:flex gap-3'>
+                {(msgM4.msg !== "") && <p className={`hidden md:block text-sm text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}, <Link to="/subscription"></Link> </p>}
+                <div className="flex items-center gap-2 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-md py-2 px-5 lg:py-[6px] lg:px-[30px] h-[37px] lg:h-[45px] cursor-pointer" onClick={handleSaveMatrix} >
+                  <img className='h-4 lg:h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
+                </div>
+                {(msgM4.msg !== "") && <p className={`block md:hidden text-sm text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}, <Link to="/subscription"></Link> </p>}
+              </div>
             </div>
             {(msgM3.msg !== "") && <p className={`text-sm ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}.</p>}
             <h3 className='text-xl lg:text-[22px] xl:text-2xl font-semibold text-Primary mb-3'>Levels</h3>
@@ -1333,7 +1347,7 @@ const DynamicMatrixShort = () => {
                               {`Level ${index + 1}`}
                             </label>
                           </div>
-                          <div className="flex items-center px-2 w-full max-w-[105px] sm:max-w-[105px] lg:max-w-[105px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7">
+                          <div className="flex items-center px-2 w-full max-w-[95px] sm:max-w-[95px] lg:max-w-[95px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7">
                             <span className='text-xs text-Primary'>Wide:</span>
                             <select id={`dropdown-${levelKey}`} value={levelData.levelSpread || selectedValue} onChange={(e) => handleDropdownChange(levelKey, e.target.value)} disabled={!levelData.active} className="text-xs lg:text-sm text-Primary px-1 py-[2px] rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7 cursor-pointer">
                               <option value="5">5</option>
@@ -1450,9 +1464,18 @@ const DynamicMatrixShort = () => {
 
           <div className='flex justify-between items-center gap-5 mt-5 lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full'>
             <h2 className='text-xl lg:text-[22px] xl:text-2xl text-Primary font-semibold'>Dynamic Matrix - Short IC <span className='text-sm lg:text-base text-Primary lg:font-medium mt-5'>(Allocation Size: ${Number(currentAllocation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</span></h2>
-            <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px]' onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
-              <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
-            </p>
+            <div className='flex justify-between md:justify-end items-start gap-5 mt-3 sm:mt-0 w-full md:w-auto'>
+              <div className='md:flex gap-3'>
+                {(msgM4.msg !== "") && <p className={`hidden md:block text-sm text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}, <Link to="/subscription"></Link> </p>}
+                <div className="flex items-center gap-2 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-md py-2 px-5 lg:py-[6px] lg:px-[30px] h-[37px] lg:h-[40px] cursor-pointer" onClick={handleSaveMatrix} >
+                  <img className='h-4 lg:h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
+                </div>
+                {(msgM4.msg !== "") && <p className={`block md:hidden text-sm text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}, <Link to="/subscription"></Link> </p>}
+              </div>
+              <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+                <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
+              </p>
+            </div>
           </div>
 
           <div className="flex justify-end">

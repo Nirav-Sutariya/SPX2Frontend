@@ -45,11 +45,8 @@ const SupportUser = () => {
 
   useMemo(() => {
     if (appContext.supportUserData.length === 0) {
-      fetchSupportUserData()
+      fetchSupportUserData();
     }
-  }, [])
-
-  useMemo(() => {
     if (msg.type !== "")
       setTimeout(() => {
         setMsg({ type: "", msg: "" })
@@ -66,9 +63,6 @@ const SupportUser = () => {
     setIsPopupVisible(false);
     setSelectedUser(null);
   };
-
-  console.log("supportUserData", supportUserData);
-  
 
 
   return (

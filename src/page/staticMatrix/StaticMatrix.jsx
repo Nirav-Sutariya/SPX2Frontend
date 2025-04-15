@@ -305,8 +305,11 @@ const StaticMatrix = () => {
           ...prev,
           buyingPowerStatic: formattedData.map((item) => item.buyingPower),
         }));
-        setOriginalSize(response.data.data[0].buyingPower);
-        await getSingleLevelAPI(response.data.data[0]._id);
+        setOriginalSize(response.data.data[2].buyingPower);
+        await getSingleLevelAPI(response.data.data[2]._id);
+        if (!localStorage.getItem('originalSizeIdShort')) {
+          localStorage.setItem('originalSizeIdShort', response.data.data[2]._id);
+        }
       } else {
         setStaticLevelDefaultValue([]);
       }
@@ -382,9 +385,12 @@ const StaticMatrix = () => {
         setAllocation(response.data.data.allocation ?? defaultAllocation);
         setTradePrice(response.data.data.tradePrice ?? defaultTradePrice);
         setCommission(response.data.data.commission ?? defaultCommission);
-        setOriginalSize(response.data.data.originalSize ?? 5000);
+        setOriginalSize(response.data.data.originalSize ?? 11800);
         const savedLevelsObject = response.data.data.levels.reduce((obj, level) => {
-          obj[level.level] = { value: level.value || 0, active: level.active };
+          obj[level.level] = {
+            value: level.value || 0,
+            active: level.active ?? false
+          };
           return obj;
         }, {});
 
@@ -551,12 +557,21 @@ const StaticMatrix = () => {
   // Regular Button function
   function Regular() {
     setStackOrShiftFlag(true);
-    fetchAllocationLevelValuesFromAPI();
+
+    const savedId = localStorage.getItem('originalSizeIdShort');
+
+    if (!staticLevelDefaultValue || !savedId) return;
+
+    const matched = staticLevelDefaultValue.find(item => item._id === savedId);
+
+    if (matched && matched.buyingPower === originalSize) {
+      getSingleLevelAPI(savedId);
+    }
   }
 
   // Reset This Page Function 
   function resetAllParams() {
-    setOriginalSize(appContext.buyingPowerStatic[0]);
+    setOriginalSize(appContext.buyingPowerStatic[2]);
     setTradePrice(defaultTradePrice);
     setCommission(defaultCommission);
     setAllocation(defaultAllocation)
@@ -594,11 +609,20 @@ const StaticMatrix = () => {
     setShowAllRows2(prevState => !prevState);
   };
 
-  const handleCheckboxChange = (level) => {
-    setLevels((prev) => ({
-      ...prev,
-      [level]: { ...prev[level], active: !prev[level].active },
-    }));
+  const handleCheckboxChange = (levelKey) => {
+    setLevels((prevLevels) => {
+      const currentLevel = prevLevels[levelKey] || { value: 0, active: false };
+
+      const updatedLevel = {
+        active: !currentLevel.active,
+        value: !currentLevel.active && currentLevel.value <= 0 ? 0 : currentLevel.value
+      };
+
+      return {
+        ...prevLevels,
+        [levelKey]: updatedLevel
+      };
+    });
   };
 
   const handleIncrement = (level) => {
@@ -705,7 +729,7 @@ const StaticMatrix = () => {
   useEffect(() => {
     let indx = 0;
     setCumulativeLossTable([])
-    Object.keys(levels).map((level, index) => {
+    Object.keys(levels).map((level) => {
       if (levels[level].active) {
         let t = LossTable.slice(0, indx + 1)
         setCumulativeLossTable((pre) => {
@@ -719,7 +743,7 @@ const StaticMatrix = () => {
   useEffect(() => {
     let indx = 0;
     setSeriesGainLossTable([])
-    Object.keys(levels).map((level, index) => {
+    Object.keys(levels).map((level) => {
       if (levels[level].active) {
         if (indx === 0) {
           let t = ProfitTable[indx]
@@ -786,32 +810,27 @@ const StaticMatrix = () => {
     sessionStorage.setItem('staticShortMatrix', JSON.stringify(key));
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (filterModalRef.current && !filterModalRef.current.contains(event.target)) {
-        setIsFilterModalVisible(false);
-      }
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuVisible(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isMenuVisible, isFilterModalVisible]);
-
   const toggleDropdown = () => {
     setDropdownVisible(!isDropdownVisible);
     setNewName("")
   };
 
   useEffect(() => {
-    getMatrixFromAPI();
-    fetchUserSubscription();
     const handleClickOutside = (event) => {
+      // Close filter modal
+      if (isFilterModalVisible && filterModalRef.current && !filterModalRef.current.contains(event.target)) {
+        setIsFilterModalVisible(false);
+      }
+      // Close menu dropdown
+      if (isMenuVisible && menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuVisible(false);
+      }
+      // Close general dropdown
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownVisible(false);
         setEditIndex(null);
       }
+      // Close allocation hints dropdown
       if (
         allocationDropdownRef.current && !allocationDropdownRef.current.contains(event.target) &&
         containerRef.current && !containerRef.current.contains(event.target)
@@ -822,11 +841,12 @@ const StaticMatrix = () => {
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuVisible, isFilterModalVisible]);
 
   useMemo(() => {
-    getStaticKey();
     if (msgM1.type !== "")
       setTimeout(() => {
         setMsgM1({ type: "", msg: "" })
@@ -850,13 +870,22 @@ const StaticMatrix = () => {
     if (storedMatrix) {
       setSelectedName(JSON.parse(storedMatrix));
     }
+    getMatrixFromAPI();
+    fetchUserSubscription();
   }, []);
 
   useEffect(() => {
     if (selectedName) {
       sessionStorage.setItem('staticShortMatrix', JSON.stringify(selectedName));
     }
-  }, [selectedName]);
+    if (selectedValue) {
+      fetchAllocationLevelValuesFromAPI2();
+    }
+    if (!appContext.staticLongKey) {
+      getStaticKey();
+    }
+
+  }, [selectedName, selectedValue, appContext.staticLongKey]);
 
   const handleTradePriceChange = (e) => {
     const inputValue = e.target.value;
@@ -908,12 +937,6 @@ const StaticMatrix = () => {
     }));
     setSelectedValue(newValue);
   };
-
-  useEffect(() => {
-    if (selectedValue) {
-      fetchAllocationLevelValuesFromAPI2();
-    }
-  }, [selectedValue]);
 
 
   return (<>
@@ -987,7 +1010,7 @@ const StaticMatrix = () => {
 
         <div className='rounded-md max-w-[792px] bg-background6 p-3 lg:p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Size'>
           <div className='flex flex-wrap min-[430px]:flex-nowrap items-end gap-3 lg:gap-5'>
-            <div className='w-full '>
+            <div className='w-full'>
               <div ref={containerRef}>
                 <div className='flex justify-between items-end gap-2'>
                   <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Original Account Size:</label>
@@ -1025,6 +1048,7 @@ const StaticMatrix = () => {
                                 setOriginalSize(key.buyingPower);
                                 setAllocationHintsVisibility(false);
                                 await getSingleLevelAPI(key._id);
+                                localStorage.setItem('originalSizeIdShort', key._id);
                               }}>
                               <span className="text-sm lg:text-base text-Primary font-medium text-wrap flex-1 ml-2">
                                 $ {Number(key.buyingPower).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1076,10 +1100,19 @@ const StaticMatrix = () => {
         {(msgM4.msg !== "") && <p className={`text-sm ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}.</p>}
 
         <div className='rounded-md p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
-          <div className='flex gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
-            <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md`} onClick={Regular}>Regular</button>
-            <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
-            <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
+          <div className='flex flex-wrap justify-between items-start md:items-center gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
+            <div className='flex gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium '>
+              <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md`} onClick={Regular}>Regular</button>
+              <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
+              <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
+            </div>
+            <div className='md:flex gap-3'>
+              {(msgM3.msg !== "") && <p className={`hidden md:block text-sm text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}, <Link to="/subscription"></Link> </p>}
+              <div className="flex items-center gap-2 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-md py-2 px-5 lg:py-[6px] lg:px-[30px] h-[37px] lg:h-[45px] cursor-pointer" onClick={handleSaveMatrix} >
+                <img className='h-4 lg:h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
+              </div>
+              {(msgM3.msg !== "") && <p className={`block md:hidden text-sm text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}, <Link to="/subscription"></Link> </p>}
+            </div>
           </div>
           {(msgM2.msg !== "") && <p className={`text-sm ${msgM2.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM2.msg}.</p>}
           {errorMessage && (<p className="text-[#D82525] text-sm mb-2">{errorMessage}</p>)}
@@ -1090,7 +1123,6 @@ const StaticMatrix = () => {
               { length: Math.max(appContext.shortMatrixLength, Object.keys(levels).length) },
               (_, index) => {
                 const levelKey = `level${index + 1}`;
-                // Ensure the level exists in state before accessing properties
                 if (!levels[levelKey]) {
                   setLevels((prevLevels) => ({
                     ...prevLevels,
@@ -1138,7 +1170,6 @@ const StaticMatrix = () => {
                 );
               }
             )}
-
           </div>
           {(appContext.shortMatrixLength) > 6 && <div className="mt-4 text-center">
             <button onClick={toggleShowMore2} className="text-base text-Secondary2 font-medium underline">
@@ -1148,10 +1179,19 @@ const StaticMatrix = () => {
         </div>
 
         <div className='flex justify-between items-center mt-5 lg:mt-10 lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full'>
-          <h2 className='text-xl lg:text-[22px] xl:text-2xl text-Primary font-semibold'> Static Matrix - Short IC</h2>
-          <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
-            <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
-          </p>
+          <h2 className='text-xl lg:text-[22px] xl:text-2xl text-Primary font-semibold text-nowrap'> Static Matrix - Short IC</h2>
+          <div className='flex justify-between sm:justify-end items-start gap-5 mt-3 sm:mt-0 w-full'>
+            <div className='md:flex gap-3'>
+              {(msgM3.msg !== "") && <p className={`hidden md:block text-sm text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}, <Link to="/subscription"></Link> </p>}
+              <div className="flex items-center gap-2 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-md py-2 px-5 lg:py-[6px] lg:px-[30px] h-[37px] lg:h-[40px] cursor-pointer" onClick={handleSaveMatrix} >
+                <img className='h-4 lg:h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
+              </div>
+              {(msgM3.msg !== "") && <p className={`block md:hidden text-sm text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}, <Link to="/subscription"></Link> </p>}
+            </div>
+            <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+              <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
+            </p>
+          </div>
         </div>
 
         <div className="flex justify-end">
@@ -1216,14 +1256,13 @@ const StaticMatrix = () => {
               ))}
             </tbody>
           </table>
-          {(LevelTable.length === 0) && <>
-            {/* {RegularMatrix()} */}
+          {(LevelTable.length === 0) &&
             <div className="mt-4 text-center">
               <p className="text-base text-Secondary2 font-medium">
                 if any one of level selected and still calculation is not shown, Please click on Regular button
               </p>
             </div>
-          </>}
+          }
         </div>
 
         {LevelTable.length > 5 && <div className="mt-4 text-center">

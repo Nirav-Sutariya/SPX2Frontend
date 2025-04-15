@@ -306,11 +306,10 @@ const EditProfile = () => {
 
   // Check if form data has changed compared to initial data
   useEffect(() => {
-    getProfilePhoto();
     const isChanged = Object.keys(initialFormData).some(
       (key) => formData[key] !== initialFormData[key]
     );
-    setIsButtonDisabled(!isChanged); // Disable if no changes, enable if changed
+    setIsButtonDisabled(!isChanged);
   }, [formData]);
 
   useEffect(() => {
@@ -324,6 +323,10 @@ const EditProfile = () => {
     }
   };
 
+  console.log("selectedImage", selectedImage);
+  console.log("appContext.profilePhoto", appContext.userData.first_name);
+
+
 
   return (
     <div className='px-3 lg:pl-10 lg:px-6'>
@@ -334,7 +337,7 @@ const EditProfile = () => {
 
       <p className='text-base lg:text-[22px] lg:leading-[33px] text-Primary font-medium mt-5 lg:mt-10 flex gap-5'>Profile Picture </p>
       <div className='relative mt-5 px-5 lg:px-[34px] py-10 lg:py-[62px] border border-borderColor rounded-md bg-background6 max-w-[170px] lg:max-w-[213px] w-full cursor-pointer'>
-        {selectedImage && <img className='absolute top-3 right-3 cursor-pointer' onClick={() => setDeleteUser(true)} src={DeleteIcon} alt="" />}
+        {(selectedImage || appContext.profilePhoto) && <img className='absolute top-3 right-3 cursor-pointer' onClick={() => setDeleteUser(true)} src={DeleteIcon} alt="" />}
         <div onClick={() => fileInputRef.current.click()}>
           <input type="file" ref={fileInputRef} accept=".png, .jpg, .jpeg" style={{ display: 'none' }} onChange={handleImageChange} />
           <div className='flex justify-center'>
@@ -342,7 +345,7 @@ const EditProfile = () => {
               <div className='flex justify-center items-center w-[70px] lg:w-[100px] h-[70px] lg:h-[100px] rounded-full overflow-hidden bg-gray-100'>
                 <div className="loader w-6 h-6 border-4 border-t-Primary border-gray-300 rounded-full animate-spin"></div>
               </div>
-            ) : selectedImage ? (
+            ) : (selectedImage || appContext.profilePhoto) ? (
               <img src={`${selectedImage || appContext.profilePhoto}?t=${Date.now()}`} className="rounded-full w-[70px] lg:w-[100px] h-[70px] lg:h-[100px] object-cover" alt="Selected" />
             ) : (
               <img src={ProfilePicture} className='w-[70px] lg:w-[100px] h-[70px] lg:h-[100px]' alt="Placeholder" />

@@ -17,7 +17,7 @@ const ManageCoupon = () => {
   const [couponList2, setCouponList2] = useState(appContext.couponList2);
   const [coupon, setCoupon] = useState({ name: '', discount: '', maxLimitUse: '', startDate: '', endDate: '' });
 
-  
+
   // Form Validate function 
   function validateCoupon() {
     if (coupon.name === '' || coupon.discount === '' || coupon.maxLimitUse === '' || coupon.startDate === '' || coupon.endDate === '') {
@@ -29,10 +29,9 @@ const ManageCoupon = () => {
 
   // Cerate Coupon on Admin Api
   async function createCoupon() {
-    const userId = getUserId(); // Retrieve user ID
     if (validateCoupon()) {
       try {
-        let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_CREATE_COUPON_URL, { userId, ...coupon }, {
+        let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_CREATE_COUPON_URL, { userId:getUserId(), ...coupon }, {
           headers: {
             'x-access-token': getToken()
           }
@@ -114,12 +113,9 @@ const ManageCoupon = () => {
 
   useMemo(() => {
     if (appContext.couponList.length === 0) {
-      fetchCouponList()
-      fetchCouponList2()
+      fetchCouponList();
+      fetchCouponList2();
     }
-  }, [])
-
-  useMemo(() => {
     if (msg.type !== "")
       setTimeout(() => {
         setMsg({ type: "", msg: "" })

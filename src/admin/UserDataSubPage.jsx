@@ -62,7 +62,7 @@ const UserDataSubPage = () => {
         }
       })
       if (response.status === 200) {
-        setPlanData(response.data.data || []);  // ✅ Safe access
+        setPlanData(response.data.data || []);
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || "Failed to fetch subscription history. Please try again.";
@@ -87,7 +87,7 @@ const UserDataSubPage = () => {
           formDataToSend.append(key, formData[key]);
     });
     if (profilePicture) {
-      formDataToSend.append('profilePicture', profilePicture); // Append the profile picture
+      formDataToSend.append('profilePicture', profilePicture);
     }
     // Create the payload object
     let payload = {
@@ -105,7 +105,7 @@ const UserDataSubPage = () => {
       let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_UPDATE_USER_DATA, { userId: getUserId(), ...payload }, {
         headers: {
           "Content-Type": "multipart/form-data",
-          "x-access-token": `${getToken()}`,
+          "x-access-token": getToken(),
         }
       })
       if (response.status === 201) {
@@ -127,7 +127,7 @@ const UserDataSubPage = () => {
       try {
         let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_BEN_USER_DATA, { userId: getUserId(), banUserId: appContext.selectedUser.id }, {
           headers: {
-            "x-access-token": `${getToken()}`
+            "x-access-token": getToken()
           }
         })
         if (response.status === 201) {
@@ -152,7 +152,7 @@ const UserDataSubPage = () => {
       try {
         let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_DELETE_USER_ACCOUNT_BY_ADMIN), { userId: getUserId(), appUserId: appContext.selectedUser.id }, {
           headers: {
-            'x-access-token': `${getToken()}`
+            'x-access-token': getToken()
           }
         })
         if (response.status === 200) {
@@ -228,7 +228,7 @@ const UserDataSubPage = () => {
   };
 
   const handleDivClick = () => {
-    fileInputRef.current.click(); // Programmatically click the hidden file input
+    fileInputRef.current.click();
   };
 
   useMemo(() => {
@@ -238,7 +238,6 @@ const UserDataSubPage = () => {
       }, 20 * 100);
   }, [msg])
 
-  // Handle "Enter" key to move focus to the next field or button
   const handleKeyDown = (e, nextRef) => {
     if (e.key === 'Enter' && nextRef) {
       nextRef.current.focus();
@@ -249,7 +248,6 @@ const UserDataSubPage = () => {
   return (
     <div className='px-5 lg:pl-10 lg:px-6'>
       <h2 className='text-xl lg:text-[32px] lg:leading-[48px] text-Primary font-semibold flex items-center gap-2'><Link to="/user-data">User Data</Link><img className='-rotate-90 h-[5px] lg:h-auto' src={DropdownIcon} alt="" /> <h4 className='text-base lg:text-[22px] lg:leading-[33px] font-normal'>{appContext.selectedUser.first_name}</h4></h2>
-      {/* {(msg.msg !== "") && <p className={`text-sm mt-2 ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}</p>} */}
       <div className='flex flex-wrap sm:flex-nowrap gap-3 sm:gap-[60px] mt-3 sm:mt-10'>
         <div className='flex gap-10 items-center sm:block'>
           <img className='w-28 h-28 sm:w-auto' src={appContext.selectedUser.selectedImage} alt="" />

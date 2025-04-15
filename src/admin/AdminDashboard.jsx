@@ -23,7 +23,7 @@ const AdminDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(1);
   const [msg, setMsg] = useState({ type: "", msg: "", });
   const [selectedMonth2, setSelectedMonth2] = useState(1);
-  const [adminDashboardData, setAdminDashboardData] = useState(appContext.adminDashboard);
+  const [adminDashboardData, setAdminDashboardData] = useState(appContext.adminDashboardData || {});
   const monthFilters = {
     1: "Month",
     3: "Month 3",
@@ -37,6 +37,7 @@ const AdminDashboard = () => {
     12: "Month 12",
   };
 
+
   // Admin Dashboard Data Fetch Api 
   async function fetchAdminDashboardData() {
     try {
@@ -46,10 +47,11 @@ const AdminDashboard = () => {
         }
       })
       if (response.status === 200) {
-        appContext.setAppContext((curr) => {
-          return { ...curr, adminDashboardData: response.data }
-        })
-        setAdminDashboardData(response.data)
+        appContext.setAppContext((curr) => ({
+          ...curr,
+          adminDashboardData: response.data,
+        }));
+        setAdminDashboardData(response.data);
       }
     } catch (error) {
       let errorMessage = "Something went wrong. Please try again.";
@@ -61,15 +63,14 @@ const AdminDashboard = () => {
   }
 
   useMemo(() => {
-    fetchAdminDashboardData()
-  }, [selectedMonth, selectedMonth2])
-
-  useMemo(() => {
+    if (!adminDashboardData || Object.keys(adminDashboardData).length === 0) {
+      fetchAdminDashboardData();
+    }
     if (msg.type !== "")
       setTimeout(() => {
         setMsg({ type: "", msg: "" })
       }, 40 * 100);
-  }, [msg])
+  }, [selectedMonth, selectedMonth2, msg])
 
   const toggleDropdown3 = () => {
     setMonth((prev) => !prev);
@@ -78,7 +79,6 @@ const AdminDashboard = () => {
   const toggleDropdown4 = () => {
     setMonth2((prev) => !prev);
   }
-
 
   // Pie Chart Data For Most Used Matrix
   const data = {
@@ -90,7 +90,7 @@ const AdminDashboard = () => {
           adminDashboardData.plusPlanCount || 0,
           adminDashboardData.premiumPlanCount || 0
         ],
-        backgroundColor: ['#2C7CAC', '#C5E9FF', '#FFE500'], // Colors for each segment
+        backgroundColor: ['#2C7CAC', '#C5E9FF', '#FFE500'],
         hoverOffset: 4,
       },
     ],

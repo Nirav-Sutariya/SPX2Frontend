@@ -46,7 +46,7 @@ const UserDataBanUser = () => {
         appContext.setAppContext((curr) => ({ ...curr, userList: userData }));
       }
     } catch (error) {
-      setUserList([]); // Ensure it's always an array
+      setUserList([]);
     }
   }
 
@@ -94,14 +94,18 @@ const UserDataBanUser = () => {
   }
 
   useMemo(() => {
-    fetchUserList()
-  }, [])
+    fetchUserList();
+    if (msg.type !== "")
+      setTimeout(() => {
+        setMsg({ type: "", msg: "" })
+      }, 40 * 100);
+  }, [msg])
 
   const showPopup = (index) => {
     if (activeRow === index) {
-      setActiveRow(null); // If already active, close the popup
+      setActiveRow(null);
     } else {
-      setActiveRow(index); // Open the popup for the clicked row
+      setActiveRow(index);
     }
   };
 
@@ -200,6 +204,8 @@ const UserDataBanUser = () => {
           </button>
         </div>
       </div>
+
+      {(msg.msg !== "") && <p className={`text-sm mt-2 text-end ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}.</p>}
 
       {/* Delete User By Admin Slide */}
       {deleteUser && (

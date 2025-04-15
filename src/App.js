@@ -177,14 +177,9 @@ const App = () => {
     }
   };
 
-  // useMemo(async () => {
-  //   await fetchLevelLength();
-  //   await getUserData();
-  // }, [isLoggedIn]);
-
   useEffect(() => {
     const runStartupLogic = async () => {
-      await fetchLevelLength();
+      // await fetchLevelLength();
       await getUserData();
 
       const token = getToken();
@@ -229,7 +224,6 @@ const App = () => {
   useEffect(() => {
     const adminData = JSON.parse(sessionStorage.getItem('paths')) || [];
     const filterData = adminPaths.some((path) => adminData.startsWith(path));
-    console.log(filterData, 'filterDatafilterData');
     
     if (filterData) {
       appContext.setAppContext((curr) => {
@@ -241,7 +235,6 @@ const App = () => {
     }
   }, [])
 
-  console.log(appContext.isAdmin, '112233');
 
   return (<>
     <Router>

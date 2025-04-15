@@ -51,6 +51,7 @@ export default function ContextProvider() {
     comparisonFeatures: [{ name: "", basic: false, plus: false, premium: false }],
     feature: [],
     plans: [],
+    adminDashboardData: null,
     nextGamePlanShort: false,
     nextGamePlanLong: false,
     selectedUser: null,

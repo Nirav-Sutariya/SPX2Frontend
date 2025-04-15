@@ -14,7 +14,6 @@ import { AppContext } from '../components/AppContext';
 import { removeTokens } from '../page/login/loginAPI';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-
 const handleLogout = async (setIsLoggedIn) => {
   removeTokens();
   setIsLoggedIn(false);
@@ -68,25 +67,23 @@ const AdminHeader = ({ toggleTheme, isDarkTheme, isDarkMode, activeLink, setActi
   }, [location, setActiveLink]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsOpen(false);
       }
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
         setMenuVisible(false);
       }
     };
+
+    const disableScroll = showLogoutModal || isMenuVisible;
+    document.body.classList.toggle('no-scroll', disableScroll);
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.body.classList.remove('no-scroll');
     };
-  }, []);
-
-  useEffect(() => {
-    const shouldDisableScroll = showLogoutModal || isMenuVisible;
-    document.body.classList.toggle('no-scroll', shouldDisableScroll);
-
-    return () => document.body.classList.remove('no-scroll');
   }, [showLogoutModal, isMenuVisible]);
 
 
@@ -101,7 +98,7 @@ const AdminHeader = ({ toggleTheme, isDarkTheme, isDarkMode, activeLink, setActi
             <div ref={menuRef} className={`absolute z-10 w-full max-w-[318px] h-full bg-background6 top-0 right-0 p-3 ${isMenuVisible ? 'slide-in' : 'slide-out'}`}>
               <div className='flex justify-between items-center gap-[30px] FilterModalVisibleMenu border-b border-[#B7D1E0] pt-5 pb-3'>
                 <div className='flex items-center gap-5 cursor-pointer'>
-                  <img className='w-[52px]' src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} alt="" />
+                  <img className='w-[52px] rounded-full' src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} alt="" />
                   <div>
                     <p className='text-base text-Primary font-medium'>{appContext.userData.first_name}</p>
                   </div>

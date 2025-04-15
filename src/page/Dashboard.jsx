@@ -480,7 +480,7 @@ const Dashboard = ({ theme }) => {
     setDynamicMatrixToggle(false);
   };
 
-  // Handle Matrix Type Dropdwon
+  // Handle Matrix Type Dropdown
   const handleChangeMatrixType = (event) => {
     setMatrixTypeValue(event.target.value);
   };

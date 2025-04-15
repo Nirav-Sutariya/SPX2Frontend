@@ -110,18 +110,15 @@ const ManageLevels = ({ }) => {
 
       if (resData.data && Array.isArray(resData.data)) {
         if (resData.data.length === 0) {
-          console.log("No level data received.");
           setLevelValues([]);
         } else {
           const formattedData = resData.data.map(({ _id, matrixType, spread, ...rest }) => ({
             ...rest,
             levelId: _id,
           }));
-          console.log("Level values received:", formattedData);
           setLevelValues(formattedData);
         }
       } else {
-        console.warn("Unexpected response format:", resData);
         setLevelValues([]);
       }
     } catch (error) {
@@ -140,7 +137,7 @@ const ManageLevels = ({ }) => {
       })
       if (response.status === 201) {
         setMsg({ type: "success", msg: "Row added successfully!" });
-        setAddNewRow(false); // Hide the new row input fields after saving
+        setAddNewRow(false);
         handleCancelNewRow();
         fetchDefaultLevelValues();
       }
@@ -188,13 +185,13 @@ const ManageLevels = ({ }) => {
     }
   };
 
-  // Handle Spread Dropdwon
+  // Handle Spread Dropdown
   const handleChange = (event) => {
     setSelectedValue(event.target.value);
     setAddNewRow(false);
   };
 
-  // Handle Matrix Type Dropdwon
+  // Handle Matrix Type Dropdown
   const handleChangeMatrixType = (event) => {
     setMatrixTypeValue(event.target.value);
     setSelectedValue(5);
@@ -207,16 +204,12 @@ const ManageLevels = ({ }) => {
     if (!appContext.shortMatrixLength || !appContext.longMatrixLength) {
       fetchLevelLength();
     }
-
     fetchDefaultLevelValues();
-  }, [selectedValue, matrixTypeValue])
-
-  useMemo(() => {
     if (msg.type !== "")
       setTimeout(() => {
         setMsg({ type: "", msg: "" })
       }, 20 * 100);
-  }, [msg])
+  }, [selectedValue, matrixTypeValue, msg])
 
   const handleIncrement = () => {
     setShortMatrixLength((prev) => {
@@ -274,23 +267,22 @@ const ManageLevels = ({ }) => {
     setLevel5("");
   };
 
-  const handleClickOutside = (event) => {
-    if (filterModalRef.current && !filterModalRef.current.contains(event.target)) {
-      setIsFilterModalVisible(false);
-    }
-  };
-
   useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (filterModalRef.current && !filterModalRef.current.contains(e.target)) {
+        setIsFilterModalVisible(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
+    document.body.classList.toggle('no-scroll', isDeleteConfirmVisible);
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.body.classList.remove('no-scroll');
     };
-  }, []);
-
-  useEffect(() => {
-    document.body.classList.toggle('no-scroll', isDeleteConfirmVisible);
-    return () => document.body.classList.remove('no-scroll');
   }, [isDeleteConfirmVisible]);
+
 
 
   return (

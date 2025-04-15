@@ -68,21 +68,19 @@ const ConfirmationModal = ({ show, onClose, onConfirm, title, icon, message, ext
 
 function formattedDate(inputDate) {
     const date = new Date(inputDate);
-    // Define options for formatting
     const options = {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false, // Set to true for 12-hour format
+        hour12: false,
     };
     return date.toLocaleString('en-US', options).replace(',', '').replace(' AM', '').replace(' PM', '');
 }
 
 function formattedDate1(inputDate) {
     const date = new Date(inputDate);
-    // Define options for formatting
     const options = {
         day: '2-digit',
         month: 'short',
@@ -96,7 +94,7 @@ async function CancelUserSubscription(user) {
         try {
             let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_CANCEL_USER_BY_ADMIN_SUBSCRIPTION, { userId: getUserId(), appUserId: user }, {
                 headers: {
-                    'x-access-token': `${getToken()}`
+                    'x-access-token': getToken()
                 }
             })
             if (response.status === 201)

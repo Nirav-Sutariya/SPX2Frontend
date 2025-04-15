@@ -44,6 +44,11 @@ const Subscription = () => {
       });
       if (response.status === 200) {
         setPlans(response.data.data);
+        appContext.setAppContext((curr) => ({
+          ...curr,
+          plans: response.data.data,
+        }));
+
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
@@ -94,25 +99,6 @@ const Subscription = () => {
     }
   }
 
-  // Comparison Features Get Api 
-  async function fetchComparisonFeatures() {
-    try {
-      let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_COMPARISON_FEATURE_LIST_URL, { userId: getUserId() }, {
-        headers: {
-          'x-access-token': getToken()
-        }
-      })
-      if (response.status === 200) {
-        setComparisonFeatures(response.data.data);
-        appContext.setAppContext({ ...appContext, feature: response.data.data });
-      }
-    } catch (error) {
-      if (error.message.includes('Network Error')) {
-        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
-      }
-    }
-  }
-
   // Subscription By Detail Find
   async function fetchUserSubscription() {
     try {
@@ -126,6 +112,25 @@ const Subscription = () => {
         appContext.setAppContext((curr) => {
           return { ...curr, subscription: response.data.data }
         })
+      }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
+  }
+
+  // Comparison Features Get Api 
+  async function fetchComparisonFeatures() {
+    try {
+      let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_COMPARISON_FEATURE_LIST_URL, { userId: getUserId() }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 200) {
+        setComparisonFeatures(response.data.data);
+        appContext.setAppContext({ ...appContext, feature: response.data.data });
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
@@ -159,7 +164,6 @@ const Subscription = () => {
 
   useMemo(async () => {
     if (isLoading) {
-      await fetchComparisonFeatures();
       await fetchPlan();
       await fetchUserSubscription();
       setIsLoading(false);
@@ -167,6 +171,9 @@ const Subscription = () => {
   }, [isLoading]);
 
   useMemo(() => {
+    if (appContext.feature.length === 0) {
+      fetchComparisonFeatures();
+    }
     if (msg.type !== "")
       setTimeout(() => {
         setMsg({ type: "", msg: "" });
@@ -175,7 +182,7 @@ const Subscription = () => {
       setTimeout(() => {
         setMsgM1({ type: "", msg: "" });
       }, 20 * 100);
-  }, [msg, msgM1]);
+  }, [msg, msgM1, appContext.feature, appContext.subscription]);
 
   useEffect(() => {
     document.body.classList.toggle('no-scroll', showModal || showChoosePlanModal);
@@ -232,7 +239,7 @@ const Subscription = () => {
         </div>
 
         {/* Only Current Active Plan Detail Visible on Section */}
-        {currentPlan.subscriptionName === plans[1].name && <div className="mt-11 p-5 lg:p-[30px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
+        {currentPlan && currentPlan.subscriptionName === plans[1].name && <div className="mt-11 p-5 lg:p-[30px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
           <div className="flex flex-wrap">
             <div className="sm:border-r border-borderColor sm:max-w-[302px] md:max-w-[352px] lg:max-w-[402px] 2xl:max-w-[552px] w-full pr-4 lg:pr-8">
               <div className="flex items-center gap-5">
@@ -309,7 +316,6 @@ const Subscription = () => {
               </div>
             </div>
           )}
-          {/* <ConfirmationModal show={showModal} onClose={() => setShowModal(false)} onConfirm={modalData.onConfirm} title={modalData.title} icon={modalData.icon} message={modalData.message} extraParam={getUserId()}/> */}
         </div>}
 
         <h3 className="text-2xl lg:text-[32px] lg:leading-[48px] font-semibold text-Primary mt-10 text-center"> Choose Your Plan </h3>
@@ -345,12 +351,12 @@ const Subscription = () => {
               </div>
 
               {index === 0 ? (
-                <button onClick={() => { getPurchasePlan(plan._id); }} disabled={(currentPlan.subscriptionName === plans[1].name)} className={`text-base lg:text-xl font-semibold text-white bg-ButtonBg py-2 lg:py-[13px] px-5 lg:px-9 text-center mt-10 w-[170px] lg:w-[229px] mx-auto rounded-md ${(currentPlan.subscriptionName === plans[1].name) ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}>
-                  {currentPlan.subscriptionName === plans[0].name ? "Activated Plan" : "Choose Plan"}
+                <button onClick={() => { getPurchasePlan(plan._id); }} disabled={(currentPlan && currentPlan.subscriptionName === plans[1].name)} className={`text-base lg:text-xl font-semibold text-white bg-ButtonBg py-2 lg:py-[13px] px-5 lg:px-9 text-center mt-10 w-[170px] lg:w-[229px] mx-auto rounded-md ${(currentPlan && currentPlan.subscriptionName === plans[1].name) ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}>
+                  {currentPlan && currentPlan.subscriptionName === plans[0].name ? "Activated Plan" : "Choose Plan"}
                 </button>
               ) : (
-                <button onClick={() => { setShowChoosePlanModal(true); setSelectedPlanId(plan._id); }} disabled={(currentPlan.subscriptionName === plans[1].name)} className={`text-base lg:text-xl font-semibold text-Primary bg-background5 py-2 mt-[10px] lg:py-[13px] px-5 lg:px-9 text-center w-[170px] lg:w-[229px] mx-auto rounded-md ${(currentPlan.subscriptionName === plans[1].name) ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}>
-                  {currentPlan.subscriptionName === plans[1].name ? "Activated Plan" : "Choose Plan"}
+                <button onClick={() => { setShowChoosePlanModal(true); setSelectedPlanId(plan._id); }} disabled={(currentPlan && currentPlan.subscriptionName === plans[1].name)} className={`text-base lg:text-xl font-semibold text-Primary bg-background5 py-2 mt-[10px] lg:py-[13px] px-5 lg:px-9 text-center w-[170px] lg:w-[229px] mx-auto rounded-md ${(currentPlan && currentPlan.subscriptionName === plans[1].name) ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}>
+                  {currentPlan && currentPlan.subscriptionName === plans[1].name ? "Activated Plan" : "Choose Plan"}
                 </button>
               )}
             </div>
@@ -406,7 +412,7 @@ const Subscription = () => {
         {msgM1.msg && (<div className={`text-sm mt-2 text-red-500`}> {msgM1.msg} </div>)}
 
         {/* Extra Matrix Limit Section */}
-        {currentPlan.subscriptionName === plans[1].name && <div className="mt-11 p-5 lg:p-[30px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
+        {currentPlan && currentPlan.subscriptionName === plans[1].name && <div className="mt-11 p-5 lg:p-[30px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
           <p className="block text-lg lg:text-2xl text-Primary font-medium">Purchase Extra Limit</p>
           <p className="text-sm text-Primary mt-2">Need more access? Upgrade your plan with our Purchase Extra Limit feature! Whether you're hitting usage caps or need additional resources, this option lets you extend your limits seamlessly. No need to change your entire subscription—just add extra limits as needed.</p>
           <div className="flex justify-end">

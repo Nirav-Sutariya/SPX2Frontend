@@ -385,6 +385,7 @@ const AdminSubscription = () => {
     if (appContext.comparisonFeatures[0].name === "") {
       fetchComparisonFeatures()
     }
+    getApiKey();
   }, [])
 
   useMemo(async () => {
@@ -396,10 +397,6 @@ const AdminSubscription = () => {
       await fetchPlan();
     }
   }, [msg, plans])
-
-  useEffect(() => {
-    getApiKey();
-  }, []);
 
   useEffect(() => {
     document.body.classList.toggle('no-scroll', showLogoutModal2);
