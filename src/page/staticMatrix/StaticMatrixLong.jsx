@@ -16,7 +16,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { getToken, getUserId } from '../login/loginAPI';
 import { AppContext } from '../../components/AppContext';
-import { defaultTradePrice, defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModal } from '../../components/utils';
+import { defaultTradePriceLong, defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModalLong } from '../../components/utils';
 
 
 const StaticMatrixLong = () => {
@@ -26,14 +26,15 @@ const StaticMatrixLong = () => {
   const menuRef = useRef(null);
   const dropdownRef = useRef(null);
   const containerRef = useRef(null);
+  const dropdown2Ref = useRef(null);
   const filterModalRef = useRef(null);
-  const [names, setNames] = useState({});
   let appContext = useContext(AppContext);
   const allocationDropdownRef = useRef(null);
   const [editKey, setEditKey] = useState(null);
   const [selectedValue, setSelectedValue] = useState(5);
+  const [names, setNames] = useState(appContext.namesLong);
   const [allocation, setAllocation] = useState(defaultAllocation);
-  const [tradePrice, setTradePrice] = useState(defaultTradePrice);
+  const [tradePrice, setTradePrice] = useState(defaultTradePriceLong);
   const [commission, setCommission] = useState(defaultCommission);
   const [originalSize, setOriginalSize] = useState(null);
   const firstKey = Object.keys(appContext.namesLong)[0] || null;
@@ -60,6 +61,7 @@ const StaticMatrixLong = () => {
 
   const [showBP, setShowBP] = useState(true);
   const [newName, setNewName] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
   const [editName, setEditName] = useState('');
   const [showAll, setShowAll] = useState(false);
   const [modalData, setModalData] = useState({});
@@ -91,6 +93,16 @@ const StaticMatrixLong = () => {
   const [staticKey, setStaticKey] = useState(appContext.staticLongKey);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const [allocationHintsVisibility, setAllocationHintsVisibility] = useState(false);
+  const options = ["5", "10", "15", "20", "30", "40", "50"];
+
+
+  const toggleDropdown2 = () => setIsOpen(prev => !prev);
+
+  // Handle Spread Dropdown
+  const handleSelect = (value) => {
+    setSelectedValue(value);
+    setIsOpen(false);
+  };
 
   // Table 6 level Visible Condition 
   const visibleLevels = showAll
@@ -105,6 +117,8 @@ const StaticMatrixLong = () => {
 
   // Get Admin This Page Access For Admin Api 
   async function getStaticKey() {
+    if (appContext.staticLongKey) return;
+
     setIsMessageVisible(true);
     try {
       let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_STATIC_LONG_KRY), { userId: getUserId() }, {
@@ -166,8 +180,10 @@ const StaticMatrixLong = () => {
           'x-access-token': getToken()
         }
       })
-      if (response.status === 201)
-        await getMatrixFromAPI()
+      if (response.status === 201) {
+        await getMatrixFromAPI();
+        setMsgM1({ type: "info", msg: "Matrix name added successfully." });
+      }
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsgM1({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
@@ -266,7 +282,7 @@ const StaticMatrixLong = () => {
   const handleUpdateName = async () => {
     if (editName && editIndex !== null) {
       await updateMatrixAPI(editName, editIndex)
-      await getMatrixFromAPI()
+      await getMatrixFromAPI();
       setEditIndex(null);
       setEditName('');
     }
@@ -323,6 +339,7 @@ const StaticMatrixLong = () => {
       if (error.message.includes('Network Error')) {
         setMsgM3({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
       }
+      setStaticLevelDefaultValue([]);
     }
   }
 
@@ -367,7 +384,7 @@ const StaticMatrixLong = () => {
       if (response.status === 200) {
         setSelectedValue(response.data.data.spread ?? 5);
         setAllocation(response.data.data.allocation ?? defaultAllocation);
-        setTradePrice(response.data.data.tradePrice ?? defaultTradePrice);
+        setTradePrice(response.data.data.tradePrice ?? defaultTradePriceLong);
         setCommission(response.data.data.commission ?? defaultCommission);
         setOriginalSize(response.data.data.originalSize ?? 11800);
         const savedLevelsObject = response.data.data.levels.reduce((obj, level) => {
@@ -465,9 +482,10 @@ const StaticMatrixLong = () => {
   }, [tradePrice])
 
   useMemo(() => {
-    if (staticKey) {
+    if (staticKey && Object.keys(appContext.namesLong || {}).length === 0) {
       getMatrixFromAPI();
-      fetchAllocationLevelValuesFromAPI2();
+    }
+    if (staticKey) {
       getSPXMatrixAPI(selectedName);
     }
   }, [staticKey, isMatrixSaved, selectedName])
@@ -556,7 +574,7 @@ const StaticMatrixLong = () => {
   // Reset This Page Function 
   function resetAllParams() {
     setOriginalSize(appContext.buyingPowerStaticLong[2])
-    setTradePrice(defaultTradePrice);
+    setTradePrice(defaultTradePriceLong);
     setCommission(defaultCommission);
     setAllocation(defaultAllocation);
     setShowAll(false);
@@ -797,6 +815,10 @@ const StaticMatrixLong = () => {
       if (isFilterModalVisible && filterModalRef.current && !filterModalRef.current.contains(event.target)) {
         setIsFilterModalVisible(false);
       }
+
+      if (dropdown2Ref.current && !dropdown2Ref.current.contains(event.target)) {
+        setIsOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -806,12 +828,6 @@ const StaticMatrixLong = () => {
   }, [isMenuVisible, isFilterModalVisible]);
 
   useMemo(() => {
-    if (!appContext.staticLongKey) {
-      getStaticKey();
-    }
-    if (selectedValue && staticKey) {
-      fetchAllocationLevelValuesFromAPI2();
-    }
     if (msgM1.type !== "")
       setTimeout(() => {
         setMsgM1({ type: "", msg: "" })
@@ -828,7 +844,7 @@ const StaticMatrixLong = () => {
       setTimeout(() => {
         setMsgM4({ type: "", msg: "" })
       }, 20 * 100);
-  }, [msgM1, msgM2, msgM3, msgM4, appContext.staticLongKey, selectedValue, staticKey])
+  }, [msgM1, msgM2, msgM3, msgM4])
 
   useEffect(() => {
     const storedMatrix = sessionStorage.getItem('staticLongMatrix');
@@ -841,7 +857,13 @@ const StaticMatrixLong = () => {
     if (selectedName) {
       sessionStorage.setItem('staticLongMatrix', JSON.stringify(selectedName));
     }
-  }, [selectedName]);
+    if (selectedValue && staticKey) {
+      fetchAllocationLevelValuesFromAPI2();
+    }
+    if (appContext.staticLongKey === null) {
+      getStaticKey();
+    }
+  }, [selectedName, selectedValue, appContext.staticLongKey]);
 
   const handleNewNameChange = (e) => {
     const value = e.target.value;
@@ -884,16 +906,6 @@ const StaticMatrixLong = () => {
     if (newValue <= 5) setTradePrice(newValue);
   };
 
-  // Handle Spread Dropdown
-  const handleChange = (event) => {
-    const newValue = event.target.value;
-    appContext.setAppContext((prev) => ({
-      ...prev,
-      buyingPowerStatic: [],
-    }));
-    setSelectedValue(newValue);
-  };
-
 
   return (<>
     {staticKey ?
@@ -915,12 +927,12 @@ const StaticMatrixLong = () => {
             {/* ResetIcon popup section  */}
             <ConfirmationModal show={showModal} onClose={() => setShowModal(false)} onConfirm={modalData.onConfirm} title={modalData.title} icon={modalData.icon} message={modalData.message} />
 
-            <div className='relative' ref={containerRef}>
+            <div className='relative' ref={dropdownRef}>
               <p onClick={toggleDropdown} className='flex items-center gap-[10px] text-sm lg:text-base bg-background6 font-medium text-Primary shadow-[0px_0px_6px_0px_#28236633] rounded-md px-4 py-2 cursor-pointer' >
                 <img src={MatrixIcon} className='h-5 w-5' alt="" /> {names[selectedName]} <img className='w-3' src={DropdownIcon} alt="" />
               </p>
               {isDropdownVisible && (
-                <div ref={dropdownRef} className='absolute z-10 left-0 min-[470px]:left-auto right-0 top-full mt-2 border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-max'>
+                <div className='absolute z-10 left-0 min-[470px]:left-auto right-0 top-full mt-2 border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-max'>
                   <div className='px-3 py-1 pb-[14px]'>
                     {editIndex === null ? (
                       <>
@@ -968,24 +980,28 @@ const StaticMatrixLong = () => {
               <div ref={containerRef}>
                 <div className='flex justify-between items-end gap-2'>
                   <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Original Account Size:</label>
-                  <div className="flex items-center px-2 w-full max-w-[100px] sm:max-w-[100px] lg:max-w-[110px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7">
-                    <span className='text-sm text-Primary'>Spread:</span>
-                    <select id="dropdown" value={selectedValue} onChange={handleChange} className="text-xs lg:text-sm text-Primary px-1 py-[2px] bg-textBoxBg rounded-md focus:outline-none focus:border-borderColor7 cursor-pointer">
-                      <option value="5">5</option>
-                      <option value="10">10</option>
-                      <option value="15">15</option>
-                      <option value="20">20</option>
-                      <option value="30">30</option>
-                      <option value="40">40</option>
-                      <option value="50">50</option>
-                    </select>
+                  <div ref={dropdown2Ref} className="relative w-full max-w-[110px]">
+                    <div className="flex items-center justify-between px-2 py-1 border border-borderColor bg-textBoxBg rounded-md cursor-pointer" onClick={toggleDropdown2} >
+                      <span className="text-xs lg:text-sm text-Primary">Spread: {selectedValue}</span>
+                      <img className='w-[10px]' src={DropdownIcon} alt="" />
+                    </div>
+
+                    {isOpen && (
+                      <div className="absolute top-full right-0 w-12 border border-borderColor bg-background6 rounded-md shadow-md z-10">
+                        {options.map((value, index) => (
+                          <div key={index} className={`px-3 py-1 text-xs lg:text-sm cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${selectedValue === value ? 'bg-borderColor4 text-white' : 'text-Primary'}`} onClick={() => handleSelect(value)} >
+                            {value}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                   <span>$</span>
                   <input type='text' maxLength={10} title='Max Length 10' value={originalSize} onChange={handleOriginalSizeChange} className='bg-transparent w-full focus:outline-none' />
                   <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                    <span className='p-2' onClick={() => setAllocationHintsVisibility(!allocationHintsVisibility)} >
+                    <span className='p-2 cursor-pointer' onClick={() => setAllocationHintsVisibility(!allocationHintsVisibility)} >
                       <img className='w-3 lg:w-auto' src={DropdownIcon} alt="" />
                     </span>
                   </div>
@@ -1149,16 +1165,15 @@ const StaticMatrixLong = () => {
               </div>
               {(msgM3.msg !== "") && <p className={`block md:hidden text-sm text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}, <Link to="/subscription"></Link> </p>}
             </div>
-            <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+            <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' ref={filterModalRef} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
               <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
             </p>
           </div>
         </div>
 
         <div className="flex justify-end">
-          <FilterModal
+          <FilterModalLong
             isVisible={isFilterModalVisible}
-            filterModalRef={filterModalRef}
             filters={{
               showContracts, setShowContracts,
               showCredit, setShowCredit,

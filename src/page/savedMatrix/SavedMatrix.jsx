@@ -148,27 +148,27 @@ const SavedMatrix = () => {
   return (
     <div className='px-3 lg:pl-10 lg:px-6 h-screen sm:h-auto mb-10'>
       <div className='sm:flex'>
-        <div className='relative'>
+        <div className='relative' ref={StaticMatrixRef}>
           <div className='flex items-center gap-3 md:gap-[18px] px-5 lg:px-[30px] py-[10px] mb-3 sm:mt-0 rounded-md sm:rounded-l-md sm:rounded-r-none bg-userBg w-fit lg:max-w-[270px] shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setStaticMatrix((prev) => !prev)}>
             <img className='w-5 lg:w-auto' src={StaticMatrixIcon} alt="" />
             <p className='text-sm lg:text-[20px] lg:leading-[30px] font-semibold text-white'>Static Matrix</p>
             <img className='w-3 lg:w-auto' src={DropdownIconWhite} alt="" />
           </div>
           {staticMatrix && (
-            <div ref={StaticMatrixRef} className='absolute z-10 lg:left-5 max-w-[229px] py-[10px] lg:py-[14px] px-4 lg:px-[30px] border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
+            <div className='absolute z-10 lg:left-5 max-w-[229px] py-[10px] lg:py-[14px] px-4 lg:px-[30px] border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
               <p onClick={() => handleStaticOptionClick("short")} className='text-sm lg:text-base font-medium text-Secondary2 pb-1 cursor-pointer border-b border-borderColor'>Static Short IC Matrix</p>
               <p onClick={() => handleStaticOptionClick("long")} className='text-sm lg:text-base font-medium text-Secondary2 pt-1 cursor-pointer'>Static Long IC Matrix</p>
             </div>
           )}
         </div>
-        <div className='relative'>
+        <div className='relative' ref={DynamicMatrixRef}>
           <div className='flex items-center gap-3 md:gap-[18px] px-5 lg:px-[30px] py-[10px] rounded-md sm:rounded-r-md sm:rounded-l-none w-fit lg:max-w-[303px] bg-background6 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setDynamicMatrix((prev) => !prev)}>
             <img className='w-5 lg:w-auto' src={DynamicMatrixIcon} alt="" />
             <p className='text-sm lg:text-[20px] lg:leading-[30px] font-semibold text-Primary'>Dynamic Matrix</p>
             <img className='w-3 lg:w-auto' src={DropdownIcon} alt="" />
           </div>
           {dynamicMatrix && (
-            <div ref={DynamicMatrixRef} className='absolute z-10 lg:left-5 max-w-[260px] mt-3 py-[10px] lg:py-[14px] px-4 lg:px-[30px] border border-borderColor5 rounded-lg bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
+            <div className='absolute z-10 lg:left-5 max-w-[260px] mt-3 py-[10px] lg:py-[14px] px-4 lg:px-[30px] border border-borderColor5 rounded-lg bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
               <p onClick={() => handleDynamicOptionClick("short")} className='text-sm lg:text-base font-medium text-Secondary2 pb-1 cursor-pointer border-b border-borderColor'>Dynamic Short IC Matrix</p>
               <p onClick={() => handleDynamicOptionClick("long")} className='text-sm lg:text-base font-medium text-Secondary2 pt-1 cursor-pointer'>Dynamic Long IC Matrix</p>
             </div>
@@ -178,7 +178,7 @@ const SavedMatrix = () => {
       {(msg.msg !== "") && <p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msg.msg}.</p>}
 
       <div className='flex flex-wrap justify-between gap-3 lg:gap-5 mt-3 lg:mt-[30px]'>
-        <div className='relative max-w-[350px]'>
+        <div className='relative max-w-[350px]' ref={MatrixRef}>
           <div className='flex justify-between items-center gap-2 md:gap-3 px-5 py-[9px] rounded-md bg-background6 w-fit max-w-[350px] shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setMatrix((prev) => !prev)}>
             <span className='flex gap-3'>
               <img className='w-5 lg:w-auto' src={MatrixIcon} alt="" />
@@ -187,7 +187,7 @@ const SavedMatrix = () => {
             <img className='w-3' src={DropdownIcon} alt="" />
           </div>
           {matrix && (
-            <div ref={MatrixRef} className='absolute z-10 mt-2 py-2 lg:py-[10px] px-3 md:px-4 min-w-[140px] border border-[#F8FCFF] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
+            <div className='absolute z-10 mt-2 py-2 lg:py-[10px] px-3 md:px-4 min-w-[140px] border border-[#F8FCFF] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
               {Array.isArray(savedData) && savedData.filter(item => item.levels && item.levels.length > 0).length > 0 ? (
                 savedData.filter(item => item.levels && item.levels.length > 0).map(item => (
                   <div key={item._id} className='cursor-pointer py-1 lg:py-[7px]' onClick={() => { setSelectedName(item._id); setMatrix(false); }}>

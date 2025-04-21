@@ -9,6 +9,8 @@ import DeleteIcon from '../assets/Images/UserData/DeleteIcon.svg';
 import BanPopupIcon from '../assets/Images/UserData/BanPopupIcon.svg';
 import DeletePopupIcon from '../assets/Images/UserData/DeletePopupIcon.svg';
 import PopupCloseIcon from '../assets/Images/SuperDashboard/PopupCloseIcon.svg';
+import DropdownIcon from '../assets/svg/DropdownIcon.svg';
+import SearchIcon from '../assets/svg/SearchIcon.svg';
 import axios from 'axios';
 import { validateEmail } from '../components/utils';
 import { Link, useNavigate } from 'react-router-dom';
@@ -23,6 +25,7 @@ const UserData = () => {
   let navigate = useNavigate();
   const emailRef = useRef(null);
   const phoneRef = useRef(null);
+  const inputRef = useRef(null);
   const slackIDRef = useRef(null);
   const lastNameRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -50,10 +53,14 @@ const UserData = () => {
   const [deleteUser, setDeleteUser] = useState(false);
   const [msg, setMsg] = useState({ type: "", msg: "", });
   const [deleteUserId, setDeleteUserId] = useState(null);
+  const [selectedOption, setSelectedOption] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [profilePicture, setProfilePicture] = useState(null);
   const [deleteUserName, setDeleteUserName] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userList, setUserList] = useState(appContext.userList);
+  const [endDate, setEndDate] = useState('');
+  const [query, setQuery] = useState('');
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -64,6 +71,23 @@ const UserData = () => {
     profilePicture: ''
   });
 
+
+  const toggleDropdown = () => setIsDropdownOpen(prev => !prev);
+  const closeDropdown = () => setIsDropdownOpen(false);
+
+  const handleEndDateChange = (e) => {
+    const value = e.target.value;
+    setEndDate(value);
+  };
+
+  const handleOptionClick = (option) => {
+    if (option === 'Select an Plan') {
+      setSelectedOption("");
+    } else {
+      setSelectedOption(option);
+    }
+    setIsDropdownOpen(false);
+  };
 
   // Get the current data slice
   const handleChange = (e) => {
@@ -125,7 +149,7 @@ const UserData = () => {
   // Get All User List For Api
   async function fetchUserList() {
     try {
-      let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_GET_USER_LIST, { userId: getUserId(), page: currentPage, limit: rowsLimit, bannedUser: false }, {
+      let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_GET_USER_LIST, { userId: getUserId(), page: currentPage, limit: rowsLimit, bannedUser: false, ...(query ? { search: query } : {}), ...(endDate ? { endDate } : {}), ...(selectedOption ? { subscriptionName: selectedOption } : {}) }, {
         headers: {
           'x-access-token': getToken()
         }
@@ -197,6 +221,16 @@ const UserData = () => {
           type: "error",
           msg: "Could not connect to the server. Please check your connection.",
         });
+      } else if (error.response?.data?.message === "Email already exist.") {
+        setMsg({
+          type: "error",
+          msg: "Email already exists. Please use a different email address.",
+        });
+      } else {
+        setMsg({
+          type: "error",
+          msg: error.response?.data?.message || "Something went wrong.",
+        });
       }
     }
   };
@@ -233,7 +267,7 @@ const UserData = () => {
     };
 
     try {
-      let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_UPDATE_USER_DATA, { userId:getUserId(), ...payload }, {
+      let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_UPDATE_USER_DATA, { userId: getUserId(), ...payload }, {
         headers: {
           "Content-Type": "multipart/form-data",
           'x-access-token': getToken()
@@ -299,6 +333,7 @@ const UserData = () => {
     }
   }
 
+  // find Plan By Admin
   async function fetchPlan() {
     try {
       let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_GET_SUBSCRIPTION_PLAN_LIST, { userId: getUserId() }, {
@@ -350,6 +385,9 @@ const UserData = () => {
       setTimeout(() => {
         setMsg({ type: "", msg: "" })
       }, 20 * 100);
+    if (appContext.plans.length === 0) {
+      fetchPlan();
+    }
   }, [msg, appContext.plans])
 
   // Close dropdown if clicked outside
@@ -426,15 +464,29 @@ const UserData = () => {
     ImportData(file);
   };
 
+  // Event listener to close the dropdown if clicked outside
   useEffect(() => {
-    fetchUserList(currentPage);
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        closeDropdown();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    fetchUserList();
+    if (appContext.userList.length === 0) {
+    }
     if (message) {
       const timer = setTimeout(() => {
         setMessage(null);
       }, 4000);
       return () => clearTimeout(timer);
     }
-  }, [currentPage, message]);
+  }, [currentPage, query, endDate, selectedOption, message]);
 
 
   return (
@@ -449,23 +501,53 @@ const UserData = () => {
             style={{ display: "none" }}
             id="fileInput"
           />
-          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px]' onClick={triggerFileInput}>Upload file User</p>
-          {file && <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px]' onClick={handleUpload}> Import Data </p>}
+          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]' onClick={triggerFileInput}>Upload file</p>
+          {file && <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]' onClick={handleUpload}> Import Data </p>}
         </div>
         <div className='flex flex-wrap justify-end gap-5'>
-          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px] flex items-center gap-3' onClick={() => {
-            setAddUser(true)
-            if (appContext.plans.length === 0) {
-              fetchPlan();
-            }
-          }}> Add User </p>
-          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px]' onClick={ExportData}> Export Data </p>
-          <Link to="/user-data-ban-user" className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px]'> Ban User List </Link>
+          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] flex items-center gap-3' onClick={() => { setAddUser(true) }}> Add User </p>
+          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]' onClick={ExportData}> Export Data </p>
+          <Link to="/user-data-ban-user" className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]'> Ban User List </Link>
         </div>
       </div>
 
-      {message && (<p className={message.type === "success" ? "text-Secondary2" : "text-[#D82525]"}>{message.text}</p>)}
+      <div className='flex flex-wrap justify-between gap-5 mt-3 lg:mt-5'>
+        <div className="relative w-full max-w-md">
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search name, email and phone no."
+            className="text-sm lg:text-base text-Primary w-full pl-10 pr-4 py-2 border border-borderColor6 rounded-md bg-textBoxBg focus:outline-none focus:ring-1 focus:ring-borderColor7"
+          />
+          <img src={SearchIcon} className="absolute left-3 top-2.5 w-5 h-5 cursor-pointer" />
+        </div>
+        <div className='flex gap-5'>
+          <div className="relative" ref={dropdownRef}>
+            <span className='flex justify-between items-center gap-2 py-2 px-5 border border-borderColor rounded-md min-w-[210px] w-full cursor-pointer' onClick={toggleDropdown}>
+              <p className='text-sm xl:text-base text-Primary'>{selectedOption || 'Select an Plan'}</p>
+              <img className='w-3' src={DropdownIcon} alt="" />
+            </span>
+            {/* Dropdown menu */}
+            {isDropdownOpen && (
+              <div className="absolute z-10 w-full top-full border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
+                {['Select an Plan', ...appContext.plans.map(plan => plan.name), 'Expired'].map((option, index) => (
+                  <div key={index} className={`px-4 py-2 text-xs lg:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded-sm ${selectedOption === option ? 'bg-borderColor4 text-white' : ''}`} onClick={() => handleOptionClick(option)}>
+                    {option}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className='flex items-center gap-5 px-3 py-2 border border-borderColor rounded-md'>
+            <label className="text-sm md:text-base text-Primary">End Date:</label>
+            <input type="date" className="text-sm text-Primary rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7" value={endDate} onChange={handleEndDateChange} min={new Date().toISOString().split("T")[0]} />
+          </div>
+        </div>
+      </div>
 
+      {message && (<p className={message.type === "success" ? "text-Secondary2 mt-2" : "text-[#D82525] mt-2"}>{message.text}</p>)}
       {(msg.msg === "") && <p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}</p>}
       <div className='relative mt-3 lg:mt-5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
         <div className='overflow-x-auto rounded-md'>
@@ -505,12 +587,8 @@ const UserData = () => {
                       );
                     })()
                       : "-"}</td>
-                    <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-borderColor font-medium underline cursor-pointer" onClick={() => {
-                      if (appContext.plans.length === 0) {
-                        fetchPlan();
-                      }
-                      showPopup(index);
-                    }} > <img className='mx-auto' src={ActionIcon} alt="" />
+                    <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-b border-borderColor font-medium underline cursor-pointer" onClick={() => { showPopup(index); }} >
+                      <img className='mx-auto' src={ActionIcon} alt="" />
                       {activeRow === index && (
                         <div ref={dropdownRef} className="absolute right-0 z-10 bg-background6 border border-borderColor2 text-start py-2 lg:py-3 px-3 lg:px-5 mt-5 rounded-lg shadow-[0px_0px_6px_0px_#28236633] w-[140px] lg:w-[160px]">
                           <p className="text-sm lg:text-base text-Secondary2 mb-2 flex items-center gap-[10px] cursor-pointer"
@@ -572,7 +650,7 @@ const UserData = () => {
 
       {/* Pagination Controls */}
       <div className="flex justify-between items-center mt-5 pt-5 border-t border-borderColor">
-        <button className="text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} >
+        <button className="text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} >
           Previous
         </button>
 
@@ -580,7 +658,7 @@ const UserData = () => {
           Page {currentPage} of {totalPages}
         </span>
 
-        <button className="text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages} >
+        <button className="text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages} >
           Next
         </button>
       </div>

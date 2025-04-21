@@ -92,9 +92,9 @@ const SupportUser = () => {
               supportUserData.map((item, index) => (
                 <tr key={index} >
                   <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-borderColor">{index + 1}</td>
-                  <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-x border-borderColor"><span className='flex items-center gap-3'><img src={item.profilePicture ? item.profilePicture : Man} className='w-8 h-8 rounded-full object-cover' alt="" /> {item.name}</span></td>
+                  <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-x border-borderColor"><span className='flex items-center gap-3'><img src={item.userProfile ? item.userProfile : Man} className='w-8 h-8 rounded-full object-cover' alt="" /> {item.name}</span></td>
                   <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-x border-borderColor">{item.email}</td>
-                  <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-x border-borderColor"> <a href='#' onClick={() => window.open(item.file)}>Image</a></td>
+                  <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-x border-borderColor">{item.file ? <a href='#' onClick={() => window.open(item.file)}>Image</a> : "-"}</td>
                   <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-x border-borderColor">{formattedDate(item.createdAt)}</td>
                   <td className="text-sm lg:text-base text-Secondary p-2 lg:p-3 border-t border-borderColor font-medium underline cursor-pointer" onClick={() => showPopup(item)}> Description</td>
                 </tr>
@@ -118,7 +118,7 @@ const SupportUser = () => {
               <p className='text-base md:text-xl text-Secondary2 flex items-center gap-2 md:gap-4'><img className='w-4 md:w-auto' src={DateIcon} alt="" />{formattedDate(selectedUser.createdAt)}</p>
             </div>
             <div className='flex justify-center items-center mt-3 md:mt-7 min-h-[200px] h-[270px] md:h-[351px] w-full rounded-[22px] bg-background4'>
-              <img className='rounded-3xl w-full max-w-[602px] max-h-[351px]' src={selectedUser.file} alt="" />
+              {selectedUser.file ? <img className='rounded-3xl w-full max-w-[602px] max-h-[351px]' src={selectedUser.file} alt="" /> : <p className='text-Primary'>Not Upload Image</p>}
             </div>
             <p className='text-base md:text-lg text-Primary font-medium mt-3 md:mt-5'>Description :</p>
             <p className='text-sm md:text-base text-Secondary2 mt-[3px] md:mt-[6px]'>{selectedUser.description}</p>

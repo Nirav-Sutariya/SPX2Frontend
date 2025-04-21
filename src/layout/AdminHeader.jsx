@@ -91,7 +91,7 @@ const AdminHeader = ({ toggleTheme, isDarkTheme, isDarkMode, activeLink, setActi
     <>
       <div className='lg:hidden bg-background2 w-full flex justify-between items-center px-3 py-[19px] rounded-b-xl'>
         <a href='/'><img className='w-[200px]' src={LogoIconMenu} alt="" /></a>
-        <img onClick={() => setMenuVisible(prev => !prev)} className='bg-userBg px-[6px] py-[9px] rounded-[6px] shadow-[0px_0px_6px_0px_#28236633]' src={MenuIcon} alt="MenuIcon" />
+        <img onClick={() => setMenuVisible(prev => !prev)} className='bg-userBg px-[6px] py-[9px] rounded-md shadow-[0px_0px_6px_0px_#28236633]' src={MenuIcon} alt="MenuIcon" />
 
         {isMenuVisible && (
           <div className="fixed inset-0 z-10 bg-black bg-opacity-50 ">
@@ -154,7 +154,7 @@ const AdminHeader = ({ toggleTheme, isDarkTheme, isDarkMode, activeLink, setActi
               <span className={`slider ${isDarkMode ? 'dark' : 'light'}`}></span>
             </label>
           </div>
-          <div className='flex items-center gap-3 py-1 px-[14px] bg-userBg rounded-[6px] cursor-pointer' onClick={() => setIsOpen(prev => !prev)}>
+          <div className='flex items-center gap-3 py-1 px-[14px] bg-userBg rounded-md cursor-pointer' onClick={() => setIsOpen(prev => !prev)}>
             <p className='text-[16px] leading-[28px] text-white font-medium'>{appContext.userData.first_name}</p>
             <img src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} className='w-8 h-8 rounded-full object-cover' alt="" />
           </div>

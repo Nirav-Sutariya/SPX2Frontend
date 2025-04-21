@@ -26,7 +26,7 @@ const CapitalAllocationRangSlider = ({ allocation, setAllocation }) => {
 
   return (
     <>
-      <div className='bg-gradient2 rounded-[6px] max-w-[792px] px-3 py-[14px] lg:p-5 mt-5 lg:mt-10 Capital'>
+      <div className='bg-gradient2 rounded-md max-w-[792px] px-3 py-[14px] lg:p-5 mt-5 lg:mt-10 Capital'>
         <div className='flex justify-between items-center'>
           <h2 className='text-sm lg:text-[28px] lg:leading-[42px] font-semibold text-white '>Capital Allocation</h2>
           <div className='flex items-center gap-1'>
@@ -45,7 +45,7 @@ const CapitalAllocationRangSlider = ({ allocation, setAllocation }) => {
                   setAllocation(100);
                 }
                 setMsg("")
-              }} className="text-center no-arrows text-xs lg:text-[20px] lg:leading-[30px] font-semibold text-white bg-[#5A9FC9] px-2 lg:px-[8px] py-[3px] border border-borderColor rounded-[6px] w-10 lg:w-14 focus:outline-none " />
+              }} className="text-center no-arrows text-xs lg:text-[20px] lg:leading-[30px] font-semibold text-white bg-[#5A9FC9] px-2 lg:px-[8px] py-[3px] border border-borderColor rounded-md w-10 lg:w-14 focus:outline-none " />
             <h3 className='text-xs lg:text-[20px] lg:leading-[30px] text-white font-semibold'>%</h3>
           </div>
         </div>

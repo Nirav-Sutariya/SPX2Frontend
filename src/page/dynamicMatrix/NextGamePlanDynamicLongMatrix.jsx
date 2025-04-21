@@ -58,6 +58,8 @@ function NextGamePlanDynamicLongMatrix({
 
   valueSetup();
 
+  console.log("valueSetup", valueSetup);
+
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setIsFilterModalVisible2(false);
@@ -127,7 +129,7 @@ function NextGamePlanDynamicLongMatrix({
             />
           </div>
         </div>
-        <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-[6px] cursor-pointer' onClick={() => setIsFilterModalVisible2(!isFilterModalVisible2)}>
+        <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' onClick={() => setIsFilterModalVisible2(!isFilterModalVisible2)}>
           <img className='w-4 lg:w-auto' src={Filter} alt="Filter icon" /> Filter
         </p>
       </div>
@@ -180,7 +182,7 @@ function NextGamePlanDynamicLongMatrix({
         )}
       </div>
 
-      <div className="overflow-auto max-w-[850px] w-full mt-4 rounded-[6px] shadow-[0px_0px_6px_0px_#28236633]">
+      <div className="overflow-auto max-w-[850px] w-full mt-4 rounded-md shadow-[0px_0px_6px_0px_#28236633]">
         <table className="table-auto border-collapse w-full">
           <thead>
             <tr className="bg-background2 text-white text-sm lg:text-base font-semibold">

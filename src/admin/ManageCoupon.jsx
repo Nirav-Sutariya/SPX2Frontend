@@ -31,7 +31,7 @@ const ManageCoupon = () => {
   async function createCoupon() {
     if (validateCoupon()) {
       try {
-        let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_CREATE_COUPON_URL, { userId:getUserId(), ...coupon }, {
+        let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_CREATE_COUPON_URL, { userId: getUserId(), ...coupon }, {
           headers: {
             'x-access-token': getToken()
           }
@@ -114,6 +114,8 @@ const ManageCoupon = () => {
   useMemo(() => {
     if (appContext.couponList.length === 0) {
       fetchCouponList();
+    }
+    if (appContext.couponList2.length === 0) {
       fetchCouponList2();
     }
     if (msg.type !== "")
@@ -232,7 +234,7 @@ const ManageCoupon = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="text-center p-3 text-gray-500">
+                <td colSpan="6" className="text-sm lg:text-base text-Primary text-center p-3">
                   No coupons found
                 </td>
               </tr>
@@ -275,7 +277,7 @@ const ManageCoupon = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="text-center p-3 text-gray-500">
+                <td colSpan="6" className="text-sm lg:text-base text-Primary text-center p-3">
                   No coupons found
                 </td>
               </tr>

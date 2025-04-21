@@ -191,15 +191,15 @@ const UserDataBanUser = () => {
 
         {/* Pagination Controls */}
         <div className="flex justify-between items-center mt-5 pt-5 border-t border-borderColor">
-          <button className="text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} >
+          <button className="text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} >
             Previous
           </button>
 
-          <span className="text-sm lg:text-base font-medium text-center text-Primary py-2 px-5 ">
+          <span className="text-sm lg:text-base font-medium text-center text-Primary py-2 px-5">
             Page {currentPage} of {totalPages}
           </span>
 
-          <button className="text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages} >
+          <button className="text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages} >
             Next
           </button>
         </div>

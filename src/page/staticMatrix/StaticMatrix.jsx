@@ -16,7 +16,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { AppContext } from '../../components/AppContext';
 import { getToken, getUserId } from '../login/loginAPI';
-import { defaultTradePrice, defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModal } from '../../components/utils';
+import { defaultTradePrice, defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModalShort } from '../../components/utils';
 
 
 const StaticMatrix = () => {
@@ -26,11 +26,12 @@ const StaticMatrix = () => {
   const menuRef = useRef(null);
   const dropdownRef = useRef(null);
   const containerRef = useRef(null);
+  const dropdown2Ref = useRef(null);
   const filterModalRef = useRef(null);
   const [loss, setLoss] = useState(0);
-  const [names, setNames] = useState({});
   let appContext = useContext(AppContext);
   const allocationDropdownRef = useRef(null);
+  const [names, setNames] = useState(appContext.names);
   const [selectedValue, setSelectedValue] = useState(5);
   const [allocation, setAllocation] = useState(defaultAllocation);
   const [tradePrice, setTradePrice] = useState(defaultTradePrice);
@@ -60,6 +61,7 @@ const StaticMatrix = () => {
 
   const [showBP, setShowBP] = useState(true);
   const [newName, setNewName] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
   const [editKey, setEditKey] = useState(null);
   const [editName, setEditName] = useState('');
   const [modalData, setModalData] = useState({});
@@ -85,7 +87,7 @@ const StaticMatrix = () => {
   const [showGainPercentage, setShowGainPercentage] = useState(true);
   const [showLossPercentage, setShowLossPercentage] = useState(true);
   const [staticKey, setStaticKey] = useState(appContext.staticShortKey);
-  const [recordLimit, setRecordLimit] = useState(appContext.subscription);
+  const [recordLimit, setRecordLimit] = useState(appContext.recordLimit);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const [currentPlan, setCurrentPlan] = useState(appContext.subscription);
   const [allocationHintsVisibility, setAllocationHintsVisibility] = useState(false);
@@ -93,6 +95,16 @@ const StaticMatrix = () => {
   const [msgM2, setMsgM2] = useState({ type: "", msg: "", });
   const [msgM3, setMsgM3] = useState({ type: "", msg: "", });
   const [msgM4, setMsgM4] = useState({ type: "", msg: "", });
+  const options = ["5", "10", "15", "20", "30", "40", "50"];
+
+
+  const toggleDropdown2 = () => setIsOpen(prev => !prev);
+
+  // Handle Spread Dropdown
+  const handleSelect = (value) => {
+    setSelectedValue(value);
+    setIsOpen(false);
+  };
 
   // Call API only if firstKey exists and API hasn't been called yet
   if (firstKey && !selectedName) {
@@ -102,6 +114,7 @@ const StaticMatrix = () => {
 
   // Get Admin This Page Access For Admin Api 
   async function getStaticKey() {
+    if (appContext.staticShortKey) return;
     setIsMessageVisible(true);
     try {
       let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_STATIC_SHORT_KRY), { userId: getUserId() }, {
@@ -137,6 +150,10 @@ const StaticMatrix = () => {
       if (response.status === 200) {
         setCurrentPlan(response.data.data.isBase);
         setRecordLimit(response.data.data.recordLimit);
+        appContext.setAppContext((curr) => ({
+          ...curr,
+          recordLimit: response.data.data.recordLimit,
+        }));
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
@@ -182,8 +199,10 @@ const StaticMatrix = () => {
           'x-access-token': getToken()
         }
       })
-      if (response.status === 201)
-        await getMatrixFromAPI()
+      if (response.status === 201) {
+        await getMatrixFromAPI();
+        setMsgM1({ type: "info", msg: "Matrix name added successfully." });
+      }
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
@@ -339,6 +358,7 @@ const StaticMatrix = () => {
       if (error.message.includes('Network Error')) {
         setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
+      setStaticLevelDefaultValue([]);
     }
   }
 
@@ -481,9 +501,8 @@ const StaticMatrix = () => {
 
   // Fetch saved matrix if it exists
   useMemo(() => {
-    fetchAllocationLevelValuesFromAPI2();
     getSPXMatrixAPI(selectedName);
-  }, [isMatrixSaved, selectedName]);
+  }, [selectedName]);
 
   useMemo(() => {
     setLoss((tradePrice * 100 - (100 * selectedValue)).toFixed(2));
@@ -838,6 +857,10 @@ const StaticMatrix = () => {
         setAllocationHintsVisibility(false);
         setEditIndex(null);
       }
+
+      if (dropdown2Ref.current && !dropdown2Ref.current.contains(event.target)) {
+        setIsOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -870,7 +893,10 @@ const StaticMatrix = () => {
     if (storedMatrix) {
       setSelectedName(JSON.parse(storedMatrix));
     }
-    getMatrixFromAPI();
+    // Only call API if names is empty
+    if (!appContext.names || Object.keys(appContext.names).length === 0) {
+      getMatrixFromAPI();
+    }
     fetchUserSubscription();
   }, []);
 
@@ -881,11 +907,10 @@ const StaticMatrix = () => {
     if (selectedValue) {
       fetchAllocationLevelValuesFromAPI2();
     }
-    if (!appContext.staticLongKey) {
+    if (appContext.staticShortKey === null) {
       getStaticKey();
     }
-
-  }, [selectedName, selectedValue, appContext.staticLongKey]);
+  }, [selectedName, selectedValue, appContext.staticShortKey]);
 
   const handleTradePriceChange = (e) => {
     const inputValue = e.target.value;
@@ -928,16 +953,6 @@ const StaticMatrix = () => {
     setOriginalSize(e.target.value);
   };
 
-  // Handle Spread Dropdown
-  const handleChange = (event) => {
-    const newValue = event.target.value;
-    appContext.setAppContext((prev) => ({
-      ...prev,
-      buyingPowerStatic: [],
-    }));
-    setSelectedValue(newValue);
-  };
-
 
   return (<>
     {staticKey ?
@@ -960,12 +975,12 @@ const StaticMatrix = () => {
             {/* ResetIcon popup section  */}
             <ConfirmationModal show={showModal} onClose={() => setShowModal(false)} onConfirm={modalData.onConfirm} title={modalData.title} icon={modalData.icon} message={modalData.message} />
 
-            <div className={`relative ${recordLimit === 0 ? 'opacity-70 pointer-events-none' : ''}`} ref={containerRef}>
+            <div className={`relative ${recordLimit === 0 ? 'opacity-70 pointer-events-none' : ''}`} ref={dropdownRef}>
               <p onClick={toggleDropdown} className='flex items-center gap-[10px] text-sm lg:text-base bg-background6 font-medium text-Primary shadow-[0px_0px_6px_0px_#28236633] rounded-md px-4 py-2 cursor-pointer' >
                 <img src={MatrixIcon} className='h-5 w-5' alt="" /> {names[selectedName]} <img className='w-3' src={DropdownIcon} alt="" />
               </p>
               {isDropdownVisible && (
-                <div ref={dropdownRef} className='absolute z-10 left-0 min-[450px]:left-auto right-0 top-full mt-2 border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-max'>
+                <div className='absolute z-10 left-0 min-[450px]:left-auto right-0 top-full mt-2 border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-max'>
                   <div className='px-3 py-1 pb-[14px]'>
                     {editIndex === null ? (
                       <>
@@ -1014,25 +1029,29 @@ const StaticMatrix = () => {
               <div ref={containerRef}>
                 <div className='flex justify-between items-end gap-2'>
                   <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Original Account Size:</label>
-                  <div className="flex items-center px-2 w-full max-w-[100px] sm:max-w-[100px] lg:max-w-[110px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7">
-                    <span className='text-xs lg:text-sm text-Primary'>Spread:</span>
-                    <select id="dropdown" value={selectedValue} onChange={handleChange} className="text-xs lg:text-sm text-Primary px-1 py-[2px] bg-textBoxBg rounded-md focus:outline-none focus:border-borderColor7 cursor-pointer">
-                      <option value="5">5</option>
-                      <option value="10">10</option>
-                      <option value="15">15</option>
-                      <option value="20">20</option>
-                      <option value="30">30</option>
-                      <option value="40">40</option>
-                      <option value="50">50</option>
-                    </select>
+                  <div ref={dropdown2Ref} className="relative w-full max-w-[110px]">
+                    <div className="flex items-center justify-between px-2 py-1 border border-borderColor bg-textBoxBg rounded-md cursor-pointer" onClick={toggleDropdown2} >
+                      <span className="text-xs lg:text-sm text-Primary">Spread: {selectedValue}</span>
+                      <img className='w-[10px]' src={DropdownIcon} alt="" />
+                    </div>
+
+                    {isOpen && (
+                      <div className="absolute top-full right-0 w-12 border border-borderColor bg-background6 rounded-md shadow-md z-10">
+                        {options.map((value, index) => (
+                          <div key={index} className={`px-3 py-1 text-xs lg:text-sm cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${selectedValue === value ? 'bg-borderColor4 text-white' : 'text-Primary'}`} onClick={() => handleSelect(value)} >
+                            {value}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className={`flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md ${currentPlan ? 'opacity-70 pointer-events-none' : ''}`}>
                   <span>$</span>
                   <input type='text' maxLength={10} title="Please upgrade your plan" value={originalSize} onChange={handleOriginalSizeChange} className={`bg-transparent w-full focus:outline-none`} />
                   <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                    <span className='p-2' onClick={() => setAllocationHintsVisibility(!allocationHintsVisibility)} >
-                      <img className={`w-3 lg:w-auto cursor-pointer`} src={DropdownIcon} alt="" />
+                    <span className='p-2 cursor-pointer' onClick={() => setAllocationHintsVisibility(!allocationHintsVisibility)} >
+                      <img className={`w-3 lg:w-auto`} src={DropdownIcon} alt="" />
                     </span>
                   </div>
                 </div>
@@ -1188,16 +1207,15 @@ const StaticMatrix = () => {
               </div>
               {(msgM3.msg !== "") && <p className={`block md:hidden text-sm text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}, <Link to="/subscription"></Link> </p>}
             </div>
-            <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+            <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' ref={filterModalRef} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
               <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
             </p>
           </div>
         </div>
 
         <div className="flex justify-end">
-          <FilterModal
+          <FilterModalShort
             isVisible={isFilterModalVisible}
-            filterModalRef={filterModalRef}
             filters={{
               showContracts, setShowContracts,
               showCredit, setShowCredit,

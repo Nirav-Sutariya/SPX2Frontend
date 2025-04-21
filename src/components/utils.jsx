@@ -4,6 +4,7 @@ import { getToken, getUserId } from '../page/login/loginAPI';
 
 
 const defaultTradePrice = 1.60
+const defaultTradePriceLong = 3
 const defaultCommission = 5
 const defaultAllocation = 100
 const defaultDynamicTradePrice = 0
@@ -104,7 +105,40 @@ async function CancelUserSubscription(user) {
 }
 
 
-const FilterModal = ({ isVisible, filterModalRef, filters, handleToggle, ResetTable }) => {
+const FilterModalShort = ({ isVisible, filters, handleToggle, ResetTable }) => {
+    if (!isVisible) return null;
+
+    const filterOptions = [
+        { label: "Contracts", state: filters.showContracts, setter: filters.setShowContracts },
+        { label: "Credit", state: filters.showCredit, setter: filters.setShowCredit },
+        { label: "Commission", state: filters.showCommission, setter: filters.setShowCommission },
+        { label: "BP", state: filters.showBP, setter: filters.setShowBP },
+        { label: "Profit", state: filters.showProfit, setter: filters.setShowProfit },
+        { label: "Loss", state: filters.showLoss, setter: filters.setShowLoss },
+        { label: "Cumulative Loss", state: filters.showCumulativeLoss, setter: filters.setShowCumulativeLoss },
+        { label: "Series Gain/Loss", state: filters.showSeriesGainLoss, setter: filters.setShowSeriesGainLoss },
+        { label: "After Win", state: filters.showAfterWin, setter: filters.setShowAfterWin },
+        { label: "Gain %", state: filters.showGainPercentage, setter: filters.setShowGainPercentage },
+        { label: "After Loss", state: filters.showAfterLoss, setter: filters.setShowAfterLoss },
+        { label: "Loss %", state: filters.showLossPercentage, setter: filters.setShowLossPercentage },
+    ];
+
+    return (
+        <div className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
+            <p className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor px-12 pb-2 cursor-pointer" onClick={ResetTable}>
+                Reset Table
+            </p>
+            {filterOptions.map((option, index) => (
+                <label key={index} className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                    <input type="checkbox" className="accent-accentColor w-[15px] h-[15px]" checked={option.state} onChange={() => handleToggle(option.setter)} />
+                    {option.label}
+                </label>
+            ))}
+        </div>
+    );
+};
+
+const FilterModalLong = ({ isVisible, filters, handleToggle, ResetTable }) => {
     if (!isVisible) return null;
 
     const filterOptions = [
@@ -123,7 +157,7 @@ const FilterModal = ({ isVisible, filterModalRef, filters, handleToggle, ResetTa
     ];
 
     return (
-        <div ref={filterModalRef} className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
+        <div className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
             <p className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor px-12 pb-2 cursor-pointer" onClick={ResetTable}>
                 Reset Table
             </p>
@@ -137,5 +171,4 @@ const FilterModal = ({ isVisible, filterModalRef, filters, handleToggle, ResetTa
     );
 };
 
-
-export { FilterModal, defaultTradePrice, defaultCommission, defaultAllocation, defaultDynamicTradePrice, DefaultInDeCrement, findClosestIndex, defaultValue, validateEmail, ConfirmationModal, formattedDate, formattedDate1, CancelUserSubscription }
+export { FilterModalShort, FilterModalLong, defaultTradePrice, defaultTradePriceLong, defaultCommission, defaultAllocation, defaultDynamicTradePrice, DefaultInDeCrement, findClosestIndex, defaultValue, validateEmail, ConfirmationModal, formattedDate, formattedDate1, CancelUserSubscription }

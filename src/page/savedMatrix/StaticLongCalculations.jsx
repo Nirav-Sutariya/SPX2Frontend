@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Filter from '../../assets/svg/FilterIcon.svg';
-import { defaultAllocation, defaultCommission, defaultTradePrice, FilterModal } from '../../components/utils';
+import { defaultAllocation, defaultCommission, defaultTradePrice, FilterModalLong } from '../../components/utils';
 
 function StaticLongCalculations({ savedData }) {
 
@@ -232,15 +232,14 @@ function StaticLongCalculations({ savedData }) {
     <>
       <div className='flex justify-between items-center gap-3 lg:gap-5 mt-5 lg:mt-10 lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full'>
         <h2 className='text-xl lg:text-[22px] xl:text-2xl font-semibold text-Primary capitalize'>Static Matrix Long : {savedData.matrixName}</h2>
-        <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-[6px] cursor-pointer min-w-[100px]' onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+        <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]' ref={FilterModalRef} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
           <img className='w-4 lg:w-auto' src={Filter} alt="Filter icon" />Filter
         </p>
       </div>
 
       <div className="flex justify-end">
-        <FilterModal
+        <FilterModalLong
           isVisible={isFilterModalVisible}
-          filterModalRef={FilterModalRef}
           filters={{
             showContracts, setShowContracts,
             showCredit, setShowCredit,
@@ -260,7 +259,7 @@ function StaticLongCalculations({ savedData }) {
         />
       </div>
 
-      <div className="overflow-auto lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full mt-4 rounded-[6px] shadow-[0px_0px_6px_0px_#28236633]">
+      <div className="overflow-auto lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full mt-4 rounded-md shadow-[0px_0px_6px_0px_#28236633]">
         <table className="table-auto border-collapse w-full">
           <thead>
             <tr className="bg-background2 text-white text-sm lg:text-base font-semibold">

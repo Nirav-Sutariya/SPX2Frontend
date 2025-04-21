@@ -12,13 +12,16 @@ const ManageLevels = ({ }) => {
   const updateRef = useRef();
   const longMatrixRef = useRef();
   const shortMatrixRef = useRef();
+  const dropdownRef = useRef(null);
   const filterModalRef = useRef(null);
+  const spreadDropdownRef = useRef(null);
   let appContext = useContext(AppContext);
   const [level1, setLevel1] = useState("");
   const [level2, setLevel2] = useState("");
   const [level3, setLevel3] = useState("");
   const [level4, setLevel4] = useState("");
   const [level5, setLevel5] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
   const [addNewRow, setAddNewRow] = useState(false);
   const [showLevel1, setShowLevel1] = useState(true);
   const [showLevel2, setShowLevel2] = useState(true);
@@ -28,15 +31,18 @@ const ManageLevels = ({ }) => {
   const [showAction, setShowAction] = useState(true);
   const [buyingPower, setBuyingPower] = useState("");
   const [levelValues, setLevelValues] = useState([]);
+  const [spreadOpen, setSpreadOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState(5);
-  const [msg, setMsg] = useState({ type: "", msg: "", });
   const [editingRowId, setEditingRowId] = useState(null);
+  const [msg, setMsg] = useState({ type: "", msg: "", });
+  const [msgM1, setMsgM1] = useState({ type: "", msg: "", });
   const [deletingItemId, setDeletingItemId] = useState(null);
   const [matrixTypeValue, setMatrixTypeValue] = useState("StaticShort");
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const [isDeleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
   const [longMatrixLength, setLongMatrixLength] = useState(appContext.longMatrixLength);
   const [shortMatrixLength, setShortMatrixLength] = useState(appContext.shortMatrixLength);
+  const spreadOptions = ["5", "10", "15", "20", "30", "40", "50"];
   const [editedValues, setEditedValues] = useState({
     buyingPower: "",
     level1: "",
@@ -45,6 +51,19 @@ const ManageLevels = ({ }) => {
     level4: "",
     level5: "",
   });
+  const options = [
+    { label: 'Static Short', value: 'StaticShort' },
+    { label: 'Static Long', value: 'StaticLong' },
+    { label: 'Dynamic Short', value: 'DynamicShort' },
+    { label: 'Dynamic Long', value: 'DynamicLong' }
+  ];
+
+  const fileInputRef = useRef(null);
+
+  const handleFileClick = () => {
+    fileInputRef.current.click(); // Trigger file input on <p> click
+  };
+
 
   // Get Level Length 
   async function fetchLevelLength() {
@@ -84,7 +103,7 @@ const ManageLevels = ({ }) => {
       })
       if (response.status === 201) {
         setMsg({ type: "info", msg: 'Matrix length are updated...' });
-        fetchLevelLength()
+        fetchLevelLength();
       }
     } catch (error) {
       if (error.message.includes("Network Error")) {
@@ -185,19 +204,46 @@ const ManageLevels = ({ }) => {
     }
   };
 
-  // Handle Spread Dropdown
-  const handleChange = (event) => {
-    setSelectedValue(event.target.value);
-    setAddNewRow(false);
-  };
+  // Upload Level Value Data By
+  async function handleFileChange(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-  // Handle Matrix Type Dropdown
-  const handleChangeMatrixType = (event) => {
-    setMatrixTypeValue(event.target.value);
-    setSelectedValue(5);
-    setLevelValues([]);
-    setAddNewRow(false);
-  };
+    const formData = new FormData();
+    formData.append('excelFile', file);
+    formData.append('userId', getUserId());
+
+    try {
+      const response = await axios.post((process.env.REACT_APP_LEVELS_URL) + (process.env.REACT_APP_UPLOAD_LEVEL_VALUE), formData, {
+        headers: {
+          'x-access-token': getToken(),
+          'Content-Type': 'multipart/form-data',
+        }
+      });
+      if (response.status === 201) {
+        setMsgM1({ type: "info", msg: "File uploaded successfully. Created!" });
+      }
+    } catch (error) {
+      if (error.message.includes("Network Error")) {
+        setMsgM1({
+          type: "error",
+          msg: "Could not connect to the server. Please check your connection.",
+        });
+      } else if (error.response?.data?.message) {
+        // If there is a message in the response (like "Email already exists")
+        const errorMessage = error.response.data.message.join ? error.response.data.message.join(' ') : error.response.data.message;
+        setMsgM1({
+          type: "error",
+          msg: errorMessage || "Something went wrong.",
+        });
+      } else {
+        setMsgM1({
+          type: "error",
+          msg: "Something went wrong. Please try again later.",
+        });
+      }
+    }
+  }
 
   // Spread and MatrixType UseMemo
   useMemo(() => {
@@ -208,8 +254,13 @@ const ManageLevels = ({ }) => {
     if (msg.type !== "")
       setTimeout(() => {
         setMsg({ type: "", msg: "" })
-      }, 20 * 100);
-  }, [selectedValue, matrixTypeValue, msg])
+      }, 40 * 100);
+
+    if (msgM1.type !== "")
+      setTimeout(() => {
+        setMsgM1({ type: "", msg: "" })
+      }, 40 * 100);
+  }, [selectedValue, matrixTypeValue, msg, msgM1])
 
   const handleIncrement = () => {
     setShortMatrixLength((prev) => {
@@ -267,10 +318,29 @@ const ManageLevels = ({ }) => {
     setLevel5("");
   };
 
+  const handleChangeMatrixType = (value) => {
+    setMatrixTypeValue(value);
+    setSelectedValue(5);
+    setLevelValues([]);
+    setAddNewRow(false);
+    setIsOpen(false);
+  };
+
+  const handleSpreadOptionClick = (option) => {
+    setSelectedValue(option);
+    setSpreadOpen(false);
+  };
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (filterModalRef.current && !filterModalRef.current.contains(e.target)) {
         setIsFilterModalVisible(false);
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+      if (spreadDropdownRef.current && !spreadDropdownRef.current.contains(e.target)) {
+        setSpreadOpen(false);
       }
     };
 
@@ -284,13 +354,12 @@ const ManageLevels = ({ }) => {
   }, [isDeleteConfirmVisible]);
 
 
-
   return (
     <div className='px-5 lg:pl-10 lg:px-6 pb-[30px] lg:pb-[50px]'>
       <h2 className='text-xl lg:text-[32px] lg:leading-[48px] text-Primary font-semibold'>Manage Levels</h2>
       {(msg.msg !== "") && <p className={`text-sm mt-2 ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}</p>}
-      {/* Manage Levels Short Matrix and Long Matrix */}
 
+      {/* Manage Levels Short Matrix and Long Matrix */}
       <div className='mt-5 lg:mt-10 px-5 md:px-[30px] py-5 md:py-[34px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] max-w-[459px] lg:max-w-[509px] w-full'>
         <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Short Matrix <span className='text-xs text-[#B7D1E0] font-medium'>(Min 6 to 15)</span></label>
         <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
@@ -354,50 +423,77 @@ const ManageLevels = ({ }) => {
       {/* Choose an Matrix Type and Spread */}
       <div className='flex justify-between items-end gap-5 mt-5'>
         <div className='flex flex-wrap gap-3 sm:gap-5 w-full'>
-          <div className="relative w-full max-w-[161px] sm:max-w-[170px] lg:max-w-[200px] sm:mt-2">
-            <label htmlFor="dropdown" className="block text-sm lg:text-[16px] lg:leading-[30px] text-Primary font-medium">Choose an Matrix Type </label>
-            <div className="absolute inset-y-0 right-2 top-[41%] flex items-center pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary" viewBox="0 0 20 20" fill="currentColor">
+          {/* Choose a Matrix Type */}
+          <div className="relative w-full max-w-[161px] sm:max-w-[170px] lg:max-w-[200px] sm:mt-2" ref={dropdownRef}>
+            <label className="block text-sm lg:text-[16px] lg:leading-[30px] text-Primary font-medium">Choose a Matrix Type</label>
+            <div onClick={() => setIsOpen(prev => !prev)} className="flex items-center justify-between text-xs lg:text-sm text-Primary mt-1 px-3 py-[9px] sm:py-[10px] lg:py-[12px] border border-borderColor rounded-md bg-textBoxBg w-full cursor-pointer" >
+              {options.find(o => o.value === matrixTypeValue)?.label || 'Select an option'}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary ml-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </div>
-            <select id="dropdown" value={matrixTypeValue} onChange={handleChangeMatrixType} className="text-xs lg:text-sm text-Primary mt-1 px-2 md:px-3 lg:px-5 py-[7px] sm:py-2 md:py-[10px] lg:py-3 border border-borderColor rounded-md bg-textBoxBg w-full focus:outline-none focus:border-borderColor7 appearance-none">
-              <option value="" disabled>Select an option</option>
-              <option value="StaticShort">Static Short</option>
-              <option value="StaticLong">Static Long</option>
-              <option value="DynamicShort">Dynamic Short</option>
-              <option value="DynamicLong">Dynamic Long</option>
-            </select>
+
+            {isOpen && (
+              <div className="absolute z-10 w-full bg-background6 border border-borderColor5 rounded-md shadow-[0px_0px_6px_0px_#28236633]">
+                {options.map((option) => (
+                  <div key={option.value} className={`px-4 py-2 text-xs lg:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${matrixTypeValue === option.value ? 'bg-borderColor4 text-white rounded' : ''}`} onClick={() => handleChangeMatrixType(option.value)} >
+                    {option.label}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="relative w-full max-w-[161px] sm:max-w-[170px] lg:max-w-[200px] sm:mt-2">
-            <label htmlFor="dropdown" className="block text-sm lg:text-[16px] lg:leading-[30px] text-Primary font-medium">Choose an Spread </label>
-            <div className="absolute inset-y-0 right-2 top-[41%] flex items-center pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary" viewBox="0 0 20 20" fill="currentColor">
+          {/* Choose a Spread */}
+          <div className="relative w-full max-w-[161px] sm:max-w-[170px] lg:max-w-[200px] sm:mt-2" ref={spreadDropdownRef}>
+            <label className="block text-sm lg:text-[16px] lg:leading-[30px] text-Primary font-medium">Choose a Spread</label>
+            <div onClick={() => setSpreadOpen(prev => !prev)} className="flex items-center justify-between text-xs lg:text-sm text-Primary mt-1 px-3 py-[9px] sm:py-[10px] lg:py-[12px] border border-borderColor rounded-md bg-textBoxBg w-full cursor-pointer" >
+              {selectedValue || 'Select an option'}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary ml-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </div>
-            <select id="dropdown" value={selectedValue} onChange={handleChange} className="text-xs lg:text-sm text-Primary mt-1 px-2 md:px-3 lg:px-5 py-[7px] sm:py-2 md:py-[10px] lg:py-3 border border-borderColor rounded-md bg-textBoxBg w-full focus:outline-none focus:border-borderColor7 appearance-none">
-              <option value="" disabled>Select an option</option>
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="15">15</option>
-              <option value="20">20</option>
-              <option value="30">30</option>
-              <option value="40">40</option>
-              <option value="50">50</option>
-            </select>
+
+            {spreadOpen && (
+              <div className="absolute z-10 w-full bg-background6 border border-borderColor5 rounded-md shadow-[0px_0px_6px_0px_#28236633]">
+                {spreadOptions.map((option) => (
+                  <div key={option} className={`px-4 py-2 text-xs lg:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${selectedValue === option ? 'bg-borderColor4 text-white' : ''}`} onClick={() => handleSpreadOptionClick(option)}>
+                    {option}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-        <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer w-full max-w-[95px] lg:max-w-[110px]' onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
-          <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
-        </p>
+
+        <div className='flex gap-5 min-w-[260px]'>
+          {/* <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer w-full max-w-[105px] lg:max-w-[130px]'>
+            Upload file
+          </p> */}
+          <div>
+            <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer w-full max-w-[105px] lg:max-w-[130px]' onClick={handleFileClick} >
+              Upload file
+            </p>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={handleFileChange}
+              accept=".csv,.xlsx,.xls"
+            />
+          </div>
+
+          <p ref={filterModalRef} className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer w-full max-w-[95px] lg:max-w-[110px]' onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+            <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
+          </p>
+        </div>
       </div>
 
       {/* Filter For Table */}
       <div className='flex justify-end'>
         {isFilterModalVisible && (
-          <div ref={filterModalRef} className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
+          <div className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
             <p className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor px-12 pb-2 cursor-pointer" onClick={ResetTable}>Reset Table</p>
             <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
               <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={showLevel1} onChange={() => handleToggle(setShowLevel1)} /> Level 1
@@ -420,6 +516,8 @@ const ManageLevels = ({ }) => {
           </div>
         )}
       </div>
+
+      {(msgM1.msg !== "") && <p className={`text-sm mt-2 ${msgM1.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msgM1.msg}</p>}
 
       {/* Manage Default Levels With Account Size Table */}
       <div className='mt-3 lg:mt-5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>

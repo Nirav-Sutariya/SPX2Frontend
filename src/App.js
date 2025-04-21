@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { AppContext } from "./components/AppContext";
 import { getToken, getUserId, isSuperUser, removeTokens } from "./page/login/loginAPI";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import Menu from "./layout/Menu";
 import Landing from "./page/Landing";
 import Header from "./layout/Header";
@@ -16,7 +16,6 @@ import Subscription from "./page/Subscription";
 import AdminHeader from "./layout/AdminHeader";
 import ManageCoupon from "./admin/ManageCoupon";
 import ManageLevels from "./admin/ManageLevels";
-import ComingSoon from "./components/ComingSoon";
 // import SignUp from "./components/login/SignUp";
 import NewPassword from "./page/login/NewPassword";
 import AdminDashboard from "./admin/AdminDashboard";
@@ -37,15 +36,104 @@ import DynamicMatrixShort from "./page/dynamicMatrix/DynamicMatrixShort";
 
 const App = () => {
 
+  const navigate = useNavigate();
   let appContext = useContext(AppContext);
   const [theme, setTheme] = useState("light");
   const navigateData = window.location.pathname;
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [dashboardKey, setDashboardKey] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(!!getToken());
   const [activeLink, setActiveLink] = useState("/dashboard");
+  const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(localStorage.getItem("theme") === "dark");
 
+
+  // Get Level Length Api
+  // async function fetchLevelLength() {
+  //   try {
+  //     let response = await axios.post(process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_LEVEL_LENGTH, { userId: getUserId() }, {
+  //       headers: {
+  //         'x-access-token': getToken()
+  //       }
+  //     })
+  //     if (response.status === 200) {
+  //       let data = response.data.data
+  //       appContext.setAppContext({ ...appContext, shortMatrixLength: data.shortMatrix, longMatrixLength: data.longMatrix })
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching user data:", error);
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   let logoutTimer;
+  //   const checkAuth = async () => {
+  //     const token = getToken();
+  //     const tokenValid = await validateToken(token);
+
+  //     if (!tokenValid) {
+  //       removeTokens();
+  //       setIsLoggedIn(false);
+  //     } else {
+  //       setIsLoggedIn(true);
+  //       logoutTimer = setTimeout(() => {
+  //         removeTokens();
+  //         setIsLoggedIn(false);
+  //       }, 12 * 60 * 60 * 1000);
+  //     }
+  //   };
+
+  //   checkAuth();
+  //   return () => clearTimeout(logoutTimer);
+  // }, [isLoggedIn]);
+
+  // Validates the token using your API.
+  useEffect(() => {
+    let logoutTimer;
+    let warningTimer;
+
+    const checkAuth = async () => {
+      const token = getToken();
+      const tokenValid = await validateToken(token);
+
+      if (!tokenValid) {
+        removeTokens();
+        setIsLoggedIn(false);
+      } else {
+        setIsLoggedIn(true);
+
+        // Show warning 5 minutes before logout (5 * 60 * 1000)
+        warningTimer = setTimeout(() => {
+          setShowLogoutWarning(true); 
+        }, (12 * 60 - 5) * 60 * 1000);
+
+        // Logout after 12 hours
+        logoutTimer = setTimeout(() => {
+          removeTokens();
+          setIsLoggedIn(false);
+        }, 12 * 60 * 60 * 1000);
+      }
+    };
+
+    checkAuth();
+
+    return () => {
+      clearTimeout(logoutTimer);
+      clearTimeout(warningTimer);
+    };
+  }, [isLoggedIn]);
+
+  const validateToken = async (token) => {
+    try {
+      const response = await axios.get(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_VALIDATE_TOKEN_URL, {
+        headers: {
+          'x-access-token': token
+        }
+      });
+      return response.status === 200 ? response.data.isValid : false;
+    } catch (error) {
+      return false;
+    }
+  };
 
   // Get User Data Fined
   async function getUserData() {
@@ -74,75 +162,6 @@ const App = () => {
         console.error("Error fetching user data:", error);
       }
   }
-
-  // Admin Access For Dashboard Api
-  async function getDashboardKey() {
-    try {
-      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_DASHBOARD_VIEW_KRY), { userId: getUserId() }, {
-        headers: {
-          'x-access-token': getToken()
-        }
-      })
-      if (response.status === 200) {
-        setDashboardKey(response.data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  }
-
-  // Get Level Length Api
-  async function fetchLevelLength() {
-    try {
-      let response = await axios.post(process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_LEVEL_LENGTH, { userId: getUserId() }, {
-        headers: {
-          'x-access-token': getToken()
-        }
-      })
-      if (response.status === 200) {
-        let data = response.data.data
-        appContext.setAppContext({ ...appContext, shortMatrixLength: data.shortMatrix, longMatrixLength: data.longMatrix })
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  }
-
-  useEffect(() => {
-    let logoutTimer;
-    const checkAuth = async () => {
-      const token = getToken();
-      const tokenValid = await validateToken(token);
-
-      if (!tokenValid) {
-        removeTokens();
-        setIsLoggedIn(false);
-      } else {
-        setIsLoggedIn(true);
-        logoutTimer = setTimeout(() => {
-          removeTokens();
-          setIsLoggedIn(false);
-        }, 12 * 60 * 60 * 1000);
-      }
-    };
-
-    checkAuth();
-    return () => clearTimeout(logoutTimer);
-  }, [isLoggedIn]);
-
-  // Validates the token using your API.
-  const validateToken = async (token) => {
-    try {
-      const response = await axios.get(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_VALIDATE_TOKEN_URL, {
-        headers: {
-          'x-access-token': token
-        }
-      });
-      return response.status === 200 ? response.data.isValid : false;
-    } catch (error) {
-      return false;
-    }
-  };
 
   // Set the initial theme from localStorage or default to light
   useEffect(() => {
@@ -179,15 +198,20 @@ const App = () => {
 
   useEffect(() => {
     const runStartupLogic = async () => {
-      // await fetchLevelLength();
-      await getUserData();
-
       const token = getToken();
-      const superUser = isSuperUser(token);
-      appContext.setAppContext(prev => ({
-        ...prev,
-        superUser: superUser,
-      }));
+
+      if (token) {
+        const superUser = isSuperUser(token);
+        appContext.setAppContext(prev => ({
+          ...prev,
+          superUser: superUser,
+        }));
+
+        // Call getUserData only if token is valid
+        await getUserData();
+      } else {
+        console.warn("No valid token found.");
+      }
     };
 
     runStartupLogic();
@@ -195,9 +219,6 @@ const App = () => {
 
   // Apply dark mode class when isDarkTheme is true else Apply light mode class when isDarkTheme is false
   useEffect(() => {
-    if (!dashboardKey) {
-      getDashboardKey();
-    }
     if (isDarkTheme) {
       document.body.classList.add("dark");
       document.body.classList.remove("light");
@@ -205,7 +226,7 @@ const App = () => {
       document.body.classList.add("light");
       document.body.classList.remove("dark");
     }
-  }, [isDarkTheme, dashboardKey]);
+  }, [isDarkTheme]);
 
   useEffect(() => {
     sessionStorage.setItem('paths', JSON.stringify(navigateData));
@@ -224,7 +245,7 @@ const App = () => {
   useEffect(() => {
     const adminData = JSON.parse(sessionStorage.getItem('paths')) || [];
     const filterData = adminPaths.some((path) => adminData.startsWith(path));
-    
+
     if (filterData) {
       appContext.setAppContext((curr) => {
         return {
@@ -233,11 +254,12 @@ const App = () => {
         }
       })
     }
+    navigate(adminData);
   }, [])
 
 
-  return (<>
-    <Router>
+  return (
+    <>
       <div className={`flex justify-center ${appContext.theme}`}>
         <div className="w-full bg-background max-w-[1920px]">
           {isLoggedIn ? (
@@ -247,7 +269,7 @@ const App = () => {
                 <div className="w-full max-w-[1530px]">
                   <Header toggleTheme={toggleTheme} isDarkMode={isDarkMode} isDarkTheme={isDarkTheme} activeLink={activeLink} setActiveLink={setActiveLink} setIsLoggedIn={setIsLoggedIn} />
                   <Routes>
-                    <Route path="/dashboard" element={(appContext.superUser || dashboardKey) ? <Dashboard theme={theme} /> : <ComingSoon />} />
+                    <Route path="/dashboard" element={<Dashboard theme={theme} />} />
                     <Route path="*" element={<Navigate to="/static-matrix-short" />} />
                     <Route path="/static-matrix-short" element={<StaticMatrix />} />
                     <Route path="/static-matrix-long" element={<StaticMatrixLong />} />
@@ -293,9 +315,20 @@ const App = () => {
             </Routes>
           )}
         </div>
+        {showLogoutWarning && (
+          <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
+            <div className="p-4 lg:p-[30px] border border-borderColor5 rounded-lg bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-[360px] lg:w-[486px]">
+              <h2 className="text-lg lg:text-[28px] lg:leading-[33px] font-semibold text-Secondary2 mx-auto max-w-[600px] mt-5 text-center">Session Expiring Soon</h2>
+              <h2 className="text-base lg:text-[18px] lg:leading-[33px] text-Secondary2 mx-auto max-w-[400px] lg:mt-2 text-center">You will be logged out in 5 minutes. Please Save your work.</h2>
+              <div className="flex justify-between gap-3 mt-5 lg:mt-9">
+                <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg mx-auto" onClick={() => setShowLogoutWarning(false)}>OK</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </Router>
-  </>);
+    </>
+  );
 };
 
 export default App;

@@ -17,6 +17,7 @@ export default function ContextProvider() {
     buyingPowerDynamicLong: [],
     tableVisibility: [],
     staticLevelDefaultValue: [],
+    recordLimit: null,
     profilePhoto: null,
     userData: {
       first_name: '',

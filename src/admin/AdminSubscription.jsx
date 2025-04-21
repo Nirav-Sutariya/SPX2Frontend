@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useMemo, useState, useRef } from 'react';
 import PlusIcon from '../assets/svg/PlusIcon.svg';
 import DeleteIcon from '../assets/svg/DeleteIcon.svg';
+import DropdownIcon from '../assets/svg/DropdownIcon.svg';
 import SubscriptionUpdateIcon from '../assets/Images/Subscription/SubscriptionUpdateIcon.svg';
 import axios from 'axios';
 import { AppContext } from '../components/AppContext';
@@ -61,6 +62,18 @@ function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
       nextRef.current.focus();
     }
   };
+  const [openIndex, setOpenIndex] = useState(null);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenIndex(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
 
   return (
@@ -101,26 +114,34 @@ function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
         {plan.features.map((feature, featureIndex) => (
           <div key={featureIndex} className="flex items-start gap-3">
             <div className='flex flex-wrap sm:flex-nowrap gap-2 lg:gap-5 max-w-[900px] w-full mb-3'>
-              <div className="relative w-full max-w-[300px] sm:max-w-[300px] md:max-w-[470px] sm:mt-2">
-                <div className="absolute inset-y-0 right-2 top-0 flex items-center pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
+              <div ref={dropdownRef} className="relative w-full max-w-[300px] sm:max-w-[300px] md:max-w-[470px] sm:mt-2">
+                <div className="flex items-center justify-between text-xs md:text-sm text-Primary px-3 md:px-5 py-[10px] md:py-3 border border-borderColor rounded-md bg-textBoxBg cursor-pointer"
+                  onClick={() => setOpenIndex(openIndex === featureIndex ? null : featureIndex)} >
+                  {featureOptions.find(opt => opt._id === feature.keys)?.name || "Select an API/Key"}
+                  <img className='w-3' src={DropdownIcon} alt="" />
                 </div>
-                <select className="text-xs md:text-sm text-Primary px-2 md:px-5 py-[10px] md:py-3 border border-borderColor rounded-md bg-textBoxBg w-full focus:outline-none focus:border-borderColor7 appearance-none"
-                  value={feature.keys}
-                  onChange={(e) => {
-                    let temp = [...plan.features];
-                    temp[featureIndex].keys = e.target.value;
-                    setPlan({ ...plan, features: temp });
-                  }}>
-                  <option value="">Select an API/Key</option>
-                  {featureOptions.map((option) => (
-                    <option key={option._id} value={option._id}>
-                      {option.name}
-                    </option>))}
-                </select>
+
+                {openIndex === featureIndex && (
+                  <div className="absolute z-10 mt-1 w-full bg-background6 border border-borderColor5 rounded-md shadow-[0px_0px_6px_0px_#28236633]">
+                    {featureOptions.map((option) => {
+                      const isSelected = option._id === feature.keys;
+                      return (
+                        <div key={option._id} className={`px-4 py-2 text-xs md:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded-sm ${isSelected ? 'bg-borderColor4 text-white' : ''}`}
+                          onClick={() => {
+                            let temp = [...plan.features];
+                            temp[featureIndex].keys = option._id;
+                            setPlan({ ...plan, features: temp });
+                            setOpenIndex(null);
+                          }}
+                        >
+                          {option.name}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
+
               <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center relative w-full max-w-[217px] md:max-w-[300px] sm:mt-auto">
                 <div className="flex gap-2 text-xs lg:text-sm text-Primary mt-2 px-3 md:px-5 py-[10px] md:py-[13px] border border-borderColor rounded-md bg-textBoxBg w-full focus:outline-none focus:border-borderColor7">
                   <label className='flex items-center gap-1 text-xs md:text-sm text-Primary'>
@@ -207,6 +228,7 @@ function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
 
 const AdminSubscription = () => {
 
+  const dropdownRef = useRef(null);
   const [plans, setPlans] = useState([]);
   let appContext = useContext(AppContext);
   const [errors, setErrors] = useState({});
@@ -215,6 +237,7 @@ const AdminSubscription = () => {
   const [msg, setMsg] = useState({ type: "", msg: "" });
   const [features, setFeatures] = useState(appContext.feature);
   const [showLogoutModal2, setShowLogoutModal2] = useState(false);
+  const [visibleDropdownIndex, setVisibleDropdownIndex] = useState(null);
   const [comparisonFeatures, setComparisonFeatures] = useState(appContext.comparisonFeatures);
 
 
@@ -329,6 +352,34 @@ const AdminSubscription = () => {
     }
   }
 
+  // Get User Data Fined
+  async function getUserData() {
+    if (appContext.userData.first_name === '' && appContext.userData.last_name === '')
+      try {
+        let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_PROFILE_GET_URL), { userId: getUserId() }, {
+          headers: {
+            'x-access-token': getToken()
+          }
+        })
+        if (response.status === 200) {
+          const { firstName, lastName, email, slackId, phoneNo } = response.data.data;
+          appContext.setAppContext((curr) => ({
+            ...curr,
+            userData: {
+              first_name: firstName || "",
+              last_name: lastName || "",
+              email: email || "",
+              slackID: slackId || "",
+              phone: phoneNo || "",
+            },
+            profilePhoto: response.data.data.profilePicture,
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+  }
+
   // Handle changes in feature input fields
   const handleFeatureChange = (index, field, value) => {
     setFeatures((prevFeatures) => {
@@ -373,21 +424,6 @@ const AdminSubscription = () => {
     }
   }
 
-  setTimeout(() => {
-    setMessage("");
-    setErrors({});
-  }, 4000);
-
-  useMemo(() => {
-    if (appContext.feature.length === 0) {
-      getApiKeyList();
-    }
-    if (appContext.comparisonFeatures[0].name === "") {
-      fetchComparisonFeatures()
-    }
-    getApiKey();
-  }, [])
-
   useMemo(async () => {
     if (msg.type !== "")
       setTimeout(() => {
@@ -396,12 +432,48 @@ const AdminSubscription = () => {
     if (plans.length === 0) {
       await fetchPlan();
     }
+    if (message !== "")
+      setTimeout(() => {
+        setMessage("");
+        setErrors({});
+      }, 4000);
   }, [msg, plans])
+
+  useMemo(() => {
+    if (appContext.feature.length === 0) {
+      getApiKeyList();
+    }
+    if (appContext.comparisonFeatures[0].name === "") {
+      fetchComparisonFeatures();
+    }
+    getApiKey();
+    getUserData();
+  }, [])
 
   useEffect(() => {
     document.body.classList.toggle('no-scroll', showLogoutModal2);
     return () => document.body.classList.remove('no-scroll');
   }, [showLogoutModal2]);
+
+  // Toggle dropdown visibility
+  const toggleDropdown = (index) => {
+    setVisibleDropdownIndex(prev => (prev === index ? null : index));
+  };
+
+  // Close dropdown when clicked outside
+  const closeDropdown = () => setVisibleDropdownIndex(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        closeDropdown();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
 
   return (
@@ -425,22 +497,37 @@ const AdminSubscription = () => {
                 className="text-Primary w-full px-3 md:px-5 py-2 md:py-[13px] text-xs lg:text-sm border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
               />
             </div>
+
             <div className="relative w-full max-w-[220px] sm:max-w-[250px] lg:max-w-[300px]">
-              <div className="absolute inset-y-0 right-2 top-0 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
+              <div ref={dropdownRef} className="flex items-center justify-between text-xs lg:text-sm text-Primary px-3 md:px-5 py-2 md:py-3 border border-borderColor rounded-md bg-textBoxBg cursor-pointer" onClick={() => toggleDropdown(index)} >
+                {feature.apiKey || "Select an API/Key"}
+                <img className='w-3' src={DropdownIcon} alt="" />
               </div>
-              <select
-                value={feature.apiKey}
-                onChange={(e) => handleFeatureChange(index, 'apiKey', e.target.value)}
-                className="text-xs lg:text-sm text-Primary px-2 md:px-5 py-2 md:py-3 border border-borderColor rounded-md bg-textBoxBg w-full focus:outline-none focus:border-borderColor7 appearance-none"
-              >
-                <option value="">Select an API/Key</option>
-                {apiKeys.map((key, keyIndex) => (
-                  <option key={keyIndex} value={key}>{key}</option>
-                ))}
-              </select>
+
+              {visibleDropdownIndex === index && (
+                <div className="absolute z-10 w-full top-full mt-1 border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
+                  <div className="px-4 py-2 text-xs lg:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded-sm"
+                    onClick={() => {
+                      handleFeatureChange(index, 'apiKey', "");
+                      closeDropdown();
+                    }}>
+                    Select an API/Key
+                  </div>
+                  {apiKeys.map((key, keyIndex) => {
+                    const isSelected = feature.apiKey === key;
+                    return (
+                      <div key={keyIndex}
+                        className={`px-4 py-2 text-xs lg:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded-sm ${isSelected ? 'bg-borderColor4 text-white' : ''}`}
+                        onClick={() => {
+                          handleFeatureChange(index, 'apiKey', key);
+                          closeDropdown();
+                        }}>
+                        {key}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             {errors[index] && <p className="text-red-500 text-xs">{errors[index]}</p>}
           </div>

@@ -98,7 +98,7 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
     <>
       <div className='lg:hidden bg-background2 w-full flex justify-between items-center px-3 py-[19px] rounded-b-xl'>
         <a href='/' className='text-lg font-bold text-white'><img className='w-[200px]' src={LogoIcon} alt="" /></a>
-        <img onClick={() => setMenuVisible(prev => !prev)} className='bg-userBg px-[6px] py-[9px] rounded-[6px] shadow-[0px_0px_6px_0px_#28236633]' src={MenuIcon} alt="MenuIcon" />
+        <img onClick={() => setMenuVisible(prev => !prev)} className='bg-userBg px-[6px] py-[9px] rounded-md shadow-[0px_0px_6px_0px_#28236633]' src={MenuIcon} alt="MenuIcon" />
 
         {isMenuVisible && (
           <div className="fixed inset-0 z-10 bg-black bg-opacity-50 ">
@@ -155,8 +155,8 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
               </Link>
               {appContext.superUser && <button type="button" className='text-base text-Primary text-center pl-[73px] mt-5' onClick={() => { setIsAdmin(!isAdmin); appContext.setAppContext({ ...appContext, isAdmin: !isAdmin }); navigate("/") }}>{isAdmin ? "Switch To User" : "Switch To Admin"}</button>}
               <div className='flex justify-center items-end gap-5 p-7'>
-                <Link to="/setting" onClick={() => handleLinkClick('setting')}><img className={`p-1 border border-borderColor3 rounded-[6px] shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('setting')}`} src={SettingsIcon} alt="" /></Link>
-                <Link to="/help-support" onClick={() => handleLinkClick('help-support')}><img className={`p-[3px] border border-borderColor3 rounded-[6px] shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('help-support')}`} src={HelpIcon} alt="" /></Link>
+                <Link to="/setting" onClick={() => handleLinkClick('setting')}><img className={`p-1 border border-borderColor3 rounded-md shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('setting')}`} src={SettingsIcon} alt="" /></Link>
+                <Link to="/help-support" onClick={() => handleLinkClick('help-support')}><img className={`p-[3px] border border-borderColor3 rounded-md shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('help-support')}`} src={HelpIcon} alt="" /></Link>
                 <img className='p-[6px] border border-borderColor3 rounded-[7px] shadow-[0px_0px_4px_0px_#110D3D4D]' src={Logout} alt="" onClick={() => {
                   setShowLogoutModal(true);
                   setMenuVisible(false);
@@ -196,7 +196,7 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
               <span className={`slider ${isDarkMode ? 'dark' : 'light'}`}></span>
             </label>
           </div>
-          <div className='flex items-center gap-3 py-1 px-[14px] bg-userBg rounded-[6px] cursor-pointer' onClick={() => setIsOpen(prev => !prev)}>
+          <div className='flex items-center gap-3 py-1 px-[14px] bg-userBg rounded-md cursor-pointer' onClick={() => setIsOpen(prev => !prev)}>
             <p className='text-[16px] leading-[28px] text-white font-medium'>{appContext.userData.first_name || "Loading..."}</p>
             <img src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} className='w-8 h-8 rounded-full object-cover' alt="" />
           </div>

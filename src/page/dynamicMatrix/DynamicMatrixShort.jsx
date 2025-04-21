@@ -17,23 +17,25 @@ import { Link } from 'react-router-dom';
 import { AppContext } from '../../components/AppContext';
 import { getToken, getUserId } from '../login/loginAPI';
 import NextGamePlanDynamicLongMatrix from './NextGamePlanDynamicLongMatrix';
-import { defaultDynamicTradePrice, defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModal } from '../../components/utils';
+import { defaultDynamicTradePrice, defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModalShort } from '../../components/utils';
 
 const DynamicMatrixShort = () => {
 
   const MINIMUM_VALUE = 0;
   const MAXIMUM_VALUE = 999;
   const menuRef = useRef(null);
+  const dropdownRefs = useRef({});
   const dropdownRef = useRef(null);
   const containerRef = useRef(null);
+  const dropdown2Ref = useRef(null);
   const filterModalRef = useRef(null);
   const cumulativeLossRef = useRef([]);
-  const [names, setNames] = useState({});
   let appContext = useContext(AppContext);
   const allocationDropdownRef = useRef(null);
   const [editKey, setEditKey] = useState(null);
   const [selectedValue, setSelectedValue] = useState(5);
   const [isMessageVisible, setIsMessageVisible] = useState(false);
+  const [names, setNames] = useState(appContext.namesDynamicShort);
   const firstKey = Object.keys(appContext.namesDynamicShort)[0] || null;
   const [selectedName, setSelectedName] = useState(firstKey);
   const [originalSize, setOriginalSize] = useState(null);
@@ -60,6 +62,7 @@ const DynamicMatrixShort = () => {
 
   const [newName, setNewName] = useState('');
   const [showBP, setShowBP] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [editName, setEditName] = useState('');
   const [showLoss, setShowLoss] = useState(true);
   const [showStop, setShowStop] = useState(true);
@@ -75,6 +78,7 @@ const DynamicMatrixShort = () => {
   const [showContracts, setShowContracts] = useState(true);
   const [showAfterLoss, setShowAfterLoss] = useState(true);
   const [isMatrixSaved, setIsMatrixSaved] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(null);
   const [showCommission, setShowCommission] = useState(true);
   const [stackOrShiftFlag, setStackOrShiftFlag] = useState(true);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -102,6 +106,10 @@ const DynamicMatrixShort = () => {
   const [msgM4, setMsgM4] = useState({ type: "", msg: "", });
   const [dynamicKey, setDynamicKey] = useState(appContext.dynamicLongKey);
   const [dynamicNextGameKey, setDynamicNextGameKey] = useState(appContext.dynamicNextGameLongKey);
+  const options = ["5", "10", "15", "20", "30", "40", "50"];
+
+
+  const toggleDropdown2 = () => setIsOpen(prev => !prev);
 
   // Determine how many rows to show
   const visibleRows = showAllRows ? LevelTable.length : 5
@@ -119,6 +127,7 @@ const DynamicMatrixShort = () => {
 
   // Get Admin This Page Access For Admin Api 
   async function getDynamicKey() {
+    if (appContext.dynamicLongKey) return;
     setIsMessageVisible(true);
     try {
       let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_DYNAMIC_SHORT_KRY), { userId: getUserId() }, {
@@ -145,6 +154,7 @@ const DynamicMatrixShort = () => {
 
   // Get Admin This Page Access For Admin Api 
   async function getDynamicNextGameKey() {
+    if (appContext.dynamicNextGameLongKey) return;
     try {
       let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_NEXT_GAME_SHORT_KRY), { userId: getUserId() }, {
         headers: {
@@ -203,8 +213,10 @@ const DynamicMatrixShort = () => {
           'x-access-token': getToken()
         }
       })
-      if (response.status === 201)
-        await getMatrixFromAPI()
+      if (response.status === 201) {
+        await getMatrixFromAPI();
+        setMsgM1({ type: "info", msg: "Matrix name added successfully." });
+      }
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
@@ -304,7 +316,7 @@ const DynamicMatrixShort = () => {
   const handleUpdateName = async () => {
     if (editName && editIndex !== null) {
       await updateMatrixAPI(editName, editIndex)
-      await getMatrixFromAPI()
+      await getMatrixFromAPI();
       setEditIndex(null);
       setEditName('');
     }
@@ -365,6 +377,7 @@ const DynamicMatrixShort = () => {
       if (error.message.includes('Network Error')) {
         setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
+      setStaticLevelDefaultValue([]);
     }
   }
 
@@ -540,7 +553,6 @@ const DynamicMatrixShort = () => {
   useMemo(() => {
     if (dynamicKey) {
       getMatrixFromAPI();
-      fetchAllocationLevelValuesFromAPI2();
       getSPXMatrixAPI(selectedName);
     }
   }, [isMatrixSaved, selectedName, dynamicKey])
@@ -838,11 +850,11 @@ const DynamicMatrixShort = () => {
     let indx = 0;
     setBPTable([])
     setProfitTable([])
-    Object.keys(levels).map((level, index) => {
+    Object.keys(levels).map((level) => {
       if (levels[level].active) {
         let t = levels[level]
         // BP Calculation
-        let temp2 = ((selectedValue * 100) * t.value) - CreditTable[indx] + CommissionTable[indx]
+        let temp2 = ((parseInt(levels[level]?.levelSpread) * 100) * t.value) - CreditTable[indx] + CommissionTable[indx]
         setBPTable((pre) => {
           return [...pre, (temp2)]
         })
@@ -868,7 +880,7 @@ const DynamicMatrixShort = () => {
         let t = levels[level]
         let temp4 = 0
         if (t.outSide)
-          temp4 = ((selectedValue * 100) * t.value) - CreditTable[indx] + CommissionTable[indx]
+          temp4 = ((parseInt(levels[level]?.levelSpread) * 100) * t.value) - CreditTable[indx] + CommissionTable[indx]
         else
           if (ProfitTable[indx] === 0 && (t.fullICClose || t.oneSideClose)) {
             temp4 = Math.abs(CreditTable[indx] - StopTable[indx] - CommissionTable[indx])
@@ -887,7 +899,7 @@ const DynamicMatrixShort = () => {
     let indx = 0;
     setCumulativeLossTable([]);  // Clear previous cumulative loss table
 
-    Object.keys(levels).forEach((level, index) => {
+    Object.keys(levels).forEach((level) => {
       if (levels[level].active) {
         let currentLoss = LossTable[indx] || 0;
         let previousSeriesGainLoss = SeriesGainLossTable[indx - 1] || 0;
@@ -916,7 +928,7 @@ const DynamicMatrixShort = () => {
     let indx = 0;
     setSeriesGainLossTable([]);  // Reset the table at the start
 
-    Object.keys(levels).forEach((level, index) => {
+    Object.keys(levels).forEach((level) => {
       if (levels[level].active) {
         let seriesGainLossData = 0;
 
@@ -973,7 +985,7 @@ const DynamicMatrixShort = () => {
     setAfterLossTable([])
     setLossPreTable([])
 
-    Object.keys(levels).map((level, index) => {
+    Object.keys(levels).map((level) => {
       if (levels[level].active) {
         let temp = Number(currentAllocation) + SeriesGainLossTable[indx]
         setAfterWinTable((pre) => {
@@ -1002,31 +1014,6 @@ const DynamicMatrixShort = () => {
     calculateDependentValue()
   }, [currentAllocation, SeriesGainLossTable, CumulativeLossTable])
   // end matrix calculations
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (filterModalRef.current && !filterModalRef.current.contains(event.target)) {
-        setIsFilterModalVisible(false);
-      }
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuVisible(false);
-      }
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownVisible(false);
-        setEditIndex(null);
-      }
-      if (
-        allocationDropdownRef.current && !allocationDropdownRef.current.contains(event.target) &&
-        containerRef.current && !containerRef.current.contains(event.target)
-      ) {
-        setAllocationHintsVisibility(false);
-        setEditIndex(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isMenuVisible]); // If any state is relevant, include it here, otherwise use []
 
   useMemo(() => {
     getDynamicKey();
@@ -1063,7 +1050,6 @@ const DynamicMatrixShort = () => {
     if (selectedName) {
       sessionStorage.setItem('dyShortMatrix', JSON.stringify(selectedName));
     }
-
     if (selectedValue && dynamicKey) {
       fetchAllocationLevelValuesFromAPI2();
     }
@@ -1126,32 +1112,98 @@ const DynamicMatrixShort = () => {
   };
 
   // Function to handle dropdown change for each level
-  const handleDropdownChange = (levelKey, value) => {
-    setLevels((prevLevels) => ({
-      ...prevLevels,
+  const toggleDropdown3 = (key) => {
+    setIsDropdownOpen((prev) => (prev === key ? null : key));
+  };
+
+  const handleSelectOption = (levelKey, option) => {
+    setIsDropdownOpen(null);
+    setLevels((prev) => ({
+      ...prev,
       [levelKey]: {
-        ...prevLevels[levelKey],
-        levelSpread: value,
+        ...prev[levelKey],
+        levelSpread: option,
       },
     }));
   };
 
-  // Handle Spread Dropdown
-  const handleChange = (event) => {
-    const newValue = event.target.value;
+  // Handle Spread Dropdown - for custom dropdown
+  const handleSelect = (newValue) => {
     appContext.setAppContext((prev) => ({
       ...prev,
       buyingPowerStatic: [],
     }));
     setSelectedValue(newValue);
+    setIsOpen(false);
+
+    setLevels(prevLevels => {
+      const updatedLevels = {};
+
+      Object.keys(prevLevels).forEach(key => {
+        updatedLevels[key] = {
+          ...prevLevels[key],
+          levelSpread: newValue
+        };
+      });
+
+      return updatedLevels;
+    });
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Filter Modal
+      if (filterModalRef.current && !filterModalRef.current.contains(event.target)) {
+        setIsFilterModalVisible(false);
+      }
+
+      // Menu
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuVisible(false);
+      }
+
+      // General Dropdown
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownVisible(false);
+        setEditIndex(null);
+      }
+
+      // Allocation Hints
+      if (
+        allocationDropdownRef.current &&
+        !allocationDropdownRef.current.contains(event.target) &&
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
+        setAllocationHintsVisibility(false);
+        setEditIndex(null);
+      }
+
+      // Dropdown 2
+      if (dropdown2Ref.current && !dropdown2Ref.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+
+      // Dynamic dropdowns
+      if (dropdownRefs?.current) {
+        const clickedInsideAny = Object.values(dropdownRefs.current).some(
+          (ref) => ref && ref.contains(event.target)
+        );
+        if (!clickedInsideAny) {
+          setIsDropdownOpen(null);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
 
   return (
     <>
       {dynamicKey ?
         <div className='px-3 lg:pl-10 lg:px-6'>
-
           <div className='grid min-[470px]:flex flex-wrap items-center gap-5 order-2 lg:order-1'>
             <div className='flex items-center gap-5'>
               <h2 className='text-xl lg:text-[32px] lg:leading-[48px] text-Primary font-semibold'> Dynamic Matrix </h2>
@@ -1168,12 +1220,12 @@ const DynamicMatrixShort = () => {
             <div className='flex flex-wrap gap-3 items-center'>
               <ConfirmationModal show={showModal} onClose={() => setShowModal(false)} onConfirm={modalData.onConfirm} title={modalData.title} icon={modalData.icon} message={modalData.message} />
 
-              <div className='relative'>
-                <p onClick={toggleDropdown} className='flex items-center gap-[10px] text-sm lg:text-base bg-background6 font-medium text-Primary shadow-[0px_0px_6px_0px_#28236633] rounded-[6px] px-4 py-2 cursor-pointer' >
+              <div className='relative' ref={dropdownRef}>
+                <p onClick={toggleDropdown} className='flex items-center gap-[10px] text-sm lg:text-base bg-background6 font-medium text-Primary shadow-[0px_0px_6px_0px_#28236633] rounded-md px-4 py-2 cursor-pointer' >
                   <img src={MatrixIcon} className='h-5 w-5' alt="" /> {names[selectedName]} <img className='w-3' src={DropdownIcon} alt="" />
                 </p>
                 {isDropdownVisible && (
-                  <div ref={dropdownRef} className='absolute z-10 left-0 min-[470px]:left-auto right-0 top-full mt-2 border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-max'>
+                  <div className='absolute z-10 left-0 min-[470px]:left-auto right-0 top-full mt-2 border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-max'>
                     <div className='px-3 py-1 pb-[14px]'>
                       {editIndex === null ? (
                         <>
@@ -1216,29 +1268,33 @@ const DynamicMatrixShort = () => {
           <CapitalAllocationRangSlider allocation={allocation} setAllocation={setAllocation} />
           {(msgM2.msg !== "") && <p className={`text-sm ${msgM2.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM2.msg}.</p>}
 
-          <div className='rounded-[6px] max-w-[792px] bg-background6 px-3 py-[16px] lg:p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Size'>
+          <div className='rounded-md max-w-[792px] bg-background6 px-3 py-[16px] lg:p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Size'>
             <div className='flex flex-wrap items-end min-[455px]:flex-nowrap gap-3 lg:gap-5'>
               <div className='w-full' ref={containerRef}>
                 <div className='flex justify-between items-end gap-2'>
                   <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Original Account Size:</label>
-                  <div className="flex items-center px-2 w-full max-w-[90px] sm:max-w-[90px] lg:max-w-[95px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7">
-                    <span className='text-xs lg:text-sm text-Primary'>Wide:</span>
-                    <select id="dropdown" value={selectedValue} onChange={handleChange} className="text-xs lg:text-sm text-Primary px-1 py-[2px] rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7 cursor-pointer">
-                      <option value="5">5</option>
-                      <option value="10">10</option>
-                      <option value="15">15</option>
-                      <option value="20">20</option>
-                      <option value="30">30</option>
-                      <option value="40">40</option>
-                      <option value="50">50</option>
-                    </select>
+                  <div ref={dropdown2Ref} className="relative w-full max-w-[95px]">
+                    <div className="flex items-center justify-between px-2 py-1 border border-borderColor bg-textBoxBg rounded-md cursor-pointer" onClick={toggleDropdown2} >
+                      <span className="text-xs lg:text-sm text-Primary">Wide: {selectedValue}</span>
+                      <img className='w-[10px]' src={DropdownIcon} alt="" />
+                    </div>
+
+                    {isOpen && (
+                      <div className="absolute top-full right-0 w-12 border border-borderColor bg-background6 rounded-md shadow-md z-10">
+                        {options.map((value, index) => (
+                          <div key={index} className={`px-3 py-1 text-xs lg:text-sm cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${selectedValue === value ? 'bg-borderColor4 text-white' : 'text-Primary'}`} onClick={() => handleSelect(value)} >
+                            {value}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-[6px]'>
+                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                   <span>$</span>
                   <input type='text' maxLength={10} title='Max Length 10' value={originalSize} onChange={handleOriginalSizeChange} className='bg-transparent  w-full focus:outline-none' />
                   <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                    <span className='p-2' onClick={() => setAllocationHintsVisibility(!allocationHintsVisibility)} >
+                    <span className='p-2 cursor-pointer' onClick={() => setAllocationHintsVisibility(!allocationHintsVisibility)} >
                       <img className='w-3 lg:w-auto' src={DropdownIcon} alt="" />
                     </span>
                   </div>
@@ -1291,12 +1347,12 @@ const DynamicMatrixShort = () => {
             <p className='text-sm lg:text-base text-Primary lg:font-medium mt-3 lg:mt-5'>Current Allocation Size: <span className='px-1'>${Number(currentAllocation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
           </div>
 
-          <div className='rounded-[6px] p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
+          <div className='rounded-md p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
             <div className='flex flex-wrap justify-between items-start md:items-center gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
               <div className='flex gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium'>
-                <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-[6px]`} onClick={Regular}>Regular</button>
-                <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-[6px] ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
-                <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-[6px] ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
+                <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md`} onClick={Regular}>Regular</button>
+                <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
+                <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
               </div>
               <div className='md:flex gap-3'>
                 {(msgM4.msg !== "") && <p className={`hidden md:block text-sm text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}, <Link to="/subscription"></Link> </p>}
@@ -1347,20 +1403,26 @@ const DynamicMatrixShort = () => {
                               {`Level ${index + 1}`}
                             </label>
                           </div>
-                          <div className="flex items-center px-2 w-full max-w-[95px] sm:max-w-[95px] lg:max-w-[95px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7">
-                            <span className='text-xs text-Primary'>Wide:</span>
-                            <select id={`dropdown-${levelKey}`} value={levelData.levelSpread || selectedValue} onChange={(e) => handleDropdownChange(levelKey, e.target.value)} disabled={!levelData.active} className="text-xs lg:text-sm text-Primary px-1 py-[2px] rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7 cursor-pointer">
-                              <option value="5">5</option>
-                              <option value="10">10</option>
-                              <option value="15">15</option>
-                              <option value="20">20</option>
-                              <option value="30">30</option>
-                              <option value="40">40</option>
-                              <option value="50">50</option>
-                            </select>
+                          <div className="relative w-full max-w-[95px] text-xs" ref={(el) => (dropdownRefs.current[levelKey] = el)}>
+                            <div className={`flex items-center justify-between px-2 py-1 border border-borderColor bg-textBoxBg rounded-md cursor-pointer text-Primary ${!levelData.active ? "opacity-80 pointer-events-none" : "cursor-pointer"}`} onClick={() => levelData.active && toggleDropdown3(levelKey)} >
+                              <span>Wide: {levelData.levelSpread || selectedValue}</span>
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </div>
+
+                            {isDropdownOpen === levelKey && (
+                              <ul className="absolute top-full right-0 w-12 border border-borderColor bg-background6 rounded-md shadow-md z-10">
+                                {options.map((opt) => (
+                                  <li key={opt} onClick={() => handleSelectOption(levelKey, opt)} className={`px-3 py-1 text-xs lg:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${levelData.levelSpread === opt ? "bg-borderColor4 text-white" : ""}`} >
+                                    {opt}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
                           </div>
                         </div>
-                        <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-[6px]'>
+                        <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                           <input
                             type='text'
                             maxLength={5}
@@ -1386,7 +1448,7 @@ const DynamicMatrixShort = () => {
                       {/* Premium Level Input */}
                       <div className='max-w-[466px] w-full'>
                         <label className='text-sm lg:text-base text-Primary font-medium'>{`Premium ${index + 1}`}</label>
-                        <div className={`Premium flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-[6px] ${errorState[levelKey] ? 'bg-red-300' : ''}`}>
+                        <div className={`Premium flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md ${errorState[levelKey] ? 'bg-red-300' : ''}`}>
                           <input
                             type='text'
                             maxLength={5}
@@ -1412,7 +1474,7 @@ const DynamicMatrixShort = () => {
                       {/* Stop Level Input */}
                       <div className='max-w-[466px] w-full'>
                         <label className='text-sm lg:text-base text-Primary font-medium'>{`Stop Level ${index + 1}`}</label>
-                        <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-[6px]'>
+                        <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                           <input
                             type='text' maxLength={5} title='Max Length 5'
                             value={levelData.stopLevel}
@@ -1479,7 +1541,7 @@ const DynamicMatrixShort = () => {
           </div>
 
           <div className="flex justify-end">
-            <FilterModal
+            <FilterModalShort
               isVisible={isFilterModalVisible}
               filterModalRef={filterModalRef}
               filters={{
@@ -1502,7 +1564,7 @@ const DynamicMatrixShort = () => {
             />
           </div>
 
-          <div className="overflow-auto lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full mt-4 rounded-[6px] shadow-[0px_0px_6px_0px_#28236633]">
+          <div className="overflow-auto lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full mt-4 rounded-md shadow-[0px_0px_6px_0px_#28236633]">
             <table className="table-auto border-collapse w-full">
               <thead>
                 <tr className="bg-background2 text-white text-sm lg:text-base font-semibold">

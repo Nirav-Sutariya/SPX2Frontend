@@ -17,7 +17,7 @@ import { Link } from 'react-router-dom';
 import { AppContext } from '../../components/AppContext';
 import { getToken, getUserId } from '../login/loginAPI';
 import NextGamePalnDynamicICLongMatrix from './NextGamePalnDynamicICLongMatrix';
-import { defaultDynamicTradePrice, defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModal } from '../../components/utils';
+import { defaultDynamicTradePrice, defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModalLong } from '../../components/utils';
 
 const DynamicMatrixLong = () => {
 
@@ -25,17 +25,19 @@ const DynamicMatrixLong = () => {
   const MAXIMUM_VALUE = 999;
   const menuRef = useRef(null);
   const lossDataRef = useRef([]);
+  const dropdownRefs = useRef({});
   const dropdownRef = useRef(null);
+  const dropdown2Ref = useRef(null);
   const containerRef = useRef(null);
   const filterModalRef = useRef(null);
   const cumulativeLossRef = useRef([]);
   const seriesGainRefValue = useRef([]);
-  const [names, setNames] = useState({});
   let appContext = useContext(AppContext);
   const allocationDropdownRef = useRef(null);
   const [editKey, setEditKey] = useState(null);
   const [errorState, setErrorState] = useState({});
   const [selectedValue, setSelectedValue] = useState(5);
+  const [names, setNames] = useState(appContext.namesDynamicLong);
   const firstKey = Object.keys(appContext.namesDynamicLong)[0] || null;
   const [selectedName, setSelectedName] = useState(firstKey);
   const [originalSize, setOriginalSize] = useState(null);
@@ -62,6 +64,7 @@ const DynamicMatrixLong = () => {
   const [staticLevelDefaultValue, setStaticLevelDefaultValue] = useState([]);
 
   const [showBP, setShowBP] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [showStop, setShowStop] = useState(true);
   const [showLoss, setShowLoss] = useState(true);
   const [showCredit, setShowCredit] = useState(true);
@@ -75,6 +78,7 @@ const DynamicMatrixLong = () => {
   const [showAfterLoss, setShowAfterLoss] = useState(true);
   const [isMatrixSaved, setIsMatrixSaved] = useState(false);
   const [showCommission, setShowCommission] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(null);
   const [stackOrShiftFlag, setStackOrShiftFlag] = useState(true);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [showCumulativeLoss, setShowCumulativeLoss] = useState(true);
@@ -103,10 +107,13 @@ const DynamicMatrixLong = () => {
   const [msgM3, setMsgM3] = useState({ type: "", msg: "", });
   const [msgM4, setMsgM4] = useState({ type: "", msg: "", });
   const [dynamicKey, setDynamicKey] = useState(appContext.dynamicShortKey);
-  const [dynamicNextGameKey, setDynamicNextGameKey] = useState(appContext.dynamicNextGameShortKey);
+  const [dynamicNextGameKey, setDynamicNextGameKey] = useState(appContext.dynamicNextGameLongKey);
+  const options = ["5", "10", "15", "20", "30", "40", "50"];
 
 
-  // Table 6 level Visible Condtion 
+  const toggleDropdown2 = () => setIsOpen(prev => !prev);
+
+  // Table 6 level Visible Condition 
   const visibleLevels = showAll
     ? Math.max(appContext.longMatrixLength, Object.keys(levels).length)
     : Math.min(5, Math.max(appContext.longMatrixLength, Object.keys(levels).length));
@@ -119,6 +126,7 @@ const DynamicMatrixLong = () => {
 
   // Get Admin This Page Access For Admin Api 
   async function getDynamicKey() {
+    if (appContext.dynamicShortKey) return;
     setIsMessageVisible(true);
     try {
       let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_DYNAMIC_SHORT_KRY), { userId: getUserId() }, {
@@ -130,7 +138,7 @@ const DynamicMatrixLong = () => {
         setDynamicKey(response.data.data);
         appContext.setAppContext((curr) => ({
           ...curr,
-          dynamicShortKey: response.data.data, // Store static key in context
+          dynamicShortKey: response.data.data,
         }));
       }
     } catch (error) {
@@ -145,6 +153,7 @@ const DynamicMatrixLong = () => {
 
   // Get Admin This Page Access For Admin Api 
   async function getDynamicNextGameKey() {
+    if (appContext.dynamicNextGameLongKey) return;
     try {
       let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_NEXT_GAME_LONG_KRY), { userId: getUserId() }, {
         headers: {
@@ -155,7 +164,7 @@ const DynamicMatrixLong = () => {
         setDynamicNextGameKey(response.data.data);
         appContext.setAppContext((curr) => ({
           ...curr,
-          dynamicNextGameShortKey: response.data.data, // Store static key in context
+          dynamicNextGameLongKey: response.data.data,
         }));
       }
     } catch (error) {
@@ -175,10 +184,10 @@ const DynamicMatrixLong = () => {
         }
       })
       if (response.status === 200) {
-        let data = response.data.data; // Extract actual data array
+        let data = response.data.data;
         if (Array.isArray(data)) {
           data.forEach(item => {
-            temp[item._id] = item.matrixName; // Store ID and Name correctly
+            temp[item._id] = item.matrixName;
           });
         }
 
@@ -204,8 +213,10 @@ const DynamicMatrixLong = () => {
           'x-access-token': getToken()
         }
       })
-      if (response.status === 201)
-        await getMatrixFromAPI()
+      if (response.status === 201) {
+        await getMatrixFromAPI();
+        setMsgM1({ type: "info", msg: "Matrix name added successfully." });
+      }
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
@@ -268,7 +279,7 @@ const DynamicMatrixLong = () => {
         }
       },
     });
-    setShowModal(true); // Show the modal for confirmation
+    setShowModal(true);
   };
 
   // Edit Name Function
@@ -304,8 +315,8 @@ const DynamicMatrixLong = () => {
   // Update Name Function
   const handleUpdateName = async () => {
     if (editName && editIndex !== null) {
-      await updateMatrixAPI(editName, editIndex)
-      await getMatrixFromAPI()
+      await updateMatrixAPI(editName, editIndex);
+      await getMatrixFromAPI();
       setEditIndex(null);
       setEditName('');
     }
@@ -527,7 +538,6 @@ const DynamicMatrixLong = () => {
   useMemo(() => {
     if (dynamicKey) {
       getMatrixFromAPI();
-      fetchAllocationLevelValuesFromAPI2();
       getSPXMatrixAPI(selectedName);
     }
   }, [isMatrixSaved, selectedName, dynamicKey])
@@ -846,7 +856,7 @@ const DynamicMatrixLong = () => {
       } else if (stopData > 0 && (obj.fullICClose || obj.oneSideClose)) {
         profitData = ((stopPrice - tradePrice) * t * 100) - commisionData
       } else {
-        profitData = ((selectedValue * 100) * t) - debitValue - commisionData
+        profitData = ((parseInt(levels[level]?.levelSpread) * 100) * t) - debitValue - commisionData
       }
       profitData = profitData < 0 ? 0 : profitData
 
@@ -945,43 +955,11 @@ const DynamicMatrixLong = () => {
       // Avoid calling setup on every render by checking the ref first
       cumulativeLossRef.current = [...CumulativeLossTable];
       // Only trigger once to break the cycle
-      setTimeout(() => {
-        initValueSetup();
-      }, 0); // Defer to next render cycle
+      // setTimeout(() => {
+      //   initValueSetup();
+      // }, 0); 
     }
   }, [CumulativeLossTable]);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (filterModalRef.current && !filterModalRef.current.contains(event.target)) {
-        setIsFilterModalVisible(false);
-      }
-
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuVisible(false);
-      }
-
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownVisible(false);
-        setEditIndex(null);
-      }
-
-      if (
-        allocationDropdownRef.current &&
-        !allocationDropdownRef.current.contains(event.target) &&
-        containerRef.current &&
-        !containerRef.current.contains(event.target)
-      ) {
-        setAllocationHintsVisibility(false);
-        setEditIndex(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isMenuVisible]); // You can include other relevant states if needed
 
   useMemo(() => {
     getDynamicKey();
@@ -1025,7 +1003,7 @@ const DynamicMatrixLong = () => {
 
   // Filter the array to show only values less than 0
   const filteredData = CumulativeLossTable.filter((value, index) => {
-    const levelKey = `level${index + 1}`; // Creates level1, level2, ...
+    const levelKey = `level${index + 1}`;
     return levels[levelKey]?.active && value <= 0;
   });
 
@@ -1082,31 +1060,94 @@ const DynamicMatrixLong = () => {
   };
 
   // Function to handle dropdown change for each level
-  const handleDropdownChange = (levelKey, value) => {
-    setLevels((prevLevels) => ({
-      ...prevLevels,
+  const toggleDropdown3 = (key) => {
+    setIsDropdownOpen((prev) => (prev === key ? null : key));
+  };
+
+  const handleSelectOption = (levelKey, option) => {
+    setIsDropdownOpen(null);
+    setLevels((prev) => ({
+      ...prev,
       [levelKey]: {
-        ...prevLevels[levelKey],
-        levelSpread: value, // Store selected value per level
+        ...prev[levelKey],
+        levelSpread: option,
       },
     }));
   };
 
-  // Handle Spread Dropdown
-  const handleChange = (event) => {
-    const newValue = event.target.value;
+  // Handle Spread Dropdown - for custom dropdown
+  const handleSelect = (newValue) => {
     appContext.setAppContext((prev) => ({
       ...prev,
       buyingPowerStatic: [],
     }));
     setSelectedValue(newValue);
+    setIsOpen(false);
+
+    setLevels(prevLevels => {
+      const updatedLevels = {};
+
+      Object.keys(prevLevels).forEach(key => {
+        updatedLevels[key] = {
+          ...prevLevels[key],
+          levelSpread: newValue
+        };
+      });
+
+      return updatedLevels;
+    });
   };
 
   useEffect(() => {
-    if (selectedValue && dynamicKey) {
-      fetchAllocationLevelValuesFromAPI2();
-    }
-  }, [selectedValue, dynamicKey]);
+    const handleClickOutside = (event) => {
+      // Filter Modal
+      if (filterModalRef.current && !filterModalRef.current.contains(event.target)) {
+        setIsFilterModalVisible(false);
+      }
+
+      // Menu
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuVisible(false);
+      }
+
+      // General Dropdown
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownVisible(false);
+        setEditIndex(null);
+      }
+
+      // Allocation Hints
+      if (
+        allocationDropdownRef.current &&
+        !allocationDropdownRef.current.contains(event.target) &&
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
+        setAllocationHintsVisibility(false);
+        setEditIndex(null);
+      }
+
+      // Second Dropdown
+      if (dropdown2Ref.current && !dropdown2Ref.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+
+      // Multiple Dynamic Dropdowns
+      if (dropdownRefs?.current) {
+        const clickedInsideAny = Object.values(dropdownRefs.current).some(
+          (ref) => ref && ref.contains(event.target)
+        );
+        if (!clickedInsideAny) {
+          setIsDropdownOpen(null);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
 
   return (<>
@@ -1129,12 +1170,12 @@ const DynamicMatrixLong = () => {
           <div className='flex flex-wrap gap-3 items-center'>
             <ConfirmationModal show={showModal} onClose={() => setShowModal(false)} onConfirm={modalData.onConfirm} title={modalData.title} icon={modalData.icon} message={modalData.message} />
 
-            <div className='relative'>
-              <p onClick={toggleDropdown} className='flex items-center gap-[10px] text-sm lg:text-base bg-background6 font-medium text-Primary shadow-[0px_0px_6px_0px_#28236633] rounded-[6px] px-4 py-2 cursor-pointer' >
+            <div className='relative' ref={dropdownRef}>
+              <p onClick={toggleDropdown} className='flex items-center gap-[10px] text-sm lg:text-base bg-background6 font-medium text-Primary shadow-[0px_0px_6px_0px_#28236633] rounded-md px-4 py-2 cursor-pointer' >
                 <img src={MatrixIcon} className='h-5 w-5' alt="" /> {names[selectedName]} <img className='w-3' src={DropdownIcon} alt="" />
               </p>
               {isDropdownVisible && (
-                <div ref={dropdownRef} className='absolute z-10 left-0 min-[470px]:left-auto right-0 top-full mt-2 border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-max'>
+                <div className='absolute z-10 left-0 min-[470px]:left-auto right-0 top-full mt-2 border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-max'>
                   <div className='px-3 py-1 pb-[14px]'>
                     {editIndex === null ? (
                       <>
@@ -1177,25 +1218,29 @@ const DynamicMatrixLong = () => {
         <CapitalAllocationRangSlider allocation={allocation} setAllocation={setAllocation} />
         {(msgM2.msg !== "") && <p className={`text-sm ${msgM2.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM2.msg}.</p>}
 
-        <div className='rounded-[6px] max-w-[792px] bg-background6 px-3 py-[16px] lg:p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Size'>
+        <div className='rounded-md max-w-[792px] bg-background6 px-3 py-[16px] lg:p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Size'>
           <div className='flex flex-wrap items-end min-[455px]:flex-nowrap gap-3 lg:gap-5'>
             <div className='w-full' ref={containerRef}>
               <div className='flex justify-between items-end gap-2'>
                 <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Original Account Size:</label>
-                <div className="flex items-center px-2 w-full max-w-[90px] sm:max-w-[90px] lg:max-w-[95px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7">
-                  <span className='text-xs lg:text-sm text-Primary'>Wide:</span>
-                  <select id="dropdown" value={selectedValue} onChange={handleChange} className="text-xs lg:text-sm text-Primary px-1 py-[2px] rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7 cursor-pointer">
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                    <option value="20">20</option>
-                    <option value="30">30</option>
-                    <option value="40">40</option>
-                    <option value="50">50</option>
-                  </select>
+                <div ref={dropdown2Ref} className="relative w-full max-w-[95px]">
+                  <div className="flex items-center justify-between px-2 py-1 border border-borderColor bg-textBoxBg rounded-md cursor-pointer" onClick={toggleDropdown2} >
+                    <span className="text-xs lg:text-sm text-Primary">Wide: {selectedValue}</span>
+                    <img className='w-[10px]' src={DropdownIcon} alt="" />
+                  </div>
+
+                  {isOpen && (
+                    <div className="absolute top-full right-0 w-12 border border-borderColor bg-background6 rounded-md shadow-md z-10">
+                      {options.map((value, index) => (
+                        <div key={index} className={`px-3 py-1 text-xs lg:text-sm cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${selectedValue === value ? 'bg-borderColor4 text-white' : 'text-Primary'}`} onClick={() => handleSelect(value)} >
+                          {value}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-[6px]'>
+              <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                 <span>$</span>
                 <input type='text' maxLength={10} title='Max Length 10' value={originalSize} onChange={handleOriginalSizeChange} className='bg-transparent w-full focus:outline-none' />
                 <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
@@ -1252,12 +1297,12 @@ const DynamicMatrixLong = () => {
           <p className='text-sm lg:text-base text-Primary lg:font-medium mt-3 lg:mt-5'>Current Allocation Size: <span className='px-1'>${Number(currentAllocation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
         </div>
 
-        <div className='rounded-[6px] p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
+        <div className='rounded-md p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
           <div className='flex flex-wrap justify-between items-start md:items-center gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
             <div className='flex gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium'>
-              <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-[6px]`} onClick={Regular}>Regular</button>
-              <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-[6px] ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
-              <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-[6px] ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
+              <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md`} onClick={Regular}>Regular</button>
+              <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
+              <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
             </div>
             <div className='md:flex gap-3'>
               {(msgM4.msg !== "") && <p className={`hidden md:block text-sm text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}, <Link to="/subscription"></Link> </p>}
@@ -1292,7 +1337,7 @@ const DynamicMatrixLong = () => {
 
               return (
                 <div key={index} className='flex flex-wrap xl:flex-nowrap gap-2 lg:gap-5'>
-                  <div className='flex items-end xl:items-start gap-3 lg:gap-5 w-full'>
+                  <div className='flex items-end 2xl:items-start gap-3 lg:gap-5 w-full'>
                     {/* Level Input */}
                     <div className='max-w-[466px] w-full'>
                       <div className='flex flex-wrap-reverse justify-between gap-2'>
@@ -1307,20 +1352,26 @@ const DynamicMatrixLong = () => {
                             {`Level ${index + 1}`}
                           </label>
                         </div>
-                        <div className="flex items-center px-2 w-full max-w-[95px] sm:max-w-[95px] lg:max-w-[95px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7">
-                          <span className='text-xs text-Primary'>Wide:</span>
-                          <select id={`dropdown-${levelKey}`} value={levelData.levelSpread || selectedValue} onChange={(e) => handleDropdownChange(levelKey, e.target.value)} disabled={!levelData.active} className="text-xs lg:text-sm text-Primary px-1 py-[2px] rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7 cursor-pointer">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="15">15</option>
-                            <option value="20">20</option>
-                            <option value="30">30</option>
-                            <option value="40">40</option>
-                            <option value="50">50</option>
-                          </select>
+                        <div className="relative w-full max-w-[95px] text-xs" ref={(el) => (dropdownRefs.current[levelKey] = el)}>
+                          <div className={`flex items-center justify-between px-2 py-1 border border-borderColor bg-textBoxBg rounded-md cursor-pointer text-Primary ${!levelData.active ? "opacity-80 pointer-events-none" : "cursor-pointer"}`} onClick={() => levelData.active && toggleDropdown3(levelKey)} >
+                            <span>Wide: {levelData.levelSpread || selectedValue}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
+
+                          {isDropdownOpen === levelKey && (
+                            <ul className="absolute top-full right-0 w-12 border border-borderColor bg-background6 rounded-md shadow-md z-10">
+                              {options.map((opt) => (
+                                <li key={opt} onClick={() => handleSelectOption(levelKey, opt)} className={`px-3 py-1 text-xs lg:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${levelData.levelSpread === opt ? "bg-borderColor4 text-white" : ""}`} >
+                                  {opt}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                         </div>
                       </div>
-                      <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-[6px]'>
+                      <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                         <input
                           type='text'
                           maxLength={5}
@@ -1346,7 +1397,7 @@ const DynamicMatrixLong = () => {
                     {/* Premium Level Input */}
                     <div className='max-w-[466px] w-full'>
                       <label className='text-sm lg:text-base text-Primary font-medium'>{`Premium ${index + 1}`}</label>
-                      <div className={`Premium flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-[6px] ${errorState[levelKey] ? 'bg-red-300' : ''}`}>
+                      <div className={`Premium flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md ${errorState[levelKey] ? 'bg-red-300' : ''}`}>
                         <input
                           type='text'
                           maxLength={5}
@@ -1372,7 +1423,7 @@ const DynamicMatrixLong = () => {
                     {/* Stop Level Input */}
                     <div className='max-w-[466px] w-full'>
                       <label className='text-sm lg:text-base text-Primary font-medium'>{`Stop Level ${index + 1}`}</label>
-                      <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-[6px]'>
+                      <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                         <input
                           type='text' maxLength={5} title='Max Length 5'
                           value={levelData.stopLevel}
@@ -1405,7 +1456,7 @@ const DynamicMatrixLong = () => {
                       <input type='checkbox' checked={levelData.oneSideClose} disabled={!levelData.active} onChange={() => handleCheckboxStateChange(levelKey, 'oneSideClose')} className='accent-accentColor h-[15px] w-[15px] lg:h-[19px] lg:w-[19px] cursor-pointer xl:mt-[22px]' />
                     </label>
                     <label className='text-xs lg:text-base text-Primary font-medium w-[90px] xl:w-[60px] xl:block flex items-center gap-[6px]'>
-                      Outside
+                      Inside
                       <input type='checkbox' checked={levelData.outSide} disabled={!levelData.active} onChange={() => handleCheckboxStateChange(levelKey, 'outSide')} className='accent-accentColor h-[15px] w-[15px] lg:h-[19px] lg:w-[19px] cursor-pointer xl:mt-[22px]' />
                     </label>
                   </div>
@@ -1431,7 +1482,7 @@ const DynamicMatrixLong = () => {
               </div>
               {(msgM4.msg !== "") && <p className={`block md:hidden text-sm text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}, <Link to="/subscription"></Link> </p>}
             </div>
-            <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+            <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' ref={filterModalRef} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
               <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
             </p>
           </div>
@@ -1439,9 +1490,8 @@ const DynamicMatrixLong = () => {
 
         {/* Column filter checkboxes */}
         <div className="flex justify-end">
-          <FilterModal
+          <FilterModalLong
             isVisible={isFilterModalVisible}
-            filterModalRef={filterModalRef}
             filters={{
               showContracts, setShowContracts,
               showCredit, setShowCredit,
@@ -1461,7 +1511,7 @@ const DynamicMatrixLong = () => {
           />
         </div>
 
-        <div className="overflow-auto lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full mt-4 rounded-[6px] shadow-[0px_0px_6px_0px_#28236633]">
+        <div className="overflow-auto lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full mt-4 rounded-md shadow-[0px_0px_6px_0px_#28236633]">
           <table className="table-auto border-collapse w-full">
             <thead>
               <tr className="bg-background2 text-white text-sm lg:text-base font-semibold">

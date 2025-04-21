@@ -165,8 +165,8 @@ const UserMenu = ({ activeLink, setActiveLink }) => {
             {appContext.superUser && <button type="button" className='flex items-center text-xl text-white text-center mx-auto mt-5 p-2' onClick={() => { setIsAdmin(!isAdmin); appContext.setAppContext({ ...appContext, isAdmin: !isAdmin }); navigate("/") }}>{isAdmin ? "Switch To User" : "Switch To Admin"}</button>}
           </div>
           <div className='flex justify-center items-end gap-5 pt-[40px] pb-[40px]'>
-            <Link to="/setting"><img className={`py-[6px] px-[7px] border border-borderColor3 rounded-[6px] shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('setting')}`} onClick={() => handleLinkClick('setting')} src={Settings} alt="" /></Link>
-            <Link to="/help-support"> <img className={`p-[6px] border border-borderColor3 rounded-[6px] shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('help-support')}`} onClick={() => handleLinkClick('help-support')} src={Help} alt="" /></Link>
+            <Link to="/setting"><img className={`py-[6px] px-[7px] border border-borderColor3 rounded-md shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('setting')}`} onClick={() => handleLinkClick('setting')} src={Settings} alt="" /></Link>
+            <Link to="/help-support"> <img className={`p-[6px] border border-borderColor3 rounded-md shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('help-support')}`} onClick={() => handleLinkClick('help-support')} src={Help} alt="" /></Link>
           </div>
         </div>
       ) : (
@@ -174,7 +174,7 @@ const UserMenu = ({ activeLink, setActiveLink }) => {
           <div className='lg:w-[95px]'>
             <div className='hidden lg:block h-auto 2xl:h-full max-h-[710px] bg-gradient rounded-3xl sticky top-4 z-10'>
               <img className='px-[27px] pt-[27px]' src={LogoSmall} alt="" />
-              <img className='mx-auto mt-5 rotate-180 px-[6px] py-[9px] rounded-[6px] shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setMenuVisible(prev => !prev)} src={MenuIcon} alt="MenuIcon" />
+              <img className='mx-auto mt-5 rotate-180 px-[6px] py-[9px] rounded-md shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setMenuVisible(prev => !prev)} src={MenuIcon} alt="MenuIcon" />
               <div className='grid gap-[10px] py-[34px]'>
                 <Link to='/dashboard' className={`w-full py-[18px] px-[7px] flex justify-center ${getLinkClass('dashboard')}`}><img src={Dashboard} onClick={() => handleLinkClick('dashboard')} alt="" /></Link>
                 <div className="relative">
@@ -206,8 +206,8 @@ const UserMenu = ({ activeLink, setActiveLink }) => {
                 </div>
               </div>
               <div className='py-5'>
-                <Link to="/setting"><img className={`mx-auto py-[6px] px-[7px] border border-borderColor3 rounded-[6px] shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('setting')}`} onClick={() => handleLinkClick('setting')} src={Settings} alt="" /></Link>
-                <Link to="/help-support"><img className={`mx-auto p-[6px] border border-borderColor3 rounded-[6px] shadow-[0px_0px_4px_0px_#110D3D4D] mt-2 ${getLinkClass('help-support')}`} onClick={() => handleLinkClick('help-support')} src={Help} alt="" /></Link>
+                <Link to="/setting"><img className={`mx-auto py-[6px] px-[7px] border border-borderColor3 rounded-md shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('setting')}`} onClick={() => handleLinkClick('setting')} src={Settings} alt="" /></Link>
+                <Link to="/help-support"><img className={`mx-auto p-[6px] border border-borderColor3 rounded-md shadow-[0px_0px_4px_0px_#110D3D4D] mt-2 ${getLinkClass('help-support')}`} onClick={() => handleLinkClick('help-support')} src={Help} alt="" /></Link>
               </div>
             </div>
           </div>
@@ -252,8 +252,8 @@ const UserMenu = ({ activeLink, setActiveLink }) => {
               {appContext.superUser && <button type="button" className='flex items-center text-lg text-white text-center mx-auto mt-2 p-2' onClick={() => { setIsAdmin(!isAdmin); appContext.setAppContext({ ...appContext, isAdmin: !isAdmin }); navigate("/") }}>{isAdmin ? "Switch To User" : "Switch To Admin"}</button>}
             </div>
             <div className='flex justify-center items-end gap-5 py-8'>
-              <Link to="/setting"><img className={`py-[6px] px-[7px] border border-borderColor3 rounded-[6px] shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('setting')}`} onClick={() => handleLinkClick('setting')} src={Settings} alt="" /></Link>
-              <Link to="/help-support"><img className={`p-[6px] border border-borderColor3 rounded-[6px] shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('help-support')}`} onClick={() => handleLinkClick('help-support')} src={Help} alt="" /></Link>
+              <Link to="/setting"><img className={`py-[6px] px-[7px] border border-borderColor3 rounded-md shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('setting')}`} onClick={() => handleLinkClick('setting')} src={Settings} alt="" /></Link>
+              <Link to="/help-support"><img className={`p-[6px] border border-borderColor3 rounded-md shadow-[0px_0px_4px_0px_#110D3D4D] ${getLinkClass('help-support')}`} onClick={() => handleLinkClick('help-support')} src={Help} alt="" /></Link>
             </div>
           </div>
         </>
