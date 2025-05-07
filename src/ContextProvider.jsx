@@ -58,6 +58,8 @@ export default function ContextProvider() {
     selectedUser: null,
     shortMatrixLength: 6,
     longMatrixLength: 12,
+    shortTradePrice: null,
+    longTradePrice: null,
   });
 
   return (<>

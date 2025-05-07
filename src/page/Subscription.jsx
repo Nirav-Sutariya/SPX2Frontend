@@ -412,9 +412,9 @@ const Subscription = () => {
         {msgM1.msg && (<div className={`text-sm mt-2 text-red-500`}> {msgM1.msg} </div>)}
 
         {/* Extra Matrix Limit Section */}
-        {currentPlan && currentPlan.subscriptionName === plans[1].name && <div className="mt-11 p-5 lg:p-[30px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
-          <p className="block text-lg lg:text-2xl text-Primary font-medium">Purchase Extra Limit</p>
-          <p className="text-sm text-Primary mt-2">Need more access? Upgrade your plan with our Purchase Extra Limit feature! Whether you're hitting usage caps or need additional resources, this option lets you extend your limits seamlessly. No need to change your entire subscription—just add extra limits as needed.</p>
+        {currentPlan && currentPlan.subscriptionName === plans[1].name && <div className="mt-11 p-5 lg:p-[30px] rounded-md bg-background6 mx-auto max-w-[1160px] shadow-[0px_0px_6px_0px_#28236633]">
+          <p className="block text-lg lg:text-2xl text-Primary font-medium">Purchase Save Extra Limit</p>
+          <p className="text-sm text-Primary mt-2">Running out of available limits? No worries! Use the <strong>Save Extra Limit</strong> feature to increase your capacity without upgrading your entire subscription. Add extra limits as needed and continue working without interruptions. This is perfect for users who need occasional flexibility beyond their standard plan.</p>
           <div className="flex justify-end">
             <button className="text-base lg:text-xl font-semibold text-white bg-ButtonBg py-2 lg:py-3 px-5 lg:px-10 mt-3 text-center w-auto rounded-md" onClick={() => setMatrixLimitModalOpen(true)}> Get </button>
           </div>
@@ -423,7 +423,7 @@ const Subscription = () => {
         {/* Plan Popup Section */}
         {showChoosePlanModal && (
           <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
-            <div className="relative p-[30px] pt-1 bg-background6 rounded-[22px] shadow-[0px_0px_6px_0px_#28236633] w-[486px]">
+            <div className="relative p-5 lg:p-[30px] pt-1 bg-background6 rounded-[22px] shadow-[0px_0px_6px_0px_#28236633] w-[486px]">
               <img className="absolute top-2 right-2 cursor-pointer w-7 lg:w-8" onClick={() => setShowChoosePlanModal(false)} src={PopupCloseIcon} alt="" />
               <div>
                 <label className="block text-lg text-Primary font-medium mt-3">Email</label>
@@ -450,19 +450,26 @@ const Subscription = () => {
         {/* Extra Matrix Limit Popup Section */}
         {isMatrixLimitModalOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
-            <div className="relative p-[30px] pt-1 bg-background6 rounded-[22px] shadow-[0px_0px_6px_0px_#28236633] w-[486px]">
-              <img className="absolute top-2 right-2 cursor-pointer w-7 lg:w-8" onClick={() => setMatrixLimitModalOpen(false)} src={PopupCloseIcon} alt="" />
+            <div className="relative p-5 lg:p-[30px] pt-1 bg-background6 rounded-[22px] shadow-[0px_0px_6px_0px_#28236633] w-[486px]">
+              <img className="absolute top-2 right-2 cursor-pointer w-6 lg:w-8" onClick={() => setMatrixLimitModalOpen(false)} src={PopupCloseIcon} alt="" />
               <div>
-                <label className="block text-lg text-Primary font-medium mt-3">Email</label>
-                <input type="email" name="email" placeholder='Enter your email' disabled value={email} className="text-Primary w-full mt-2 px-3 lg:px-5 py-[5px] lg:py-[9px] text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7 cursor-not-allowed" />
+                <label className="block text-sm lg:text-lg text-Primary font-medium mt-3">Email</label>
+                <input type="email" name="email" placeholder='Enter your email' disabled value={email} className="text-sm text-Primary mt-2 px-3 lg:px-5 py-2 lg:py-[15px] border border-borderColor rounded-md bg-textBoxBg w-full focus:outline-none focus:border-borderColor7 cursor-not-allowed" />
               </div>
-              <div className="mt-4">
-                <label className="block text-lg text-Primary font-medium">Purchase Extra Limit</label>
-                <input type="text" name="coupon" placeholder='Enter purchase extra limit' value={extraLimit} onChange={(e) => setExtraLimit(e.target.value)} className="text-Primary w-full mt-2 px-3 lg:px-5 py-[5px] lg:py-[9px] text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7" />
+              <div className="mt-4 flex items-end gap-3 lg:gap-5 ">
+                <label className="block text-sm lg:text-lg text-Primary font-medium">Purchase Save Extra Limit
+                  <input type="text" name="coupon" placeholder='Enter save limit' value={extraLimit} onChange={(e) => setExtraLimit(e.target.value)} className="text-sm text-Primary font-normal mt-2 px-3 lg:px-5 py-2 lg:py-[15px] border border-borderColor rounded-md bg-textBoxBg w-full focus:outline-none focus:border-borderColor7" />
+                </label>
+                <div>
+                  <label className="block text-sm lg:text-lg text-Primary font-medium">Price</label>
+                  <label className="text-Primary flex items-center gap-2 mt-2 px-3 lg:px-5 py-[6px] lg:py-[13px] border border-borderColor rounded-md bg-textBoxBg focus:border-borderColor7">$
+                    <input type="text" name="coupon" placeholder='0' value={extraLimit} onChange={(e) => setExtraLimit(e.target.value)} className="text-sm text-Primary bg-textBoxBg w-full focus:outline-none focus:border-borderColor7" />
+                  </label>
+                </div>
               </div>
               <div className="mt-4 flex items-center gap-2">
                 <input type="checkbox" id="terms-checkbox" checked={termsChecked} onChange={() => setTermsChecked(!termsChecked)} className="h-4 w-4 border border-borderColor accent-accentColor" />
-                <label htmlFor="terms-checkbox" className="text-sm text-Primary"> I agree to the <Link to="/help-support?openTerms=true" className="font-medium">Terms of Service</Link> And <Link to="/help-support?openTerms=true" className="font-medium">Privacy Policy</Link> </label>
+                <label htmlFor="terms-checkbox" className="text-xs lg:text-sm text-Primary"> I agree to the <Link to="/help-support?openTerms=true" className="font-medium">Terms of Service</Link> And <Link to="/help-support?openTerms=true" className="font-medium">Privacy Policy</Link> </label>
               </div>
               <button className={`text-base lg:text-xl font-semibold text-white bg-ButtonBg py-2 lg:py-3 px-5 lg:px-10 mt-5 text-center w-full rounded-md ${!termsChecked ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={!termsChecked} onClick={getPurchaseExtraRecordLimit} >
                 Pay By Card

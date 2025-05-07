@@ -54,7 +54,9 @@ export const AppContext = createContext({
   nextGamePlanShort: false,
   nextGamePlanLong: false,
   selectedUser: null,
-  shortMatrixLength: 6,
-  longMatrixLength: 12,
+  shortMatrixLength: null,
+  longMatrixLength: null,
+  shortTradePrice: null,
+  longTradePrice: null,
   setAppContext: () => { },
 });

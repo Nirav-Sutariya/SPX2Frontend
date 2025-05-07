@@ -16,7 +16,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { getToken, getUserId } from '../login/loginAPI';
 import { AppContext } from '../../components/AppContext';
-import { defaultTradePriceLong, defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModalLong } from '../../components/utils';
+import { defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModalLong } from '../../components/utils';
 
 
 const StaticMatrixLong = () => {
@@ -28,13 +28,14 @@ const StaticMatrixLong = () => {
   const containerRef = useRef(null);
   const dropdown2Ref = useRef(null);
   const filterModalRef = useRef(null);
+  const debounceTimeout = useRef(null);
   let appContext = useContext(AppContext);
   const allocationDropdownRef = useRef(null);
   const [editKey, setEditKey] = useState(null);
   const [selectedValue, setSelectedValue] = useState(5);
   const [names, setNames] = useState(appContext.namesLong);
   const [allocation, setAllocation] = useState(defaultAllocation);
-  const [tradePrice, setTradePrice] = useState(defaultTradePriceLong);
+  const [tradePrice, setTradePrice] = useState(appContext.longTradePrice);
   const [commission, setCommission] = useState(defaultCommission);
   const [originalSize, setOriginalSize] = useState(null);
   const firstKey = Object.keys(appContext.namesLong)[0] || null;
@@ -93,7 +94,7 @@ const StaticMatrixLong = () => {
   const [staticKey, setStaticKey] = useState(appContext.staticLongKey);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const [allocationHintsVisibility, setAllocationHintsVisibility] = useState(false);
-  const options = ["5", "10", "15", "20", "30", "40", "50"];
+  const options = ["5", "10", "15", "20", "25", "40", "50"];
 
 
   const toggleDropdown2 = () => setIsOpen(prev => !prev);
@@ -346,7 +347,7 @@ const StaticMatrixLong = () => {
   // Get Single level
   async function getSingleLevelAPI(levelId) {
     try {
-      const response = await axios.post((process.env.REACT_APP_LEVELS_URL + process.env.REACT_APP_GET_SINGL_LEVEL_VALUE_URL), { userId: getUserId(), levelId }, {
+      const response = await axios.post((process.env.REACT_APP_LEVELS_URL + process.env.REACT_APP_GET_SINGLE_LEVEL_VALUE_URL), { userId: getUserId(), levelId }, {
         headers: {
           'x-access-token': getToken()
         },
@@ -376,7 +377,7 @@ const StaticMatrixLong = () => {
       return;
     }
     try {
-      const response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_SINGAL_MATRIX_LIST_URL), { userId: getUserId(), staticMatrixId: key }, {
+      const response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_SINGLE_MATRIX_LIST_URL), { userId: getUserId(), staticMatrixId: key }, {
         headers: {
           'x-access-token': getToken()
         },
@@ -384,7 +385,7 @@ const StaticMatrixLong = () => {
       if (response.status === 200) {
         setSelectedValue(response.data.data.spread ?? 5);
         setAllocation(response.data.data.allocation ?? defaultAllocation);
-        setTradePrice(response.data.data.tradePrice ?? defaultTradePriceLong);
+        setTradePrice(response.data.data.tradePrice ?? appContext.longTradePrice);
         setCommission(response.data.data.commission ?? defaultCommission);
         setOriginalSize(response.data.data.originalSize ?? 11800);
         const savedLevelsObject = response.data.data.levels.reduce((obj, level) => {
@@ -419,6 +420,33 @@ const StaticMatrixLong = () => {
         setMsgM1({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
       }
       return false
+    }
+  }
+
+  // Get Single level By Manuail
+  async function getLevelDetailsUsingBuyingPower(buyingPower) {
+    try {
+      const response = await axios.post((process.env.REACT_APP_LEVELS_URL + process.env.REACT_APP_GET_LEVEL_DETAILS_USING_BUYING_POWER), { userId: getUserId(), buyingPower, spread: selectedValue, matrixType: "StaticLong" }, {
+        headers: {
+          'x-access-token': getToken()
+        },
+      });
+
+      if (response.status === 200 && response.data.status === 1) {
+        const levelData = response.data.data;
+        const levelsOnly = Object.keys(levelData)
+          .filter((key) => key.startsWith('level'))
+          .reduce((obj, key) => {
+            obj[key] = { value: levelData[key] || 0, active: levelData[key] > 0 };
+            return obj;
+          }, {});
+        setLevels(levelsOnly);
+      }
+      return null;
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
     }
   }
 
@@ -503,6 +531,8 @@ const StaticMatrixLong = () => {
     if (matched && matched.buyingPower === originalSize) {
       getSingleLevelAPI(savedId);
     }
+
+    getLevelDetailsUsingBuyingPower(originalSize);
   }
 
   // Stack Button function
@@ -574,7 +604,7 @@ const StaticMatrixLong = () => {
   // Reset This Page Function 
   function resetAllParams() {
     setOriginalSize(appContext.buyingPowerStaticLong[2])
-    setTradePrice(defaultTradePriceLong);
+    setTradePrice(appContext.longTradePrice);
     setCommission(defaultCommission);
     setAllocation(defaultAllocation);
     setShowAll(false);
@@ -874,13 +904,20 @@ const StaticMatrixLong = () => {
     setNewName(value);
   };
 
+  // Check if the input is not a number or if it's negative
   const handleOriginalSizeChange = (e) => {
     const value = e.target.value;
     if (isNaN(value) || value < 0) {
-      setMsgM4({ type: "error", msg: "Only positive numbers are allowed" });
+      setMsgM4({ type: "error", msg: "Only positive number should allow" });
       return;
     }
     setOriginalSize(value);
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      getLevelDetailsUsingBuyingPower(value);
+    }, 500);
   };
 
   const handleTradePriceChange = (e) => {
@@ -1037,7 +1074,7 @@ const StaticMatrixLong = () => {
               <label className='block text-sm lg:text-base text-Primary lg:font-medium mt-3 min-[430px]:mt-5'>Trade Price:</label>
               <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                 <span>$</span>
-                <input type='text' maxLength={3} title='Max Length 3' value={tradePrice} onChange={handleTradePriceChange} className='bg-transparent w-full focus:outline-none' />
+                <input type='text' maxLength={4} title='Max Length 4' value={tradePrice} onChange={handleTradePriceChange} className='bg-transparent w-full focus:outline-none' />
                 <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                   <button onClick={decreaseTradePrice} >
                     <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />

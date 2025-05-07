@@ -7,6 +7,7 @@ import FilterIcon from '../../assets/svg/FilterIcon.svg';
 import MatrixIcon from '../../assets/svg/MatrixIcon.svg';
 import MinimumIcon from '../../assets/svg/MinmumIcon.svg';
 import DropdownIcon from '../../assets/svg/DropdownIcon.svg';
+import DownArrowIcon from '../../assets/svg/DownArrowIcon.svg';
 import MatrixEditIcon from '../../assets/svg/MatrixEditIcon.svg';
 import SavedMatrixIcon from '../../assets/svg/SaveMatrixIcon.svg';
 import DeleteIcon from '../../assets/Images/StaticMatrix/DeleteIcon.svg';
@@ -14,26 +15,44 @@ import DeleteIcon2 from '../../assets/Images/StaticMatrix/DeleteIcon2.svg';
 import CapitalAllocationRangSlider from '../../components/CapitalAllocationRangSlider';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { AppContext } from '../../components/AppContext';
+import ICChart from '../../components/ICChart';
+import ICChart2 from '../../components/ICChart2';
 import { getToken, getUserId } from '../login/loginAPI';
+import { AppContext } from '../../components/AppContext';
 import NextGamePlanDynamicLongMatrix from './NextGamePlanDynamicLongMatrix';
 import { defaultDynamicTradePrice, defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModalShort } from '../../components/utils';
 
-const DynamicMatrixShort = () => {
+
+const DynamicMatrixShort = ({ theme }) => {
 
   const MINIMUM_VALUE = 0;
   const MAXIMUM_VALUE = 999;
   const menuRef = useRef(null);
   const dropdownRefs = useRef({});
+  const longPutRef = useRef(null);
+  const premiumRef = useRef(null);
+  const longCallRef = useRef(null);
+  const shortCallRef = useRef(null);
+  const contractsRef = useRef(null);
+  const dropdownRef1 = useRef(null);
+  const dropdownRef2 = useRef(null);
   const dropdownRef = useRef(null);
   const containerRef = useRef(null);
   const dropdown2Ref = useRef(null);
   const filterModalRef = useRef(null);
+  const debounceTimeout = useRef(null);
   const cumulativeLossRef = useRef([]);
   let appContext = useContext(AppContext);
   const allocationDropdownRef = useRef(null);
   const [editKey, setEditKey] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [longICShow, setLongICShow] = useState(false);
+  const [shortICShow, setShortICShow] = useState(false);
+  const [errors, setErrors] = useState({ premium: "" });
+  const [errors2, setErrors2] = useState({ premium: "" });
+  const [openDropdown, setOpenDropdown] = useState(null);
   const [selectedValue, setSelectedValue] = useState(5);
+  const [selectedValue2, setSelectedValue2] = useState("SPX");
   const [isMessageVisible, setIsMessageVisible] = useState(false);
   const [names, setNames] = useState(appContext.namesDynamicShort);
   const firstKey = Object.keys(appContext.namesDynamicShort)[0] || null;
@@ -106,8 +125,24 @@ const DynamicMatrixShort = () => {
   const [msgM4, setMsgM4] = useState({ type: "", msg: "", });
   const [dynamicKey, setDynamicKey] = useState(appContext.dynamicLongKey);
   const [dynamicNextGameKey, setDynamicNextGameKey] = useState(appContext.dynamicNextGameLongKey);
-  const options = ["5", "10", "15", "20", "30", "40", "50"];
-
+  const options = ["5", "10", "15", "20", "25", "40", "50"];
+  const options2 = ["SPX", "RUT", "NDX"];
+  const [inputs, setInputs] = useState({
+    shortPut: 4100,
+    shortCall: 4170,
+    longPut: 4095,
+    longCall: 4175,
+    premium: 2.15,
+    contracts: 1,
+  });
+  const [inputs2, setInputs2] = useState({
+    shortPut: 4095,
+    shortCall: 4170,
+    longPut: 4100,
+    longCall: 4175,
+    premium: 2.15,
+    contracts: 1,
+  });
 
   const toggleDropdown2 = () => setIsOpen(prev => !prev);
 
@@ -347,13 +382,13 @@ const DynamicMatrixShort = () => {
           localStorage.setItem('originalSizeIdDyShort', response.data.data[2]._id);
         }
       } else {
-        setStaticLevelDefaultValue([]); // Handle invalid response
+        setStaticLevelDefaultValue([]);
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
       }
-      setStaticLevelDefaultValue([]); // Reset to empty array on error
+      setStaticLevelDefaultValue([]);
     }
   }
 
@@ -387,7 +422,7 @@ const DynamicMatrixShort = () => {
       return;
     }
     try {
-      const response = await axios.post((process.env.REACT_APP_LEVELS_URL + process.env.REACT_APP_GET_SINGL_LEVEL_VALUE_URL), { userId: getUserId(), levelId }, {
+      const response = await axios.post((process.env.REACT_APP_LEVELS_URL + process.env.REACT_APP_GET_SINGLE_LEVEL_VALUE_URL), { userId: getUserId(), levelId }, {
         headers: {
           'x-access-token': getToken()
         },
@@ -395,12 +430,17 @@ const DynamicMatrixShort = () => {
 
       if (response.status === 200 && response.data.status === 1) {
         const levelData = response.data.data;
+        let firstActiveSet = false;
         const levelsOnly = Object.keys(levelData)
           .filter((key) => key.startsWith('level'))
-          .reduce((obj, key, index) => {
-            const rawValue = Number(levelData[key]) || 0;
-            const value = rawValue < 0 ? 0 : rawValue;
-            const isActive = value > 0 && index === 2;
+          .reduce((obj, key) => {
+            const rawValue = Number(levelData[key]);
+            const value = rawValue < 0 ? -1 : rawValue;
+            const dateKey = `${key}Date`;
+            const levelDate = levelData[dateKey] || "";
+
+            const isActive = !firstActiveSet && value >= 0;
+            if (isActive) firstActiveSet = true;
 
             obj[key] = {
               value: value,
@@ -411,6 +451,7 @@ const DynamicMatrixShort = () => {
               oneSideClose: false,
               outSide: false,
               levelSpread: selectedValue,
+              levelDate: levelDate,
             };
             return obj;
           }, {});
@@ -451,6 +492,7 @@ const DynamicMatrixShort = () => {
             oneSideClose: level.oneSideClose ?? false,
             outSide: level.outSide ?? false,
             levelSpread: level.levelSpread ?? selectedValue,
+            levelDate: level.levelDate || "",
           };
           return obj;
         }, {});
@@ -487,6 +529,53 @@ const DynamicMatrixShort = () => {
     }
   }
 
+  // Get Single level By Manually
+  async function getLevelDetailsUsingBuyingPower(buyingPower) {
+    try {
+      const response = await axios.post((process.env.REACT_APP_LEVELS_URL + process.env.REACT_APP_GET_LEVEL_DETAILS_USING_BUYING_POWER), { userId: getUserId(), buyingPower, spread: selectedValue, matrixType: "StaticLong" }, {
+        headers: {
+          'x-access-token': getToken()
+        },
+      });
+
+      if (response.status === 200 && response.data.status === 1) {
+        const levelData = response.data.data;
+        let firstActiveSet = false;
+        const levelsOnly = Object.keys(levelData)
+          .filter((key) => key.startsWith('level'))
+          .reduce((obj, key) => {
+            const rawValue = Number(levelData[key]);
+            const value = rawValue < 0 ? -1 : rawValue;
+            const dateKey = `${key}Date`;
+            const levelDate = levelData[dateKey] || "";
+
+            const isActive = !firstActiveSet && value >= 0;
+            if (isActive) firstActiveSet = true;
+
+            obj[key] = {
+              value: value,
+              active: isActive,
+              premium: 0,
+              stopLevel: 0,
+              fullIcClose: false,
+              oneSideClose: false,
+              outSide: false,
+              levelSpread: selectedValue,
+              levelDate: levelDate,
+            };
+            return obj;
+          }, {});
+
+        setLevels(levelsOnly);
+      }
+      return null;
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
+    }
+  }
+
   // Matrix Save Data Api
   const handleSaveMatrix = async () => {
     if (!selectedName) {
@@ -502,7 +591,8 @@ const DynamicMatrixShort = () => {
       stopLevel: Number(value.stopLevel) || 0,
       fullIcClose: value.fullIcClose || false,
       oneSideClose: value.oneSideClose || false,
-      outSide: value.outSide || false
+      outSide: value.outSide || false,
+      levelDate: value.levelDate || ""
     }));
 
     const LevelData = {
@@ -570,6 +660,8 @@ const DynamicMatrixShort = () => {
     if (matched && matched.buyingPower === originalSize) {
       getSingleLevelAPI(savedId);
     }
+
+    getLevelDetailsUsingBuyingPower(originalSize);
   }
 
   // Stack Matrix calculation
@@ -1079,13 +1171,20 @@ const DynamicMatrixShort = () => {
     setNewName(value);
   };
 
+  // Check if the input is not a number or if it's negative
   const handleOriginalSizeChange = (e) => {
     const value = e.target.value;
     if (isNaN(value) || value < 0) {
-      setMsgM2({ type: "error", msg: "Only positive numbers are allowed" });
+      setMsgM4({ type: "error", msg: "Only positive number should allow" });
       return;
     }
     setOriginalSize(value);
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      getLevelDetailsUsingBuyingPower(value);
+    }, 500);
   };
 
   const handleCommissionChange = (e) => {
@@ -1111,6 +1210,16 @@ const DynamicMatrixShort = () => {
     );
   };
 
+  const handleLevelDateChange = (levelKey, newDate) => {
+    setLevels((prev) => ({
+      ...prev,
+      [levelKey]: {
+        ...prev[levelKey],
+        levelDate: newDate,
+      }
+    }));
+  };
+
   // Function to handle dropdown change for each level
   const toggleDropdown3 = (key) => {
     setIsDropdownOpen((prev) => (prev === key ? null : key));
@@ -1131,7 +1240,7 @@ const DynamicMatrixShort = () => {
   const handleSelect = (newValue) => {
     appContext.setAppContext((prev) => ({
       ...prev,
-      buyingPowerStatic: [],
+      buyingPowerDynamicShort: [],
     }));
     setSelectedValue(newValue);
     setIsOpen(false);
@@ -1197,6 +1306,341 @@ const DynamicMatrixShort = () => {
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleClearLevels = () => {
+    setLevels((prevLevels) => {
+      const updatedLevels = {};
+      let firstActiveSet = false;
+
+      Object.keys(prevLevels).forEach((key) => {
+        const level = prevLevels[key];
+        const isValidValue = level.value >= 0;
+        const isActive = isValidValue && !firstActiveSet;
+
+        if (isActive) firstActiveSet = true;
+
+        updatedLevels[key] = {
+          ...prevLevels[key],
+          premium: 0,
+          stopLevel: 0,
+          fullICClose: false,
+          oneSideClose: false,
+          outSide: false,
+          active: isActive,
+        };
+      });
+      return updatedLevels;
+    });
+  };
+
+  // Handle click for "Current Short IC Position"
+  const ShortICShowHandel = () => {
+    if (isMobile) {
+      setShortICShow(!shortICShow);
+    } else {
+      const newState = !(shortICShow && longICShow);
+      setShortICShow(newState);
+      setLongICShow(newState);
+    }
+  };
+
+  // Increment and Decrement for each input
+  const handlePremiumIncrement = () => {
+    setInputs((prev) => {
+      const newValue = (parseFloat(prev.premium || 0) + 0.05).toFixed(2);
+      localStorage.setItem('inputs', JSON.stringify({ ...prev, premium: newValue }));
+      return { ...prev, premium: newValue.length <= 4 ? newValue : prev.premium };
+    });
+  };
+
+  const handlePremiumDecrement = () => {
+    setInputs((prev) => {
+      const newValue = Math.max(0, parseFloat(prev.premium || 0) - 0.05).toFixed(2);
+      localStorage.setItem('inputs', JSON.stringify({ ...prev, premium: newValue }));
+      return { ...prev, premium: newValue.length <= 4 ? newValue : prev.premium };
+    });
+  };
+
+  const handleContractIncrement = () => {
+    setInputs((prevInputs) => {
+      const newContracts = prevInputs.contracts + 1;
+      localStorage.setItem('inputs', JSON.stringify({ ...prevInputs, contracts: newContracts }));
+      return { ...prevInputs, contracts: newContracts };
+    });
+  };
+
+  const handleContractDecrement = () => {
+    setInputs((prevInputs) => {
+      const newContracts = prevInputs.contracts - 1;
+      localStorage.setItem('inputs', JSON.stringify({ ...prevInputs, contracts: newContracts }));
+      return { ...prevInputs, contracts: newContracts };
+    });
+  };
+
+  const handleShortCallIncrement = () => {
+    setInputs((prevInputs) => ({
+      ...prevInputs,
+      shortCall: String(Math.min(Number(prevInputs.shortCall || 0) + 5, 99999)),
+    }));
+    localStorage.setItem('inputs', JSON.stringify({ ...inputs, shortCall: String(Number(inputs.shortCall || 0) + 5) }));
+  };
+
+  const handleShortCallDecrement = () => {
+    setInputs((prevInputs) => ({
+      ...prevInputs,
+      shortCall: String(Math.max(Number(prevInputs.shortCall || 0) - 5, 0)),
+    }));
+    localStorage.setItem('inputs', JSON.stringify({ ...inputs, shortCall: String(Number(inputs.shortCall || 0) - 5) }));
+  };
+
+  const handleShortPutIncrement = () => {
+    setInputs((prevInputs) => ({
+      ...prevInputs,
+      shortPut: String(Math.min(Number(prevInputs.shortPut || 0) + 5, 99999)),
+    }));
+    localStorage.setItem('inputs', JSON.stringify({ ...inputs, shortPut: String(Number(inputs.shortPut || 0) + 5) }));
+  };
+
+  const handleShortPutDecrement = () => {
+    setInputs((prevInputs) => ({
+      ...prevInputs,
+      shortPut: String(Math.max(Number(prevInputs.shortPut || 0) - 5, 0)),
+    }));
+    localStorage.setItem('inputs', JSON.stringify({ ...inputs, shortPut: String(Number(inputs.shortPut || 0) - 5) }));
+  };
+
+  const handleLongCallIncrement = () => {
+    setInputs((prevInputs) => ({
+      ...prevInputs,
+      longCall: String(Math.min(Number(prevInputs.longCall || 0) + 5, 99999)),
+    }));
+    localStorage.setItem('inputs', JSON.stringify({ ...inputs, longCall: String(Number(inputs.longCall || 0) + 5) }));
+  };
+
+  const handleLongCallDecrement = () => {
+    setInputs((prevInputs) => ({
+      ...prevInputs,
+      longCall: String(Math.max(Number(prevInputs.longCall || 0) - 5, 0)),
+    }));
+    localStorage.setItem('inputs', JSON.stringify({ ...inputs, longCall: String(Number(inputs.longCall || 0) - 5) }));
+  };
+
+  const handleLongPutIncrement = () => {
+    setInputs((prevInputs) => ({
+      ...prevInputs,
+      longPut: String(Math.min(Number(prevInputs.longPut || 0) + 5, 99999)),
+    }));
+    localStorage.setItem('inputs', JSON.stringify({ ...inputs, longPut: String(Number(inputs.longPut || 0) + 5) }));
+  };
+
+  const handleLongPutDecrement = () => {
+    setInputs((prevInputs) => ({
+      ...prevInputs,
+      longPut: String(Math.max(Number(prevInputs.longPut || 0) - 5, 0)),
+    }));
+    localStorage.setItem('inputs', JSON.stringify({ ...inputs, longPut: String(Number(inputs.longPut || 0) - 5) }));
+  };
+
+  // Increment and Decrement for each input
+  const handlePremiumIncrement2 = () => {
+    setInputs2((prev) => {
+      const newValue = (parseFloat(prev.premium || 0) + 0.05).toFixed(2);
+      localStorage.setItem('inputs2', JSON.stringify({ ...prev, premium: newValue }));
+      return { ...prev, premium: newValue.length <= 4 ? newValue : prev.premium };
+    });
+  };
+
+  const handlePremiumDecrement2 = () => {
+    setInputs2((prev) => {
+      const newValue = Math.max(0, parseFloat(prev.premium || 0) - 0.05).toFixed(2);
+      localStorage.setItem('inputs2', JSON.stringify({ ...prev, premium: newValue }));
+      return { ...prev, premium: newValue.length <= 4 ? newValue : prev.premium };
+    });
+  };
+
+  const handleContractIncrement2 = () => {
+    setInputs2((prevInputs) => {
+      const newContracts = prevInputs.contracts + 1;
+      localStorage.setItem('inputs2', JSON.stringify({ ...prevInputs, contracts: newContracts }));
+      return { ...prevInputs, contracts: newContracts };
+    });
+  };
+
+  const handleContractDecrement2 = () => {
+    setInputs2((prevInputs) => {
+      const newContracts = prevInputs.contracts - 1;
+      localStorage.setItem('inputs2', JSON.stringify({ ...prevInputs, contracts: newContracts }));
+      return { ...prevInputs, contracts: newContracts };
+    });
+  };
+
+  const handleShortCallIncrement2 = () => {
+    setInputs2((prevInputs) => ({
+      ...prevInputs,
+      shortCall: String(Math.min(Number(prevInputs.shortCall || 0) + 5, 99999)),
+    }));
+    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, shortCall: String(Number(inputs2.shortCall || 0) + 5) }));
+  };
+
+  const handleShortCallDecrement2 = () => {
+    setInputs2((prevInputs) => ({
+      ...prevInputs,
+      shortCall: String(Math.max(Number(prevInputs.shortCall || 0) - 5, 0)),
+    }));
+    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, shortCall: String(Number(inputs2.shortCall || 0) - 5) }));
+  };
+
+  const handleShortPutIncrement2 = () => {
+    setInputs2((prevInputs) => ({
+      ...prevInputs,
+      shortPut: String(Math.min(Number(prevInputs.shortPut || 0) + 5, 99999)),
+    }));
+    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, shortPut: String(Number(inputs2.shortPut || 0) + 5) }));
+  };
+
+  const handleShortPutDecrement2 = () => {
+    setInputs2((prevInputs) => ({
+      ...prevInputs,
+      shortPut: String(Math.max(Number(prevInputs.shortPut || 0) - 5, 0)),
+    }));
+    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, shortPut: String(Number(inputs2.shortPut || 0) - 5) }));
+  };
+
+  const handleLongCallIncrement2 = () => {
+    setInputs2((prevInputs) => ({
+      ...prevInputs,
+      longCall: String(Math.min(Number(prevInputs.longCall || 0) + 5, 99999)),
+    }));
+    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, longCall: String(Number(inputs2.longCall || 0) + 5) }));
+  };
+
+  const handleLongCallDecrement2 = () => {
+    setInputs2((prevInputs) => ({
+      ...prevInputs,
+      longCall: String(Math.max(Number(prevInputs.longCall || 0) - 5, 0)),
+    }));
+    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, longCall: String(Number(inputs2.longCall || 0) - 5) }));
+  };
+
+  const handleLongPutIncrement2 = () => {
+    setInputs2((prevInputs) => ({
+      ...prevInputs,
+      longPut: String(Math.min(Number(prevInputs.longPut || 0) + 5, 99999)),
+    }));
+    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, longPut: String(Number(inputs2.longPut || 0) + 5) }));
+  };
+
+  const handleLongPutDecrement2 = () => {
+    setInputs2((prevInputs) => ({
+      ...prevInputs,
+      longPut: String(Math.max(Number(prevInputs.longPut || 0) - 5, 0)),
+    }));
+    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, longPut: String(Number(inputs2.longPut || 0) - 5) }));
+  };
+
+  const handleKeyDown = (e, nextInputRef) => {
+    if (e.key === "Enter" && nextInputRef) {
+      nextInputRef.current.focus();  // Move focus to the next input field
+    }
+  };
+
+  const handleInputChange3 = (e) => {
+    const { name, value } = e.target;
+    const decimalRegex = /^\d*\.?\d*$/;
+
+    if (value === "" || decimalRegex.test(value)) {
+      if (name === "premium") {
+        if (value !== "" && parseFloat(value) > 5) {
+          setErrors({ ...errors, premium: "Premium value cannot exceed 5" });
+          setTimeout(() => {
+            setErrors({ ...errors, premium: "" });
+          }, 2000);
+        } else {
+          setInputs({
+            ...inputs,
+            [name]: value,
+          });
+          localStorage.setItem('inputs', JSON.stringify({
+            ...inputs,
+            [name]: value,
+          }));
+        }
+      } else {
+        setInputs({
+          ...inputs,
+          [name]: value,
+        });
+        localStorage.setItem('inputs', JSON.stringify({
+          ...inputs,
+          [name]: value,
+        }));
+      }
+    }
+  };
+
+  const handleInputChange2 = (e) => {
+    const { name, value } = e.target;
+    const decimalRegex = /^\d*\.?\d*$/;
+
+    if (name === "premium") {
+      if (value === "" || decimalRegex.test(value)) {
+        if (value !== "" && parseFloat(value) > 5) {
+          setErrors2({ ...errors2, premium: "Premium value cannot exceed 5" });
+          setTimeout(() => {
+            setErrors2({ ...errors2, premium: "" });
+          }, 2000);
+        } else {
+          setInputs2({
+            ...inputs2,
+            [name]: value,
+          });
+          localStorage.setItem('inputs2', JSON.stringify({
+            ...inputs2,
+            [name]: value,
+          }));
+        }
+      }
+    } else {
+      if (value === "" || decimalRegex.test(value)) {
+        setInputs2({
+          ...inputs2,
+          [name]: value,
+        });
+        localStorage.setItem('inputs2', JSON.stringify({
+          ...inputs2,
+          [name]: value,
+        }));
+      }
+    }
+  };
+
+  // Handle click for "Current Long IC Position"
+  const LongICShowHandel = () => {
+    if (isMobile) {
+      setLongICShow(!longICShow);
+    } else {
+      const newState = !(shortICShow && longICShow);
+      setShortICShow(newState);
+      setLongICShow(newState);
+    }
+  };
+
+  const handleSelect2 = (value) => {
+    setSelectedValue2(value);
+    setOpenDropdown(null);
+  };
+
+  // Detect screen size
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
 
@@ -1319,7 +1763,7 @@ const DynamicMatrixShort = () => {
                             </div>
                           ))
                         ) : (
-                          <p className='text-sm lg:text-base text-Secondary2 font-medium'>No data available</p>
+                          <p className='text-sm lg:text-base text-Secondary2 font-medium mt-2'>No data available</p>
                         )}
                       </div>
                     </div>
@@ -1349,10 +1793,11 @@ const DynamicMatrixShort = () => {
 
           <div className='rounded-md p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
             <div className='flex flex-wrap justify-between items-start md:items-center gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
-              <div className='flex gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium'>
-                <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md`} onClick={Regular}>Regular</button>
+              <div className='flex flex-wrap gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium'>
+                <button type="button" className="focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md" onClick={Regular}>Regular</button>
                 <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
                 <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
+                <button type="button" className="focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md" onClick={handleClearLevels}>Clear</button>
               </div>
               <div className='md:flex gap-3'>
                 {(msgM4.msg !== "") && <p className={`hidden md:block text-sm text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}, <Link to="/subscription"></Link> </p>}
@@ -1380,10 +1825,13 @@ const DynamicMatrixShort = () => {
                       oneSideClose: false,
                       outSide: false,
                       levelSpread: selectedValue,
+                      levelDate: "",
                     }
                   }));
                 }
                 const levelData = levels[levelKey] || {};
+                const formattedDate = levelData.levelDate ? new Date(levelData.levelDate).toISOString().split('T')[0] : '';
+
 
                 return (
                   <div key={index} className='flex flex-wrap xl:flex-nowrap gap-2 lg:gap-5'>
@@ -1391,7 +1839,18 @@ const DynamicMatrixShort = () => {
 
                       {/* Level Input */}
                       <div className='max-w-[466px] w-full'>
-                        <div className='flex flex-wrap-reverse justify-between gap-2'>
+
+                        <input
+                          type="date"
+                          className="text-[11px] lg:text-xs text-Primary mt-2 px-2 py-1 lg::py-[6px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7 max-w-[120px]"
+                          maxLength={10}
+                          title="max length 10"
+                          value={formattedDate}
+                          onChange={(e) => handleLevelDateChange(levelKey, e.target.value)}
+                          disabled={!levelData.active}
+                        />
+
+                        <div className='flex flex-wrap-reverse justify-between gap-2 mt-3'>
                           <div className='flex items-center gap-3 lg:gap-[15px]'>
                             <input
                               type='checkbox'
@@ -1497,7 +1956,7 @@ const DynamicMatrixShort = () => {
                     </div>
 
                     {/* Additional Checkbox Controls */}
-                    <div className='flex justify-between gap-2 md:gap-5 xl:max-w-[372px] 2xl:max-w-[390px] w-full'>
+                    <div className='flex justify-between items-end gap-2 md:gap-5 xl:max-w-[372px] 2xl:max-w-[390px] w-full'>
                       <label className='text-xs lg:text-base text-Primary font-medium w-[130px] xl:w-[100px] xl:block flex items-center gap-[6px]'>
                         Full IC Close
                         <input type='checkbox' checked={levelData.fullICClose} disabled={!levelData.active} onChange={() => handleCheckboxStateChange(levelKey, 'fullICClose')} className='accent-accentColor h-[15px] w-[15px] lg:h-[19px] lg:w-[19px] cursor-pointer xl:mt-[22px]' />
@@ -1524,7 +1983,248 @@ const DynamicMatrixShort = () => {
             </div>}
           </div>
 
-          <div className='flex justify-between items-center gap-5 mt-5 lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full'>
+          <div className='grid md:grid-cols-2 gap-5 mt-5 lg:mt-10'>
+            <div>
+              <div onClick={ShortICShowHandel}>
+                {!shortICShow && <h2 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary p-3 lg:p-4 xl:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633] cursor-pointer flex items-center gap-5'>Current Short IC Position <img className=' w-4 xl:w-5' src={DownArrowIcon} alt="" /> </h2>}
+              </div>
+              {shortICShow && <div className='rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
+                <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'>
+                  <h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary flex items-center gap-4 cursor-pointer' onClick={(e) => { ShortICShowHandel(false) }}>Current Short IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
+                  <div ref={dropdownRef1} className="relative w-full max-w-[80px] text-xs lg:text-sm">
+                    <button className="w-full text-left px-3 py-[6px] border border-borderColor rounded-md bg-textBoxBg text-Primary flex items-center justify-between" onClick={() => setOpenDropdown(openDropdown === "first" ? null : "first")} >
+                      {selectedValue2}
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-Primary ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    {openDropdown === "first" && (
+                      <ul className="absolute z-10 mt-1 w-full bg-white border border-borderColor rounded-md shadow-md">
+                        {options2.map((opt) => (
+                          <li key={opt} onClick={() => handleSelect2(opt)} className="px-3 py-1 hover:bg-borderColor4 hover:text-white text-Primary rounded cursor-pointer">
+                            {opt}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+                <div className='grid sm:grid-cols-2 gap-4 mt-3 lg:mt-5 px-3 lg:px-5'>
+                  <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Premium
+                    <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                      <input type="text" placeholder='...' name="premium" maxLength={4} title='Max Length 4' value={inputs.premium} ref={premiumRef} onKeyDown={(e) => handleKeyDown(e, contractsRef)} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                      <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                        <button onClick={handlePremiumDecrement}>
+                          <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                        </button>
+                        <div className='border-r border-borderColor6 h-[26px]'></div>
+                        <button className='w-[22px]' onClick={handlePremiumIncrement}>
+                          <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                        </button>
+                      </div>
+                    </div>
+                    {errors.premium && (
+                      <p className="text-red-500 text-xs mt-1">{errors.premium}</p>
+                    )}
+                  </label>
+                  <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Contract
+                    <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                      <input type="text" placeholder='...' name="contracts" value={inputs.contracts} ref={contractsRef} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                      <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                        <button onClick={handleContractDecrement}>
+                          <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                        </button>
+                        <div className='border-r border-borderColor6 h-[26px]'></div>
+                        <button className='w-[22px]' onClick={handleContractIncrement}>
+                          <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                        </button>
+                      </div>
+                    </div>
+                  </label>
+                  <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Put
+                    <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                      <input type="text" placeholder='...' name="longPut" maxLength={5} title='Max Length 5' value={inputs.longPut} ref={longPutRef} onKeyDown={(e) => handleKeyDown(e, longCallRef)} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base rounded-md w-full focus:outline-none focus:border-borderColor7' />
+                      <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                        <button onClick={handleLongPutDecrement}>
+                          <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                        </button>
+                        <div className='border-r border-borderColor6 h-[26px]'></div>
+                        <button className='w-[22px]' onClick={handleLongPutIncrement}>
+                          <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                        </button>
+                      </div>
+                    </div>
+                  </label>
+                  <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Call
+                    <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                      <input type="text" placeholder='...' name="shortCall" maxLength={5} title='Max Length 5' value={inputs.shortCall} ref={shortCallRef} onKeyDown={(e) => handleKeyDown(e, longPutRef)} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                      <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                        <button onClick={handleShortCallDecrement}>
+                          <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                        </button>
+                        <div className='border-r border-borderColor6 h-[26px]'></div>
+                        <button className='w-[22px]' onClick={handleShortCallIncrement}>
+                          <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                        </button>
+                      </div>
+                    </div>
+                  </label>
+                  <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Put
+                    <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                      <input type="text" placeholder='...' name="shortPut" maxLength={5} title='Max Length 5' value={inputs.shortPut} onKeyDown={(e) => handleKeyDown(e, shortCallRef)} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                      <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                        <button onClick={handleShortPutDecrement}>
+                          <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                        </button>
+                        <div className='border-r border-borderColor6 h-[26px]'></div>
+                        <button className='w-[22px]' onClick={handleShortPutIncrement}>
+                          <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                        </button>
+                      </div>
+                    </div>
+                  </label>
+                  <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Call
+                    <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                      <input type="text" placeholder='...' name="longCall" maxLength={5} title='Max Length 5' value={inputs.longCall} ref={longCallRef} onKeyDown={(e) => handleKeyDown(e, premiumRef)} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                      <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                        <button onClick={handleLongCallDecrement}>
+                          <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                        </button>
+                        <div className='border-r border-borderColor6 h-[26px]'></div>
+                        <button className='w-[22px]' onClick={handleLongCallIncrement}>
+                          <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                        </button>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+                <div className='mt-5 lg:mt-10'>
+                  <ICChart inputs={inputs} theme={theme} matrixTypeValue={selectedValue2} />
+                </div>
+              </div>}
+            </div>
+
+            <div>
+              <div onClick={LongICShowHandel}>
+                {!longICShow && <h2 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary p-3 lg:p-4 xl:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633] cursor-pointer flex items-center gap-5'>Current Long IC Position <img className=' w-4 xl:w-5' src={DownArrowIcon} alt="" /> </h2>}
+              </div>
+              {longICShow && <div className='rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
+                <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'><h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary flex items-center gap-4 cursor-pointer' onClick={(e) => { LongICShowHandel(false) }}>Current Long IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
+                  <div ref={dropdownRef2} className="relative w-full max-w-[80px] text-xs lg:text-sm">
+                    <button className="w-full text-left px-3 py-[6px] border border-borderColor rounded-md bg-textBoxBg text-Primary flex items-center justify-between" onClick={() => setOpenDropdown(openDropdown === "second" ? null : "second")} >
+                      {selectedValue2}
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-Primary ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    {openDropdown === "second" && (
+                      <ul className="absolute z-10 mt-1 w-full bg-white border border-borderColor rounded-md shadow-md">
+                        {options2.map((opt) => (
+                          <li key={opt} onClick={() => handleSelect2(opt)} className="px-3 py-1 hover:bg-borderColor4 hover:text-white text-Primary rounded cursor-pointer">
+                            {opt}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+                <div className='grid sm:grid-cols-2 gap-4 mt-3 lg:mt-5 px-3 lg:px-5'>
+                  <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Premium
+                    <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                      <input type="text" placeholder='...' name="premium" maxLength={4} title='Max Length 4' value={inputs2.premium} ref={premiumRef} onKeyDown={(e) => handleKeyDown(e, contractsRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                      {errors2.premium && (
+                        <p className="text-red-500 text-xs mt-1">{errors2.premium}</p>
+                      )}
+                      <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                        <button onClick={handlePremiumDecrement2}>
+                          <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                        </button>
+                        <div className='border-r border-borderColor6 h-[26px]'></div>
+                        <button className='w-[22px]' onClick={handlePremiumIncrement2}>
+                          <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                        </button>
+                      </div>
+                    </div>
+                  </label>
+                  <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Contract
+                    <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                      <input type="text" placeholder='...' name="contracts" value={inputs2.contracts} ref={contractsRef} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                      <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                        <button onClick={handleContractDecrement2}>
+                          <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                        </button>
+                        <div className='border-r border-borderColor6 h-[26px]'></div>
+                        <button className='w-[22px]' onClick={handleContractIncrement2}>
+                          <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                        </button>
+                      </div>
+                    </div>
+                  </label>
+                  <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Put
+                    <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                      <input type="text" placeholder='...' name="shortPut" maxLength={5} title='Max Length 5' value={inputs2.shortPut} onKeyDown={(e) => handleKeyDown(e, shortCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                      <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                        <button onClick={handleShortPutDecrement2}>
+                          <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                        </button>
+                        <div className='border-r border-borderColor6 h-[26px]'></div>
+                        <button className='w-[22px]' onClick={handleShortPutIncrement2}>
+                          <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                        </button>
+                      </div>
+                    </div>
+                  </label>
+                  <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Call
+                    <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                      <input type="text" placeholder='...' name="longCall" maxLength={5} title='Max Length 5' value={inputs2.longCall} ref={longCallRef} onKeyDown={(e) => handleKeyDown(e, premiumRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                      <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                        <button onClick={handleLongCallDecrement2}>
+                          <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                        </button>
+                        <div className='border-r border-borderColor6 h-[26px]'></div>
+                        <button className='w-[22px]' onClick={handleLongCallIncrement2}>
+                          <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                        </button>
+                      </div>
+                    </div>
+                  </label>
+                  <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Put
+                    <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                      <input type="text" placeholder='...' name="longPut" maxLength={5} title='Max Length 5' value={inputs2.longPut} ref={longPutRef} onKeyDown={(e) => handleKeyDown(e, longCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                      <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                        <button onClick={handleLongPutDecrement2}>
+                          <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                        </button>
+                        <div className='border-r border-borderColor6 h-[26px]'></div>
+                        <button className='w-[22px]' onClick={handleLongPutIncrement2}>
+                          <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                        </button>
+                      </div>
+                    </div>
+                  </label>
+                  <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Call
+                    <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                      <input type="text" placeholder='...' name="shortCall" maxLength={5} title='Max Length 5' value={inputs2.shortCall} ref={shortCallRef} onKeyDown={(e) => handleKeyDown(e, longPutRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                      <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                        <button onClick={handleShortCallDecrement2}>
+                          <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                        </button>
+                        <div className='border-r border-borderColor6 h-[26px]'></div>
+                        <button className='w-[22px]' onClick={handleShortCallIncrement2}>
+                          <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                        </button>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+                <div className=' mt-5 lg:mt-10'>
+                  <ICChart2 inputs2={inputs2} theme={theme} matrixTypeValue={selectedValue2} />
+                </div>
+              </div>}
+            </div>
+          </div>
+
+          <div className='flex justify-between items-center gap-5 mt-5 lg:mt-10 lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full'>
             <h2 className='text-xl lg:text-[22px] xl:text-2xl text-Primary font-semibold'>Dynamic Matrix - Short IC <span className='text-sm lg:text-base text-Primary lg:font-medium mt-5'>(Allocation Size: ${Number(currentAllocation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</span></h2>
             <div className='flex justify-between md:justify-end items-start gap-5 mt-3 sm:mt-0 w-full md:w-auto'>
               <div className='md:flex gap-3'>
@@ -1658,6 +2358,7 @@ const DynamicMatrixShort = () => {
           <div className='mb-10 text-center'>
             {(msgM4.msg !== "") && <p className={`text-sm ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}.</p>}
           </div>
+
         </div>
         :
         <>

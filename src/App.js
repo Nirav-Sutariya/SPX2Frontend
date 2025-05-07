@@ -47,45 +47,6 @@ const App = () => {
   const [isDarkTheme, setIsDarkTheme] = useState(localStorage.getItem("theme") === "dark");
 
 
-  // Get Level Length Api
-  // async function fetchLevelLength() {
-  //   try {
-  //     let response = await axios.post(process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_LEVEL_LENGTH, { userId: getUserId() }, {
-  //       headers: {
-  //         'x-access-token': getToken()
-  //       }
-  //     })
-  //     if (response.status === 200) {
-  //       let data = response.data.data
-  //       appContext.setAppContext({ ...appContext, shortMatrixLength: data.shortMatrix, longMatrixLength: data.longMatrix })
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching user data:", error);
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   let logoutTimer;
-  //   const checkAuth = async () => {
-  //     const token = getToken();
-  //     const tokenValid = await validateToken(token);
-
-  //     if (!tokenValid) {
-  //       removeTokens();
-  //       setIsLoggedIn(false);
-  //     } else {
-  //       setIsLoggedIn(true);
-  //       logoutTimer = setTimeout(() => {
-  //         removeTokens();
-  //         setIsLoggedIn(false);
-  //       }, 12 * 60 * 60 * 1000);
-  //     }
-  //   };
-
-  //   checkAuth();
-  //   return () => clearTimeout(logoutTimer);
-  // }, [isLoggedIn]);
-
   // Validates the token using your API.
   useEffect(() => {
     let logoutTimer;
@@ -103,7 +64,7 @@ const App = () => {
 
         // Show warning 5 minutes before logout (5 * 60 * 1000)
         warningTimer = setTimeout(() => {
-          setShowLogoutWarning(true); 
+          setShowLogoutWarning(true);
         }, (12 * 60 - 5) * 60 * 1000);
 
         // Logout after 12 hours
@@ -257,6 +218,15 @@ const App = () => {
     navigate(adminData);
   }, [])
 
+  const RedirectToStaticMatrix = () => {
+    const navigate = useNavigate();
+
+    useEffect(() => {
+      navigate("/static-matrix-short", { replace: true });
+    }, [navigate]);
+
+    return null; // Or a loading spinner if you want
+  };
 
   return (
     <>
@@ -270,11 +240,11 @@ const App = () => {
                   <Header toggleTheme={toggleTheme} isDarkMode={isDarkMode} isDarkTheme={isDarkTheme} activeLink={activeLink} setActiveLink={setActiveLink} setIsLoggedIn={setIsLoggedIn} />
                   <Routes>
                     <Route path="/dashboard" element={<Dashboard theme={theme} />} />
-                    <Route path="*" element={<Navigate to="/static-matrix-short" />} />
+                    <Route path="*" element={<RedirectToStaticMatrix />} />
                     <Route path="/static-matrix-short" element={<StaticMatrix />} />
                     <Route path="/static-matrix-long" element={<StaticMatrixLong />} />
-                    <Route path="/dynamic-matrix-short/" element={<DynamicMatrixShort />} />
-                    <Route path="/dynamic-matrix-long/" element={<DynamicMatrixLong />} />
+                    <Route path="/dynamic-matrix-short/" element={<DynamicMatrixShort theme={theme} />} />
+                    <Route path="/dynamic-matrix-long/" element={<DynamicMatrixLong theme={theme} />} />
                     <Route path="/saved-matrix" element={<SavedMatrix />} />
                     <Route path="/edit-profile" element={<EditProfile />} />
                     <Route path="/help-support" element={<HelpSupport />} />

@@ -1,15 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import Filter from '../../assets/svg/FilterIcon.svg';
-import { defaultAllocation, defaultCommission, defaultTradePrice, FilterModalLong } from '../../components/utils';
+import { defaultAllocation, defaultCommission, FilterModalLong } from '../../components/utils';
+import { AppContext } from '../../components/AppContext';
 
 function StaticLongCalculations({ savedData }) {
 
   const FilterModalRef = useRef(null);
+  let appContext = useContext(AppContext);
   const [levels, setLevels] = useState({});
   // const [levelLength, setlevelLength] = useState(6);
   const [commission, setCommission] = useState(defaultCommission);
   const [allocation, setAllocation] = useState(defaultAllocation);
-  const [tradePrice, setTradePrice] = useState(defaultTradePrice);
+  const [tradePrice, setTradePrice] = useState(appContext.longTradePrice);
   const [originalSize, setOriginalSize] = useState(null);
   const [currentAllocation, setCurrentAllocation] = useState(originalSize);
   // Table column value

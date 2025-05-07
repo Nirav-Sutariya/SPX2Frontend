@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo, useContext } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import PluseIcon from '../assets/svg/PlusIcon.svg';
 import MatrixIcon from '../assets/svg/MatrixIcon.svg';
 import MinimumIcon from '../assets/svg/MinmumIcon.svg';
@@ -17,6 +17,7 @@ import am4themes_animated from '@amcharts/amcharts4/themes/animated';
 import DynamicLongCalculations from './savedMatrix/DynamicLongCalculations';
 import { Link } from 'react-router-dom';
 import { AppContext } from '../components/AppContext';
+import TradingViewOverview from '../components/TradingViewOverview';
 
 // Apply animated theme
 am4core.useTheme(am4themes_animated);
@@ -885,6 +886,10 @@ const Dashboard = ({ theme }) => {
               <div id="tradingview-widget" className="tradingview-widget-container__widget"></div>
             </div>
           </div>
+        </div>
+
+        <div className='TradingViewChart mt-5 lg:mt-10 p-4 lg:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
+          <TradingViewOverview theme={theme} />
         </div>
       </div>
       :

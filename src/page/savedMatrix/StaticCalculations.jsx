@@ -1,15 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import Filter from '../../assets/svg/FilterIcon.svg';
-import { defaultAllocation, defaultCommission, defaultTradePrice, FilterModalShort } from '../../components/utils';
+import { defaultAllocation, defaultCommission, FilterModalShort } from '../../components/utils';
+import { AppContext } from '../../components/AppContext';
 
 function StaticCalculations({ savedData }) {
 
   const FilterModalRef = useRef(null);
+  let appContext = useContext(AppContext);
   const [levels, setLevels] = useState({});
   const [originalSize, setOriginalSize] = useState(null);
   const [commission, setCommission] = useState(defaultCommission);
   const [allocation, setAllocation] = useState(defaultAllocation);
-  const [tradePrice, setTradePrice] = useState(defaultTradePrice);
+  const [tradePrice, setTradePrice] = useState(appContext.shortTradePrice);
   const [currentAllocation, setCurrentAllocation] = useState(originalSize);
   // Table column value
   const [BPTable, setBPTable] = useState([]);

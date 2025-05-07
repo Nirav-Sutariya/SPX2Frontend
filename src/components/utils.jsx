@@ -3,8 +3,6 @@ import axios from "axios";
 import { getToken, getUserId } from '../page/login/loginAPI';
 
 
-const defaultTradePrice = 1.60
-const defaultTradePriceLong = 3
 const defaultCommission = 5
 const defaultAllocation = 100
 const defaultDynamicTradePrice = 0
@@ -171,4 +169,4 @@ const FilterModalLong = ({ isVisible, filters, handleToggle, ResetTable }) => {
     );
 };
 
-export { FilterModalShort, FilterModalLong, defaultTradePrice, defaultTradePriceLong, defaultCommission, defaultAllocation, defaultDynamicTradePrice, DefaultInDeCrement, findClosestIndex, defaultValue, validateEmail, ConfirmationModal, formattedDate, formattedDate1, CancelUserSubscription }
+export { FilterModalShort, FilterModalLong, defaultCommission, defaultAllocation, defaultDynamicTradePrice, DefaultInDeCrement, findClosestIndex, defaultValue, validateEmail, ConfirmationModal, formattedDate, formattedDate1, CancelUserSubscription }
