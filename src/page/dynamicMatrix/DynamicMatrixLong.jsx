@@ -10,12 +10,14 @@ import DropdownIcon from '../../assets/svg/DropdownIcon.svg';
 import DownArrowIcon from '../../assets/svg/DownArrowIcon.svg';
 import MatrixEditIcon from '../../assets/svg/MatrixEditIcon.svg';
 import SavedMatrixIcon from '../../assets/svg/SaveMatrixIcon.svg';
+import Converter from '../../assets/Images/StaticMatrix/Converter.png';
 import DeleteIcon from '../../assets/Images/StaticMatrix/DeleteIcon.svg';
 import DeleteIcon2 from '../../assets/Images/StaticMatrix/DeleteIcon2.svg';
+import PopupCloseIcon from '../../assets/Images/SuperDashboard/PopupCloseIcon.svg';
+import SubscriptionUpdateIcon from '../../assets/Images/Subscription/SubscriptionUpdateIcon.svg';
 import CapitalAllocationRangSlider from '../../components/CapitalAllocationRangSlider';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import ICChart from '../../components/ICChart';
 import ICChart2 from '../../components/ICChart2';
 import { getToken, getUserId } from '../login/loginAPI';
 import { AppContext } from '../../components/AppContext';
@@ -26,7 +28,6 @@ const DynamicMatrixLong = ({ theme }) => {
 
   const MINIMUM_VALUE = 0;
   const MAXIMUM_VALUE = 999;
-  const menuRef = useRef(null);
   const lossDataRef = useRef([]);
   const dropdownRefs = useRef({});
   const dropdownRef = useRef(null);
@@ -35,7 +36,6 @@ const DynamicMatrixLong = ({ theme }) => {
   const longCallRef = useRef(null);
   const shortCallRef = useRef(null);
   const contractsRef = useRef(null);
-  const dropdownRef1 = useRef(null);
   const dropdownRef2 = useRef(null);
   const dropdown2Ref = useRef(null);
   const containerRef = useRef(null);
@@ -43,16 +43,18 @@ const DynamicMatrixLong = ({ theme }) => {
   const debounceTimeout = useRef(null);
   const cumulativeLossRef = useRef([]);
   const seriesGainRefValue = useRef([]);
+  const hasInitializedRef = useRef(false);
   let appContext = useContext(AppContext);
   const allocationDropdownRef = useRef(null);
   const [editKey, setEditKey] = useState(null);
   const [errorState, setErrorState] = useState({});
+  const [convertedUsd, setConvertedUsd] = useState("");
+  const [conversionRate, setConversionRate] = useState("");
   const [selectedValue, setSelectedValue] = useState(5);
   const [selectedValue2, setSelectedValue2] = useState("SPX");
   const [isMobile, setIsMobile] = useState(false);
   const [longICShow, setLongICShow] = useState(false);
   const [shortICShow, setShortICShow] = useState(false);
-  const [errors, setErrors] = useState({ premium: "" });
   const [errors2, setErrors2] = useState({ premium: "" });
   const [openDropdown, setOpenDropdown] = useState(null);
   const [names, setNames] = useState(appContext.namesDynamicLong);
@@ -90,7 +92,6 @@ const DynamicMatrixLong = ({ theme }) => {
   const [regularFlag, setRegularFlag] = useState(true)
   const [showAllRows, setShowAllRows] = useState(false);
   const [showAfterWin, setShowAfterWin] = useState(true);
-  const [isMenuVisible, setMenuVisible] = useState(false);
   const [showAllRows2, setShowAllRows2] = useState(false);
   const [showContracts, setShowContracts] = useState(true);
   const [showAfterLoss, setShowAfterLoss] = useState(true);
@@ -127,15 +128,8 @@ const DynamicMatrixLong = ({ theme }) => {
   const [dynamicKey, setDynamicKey] = useState(appContext.dynamicShortKey);
   const [dynamicNextGameKey, setDynamicNextGameKey] = useState(appContext.dynamicNextGameLongKey);
   const options = ["5", "10", "15", "20", "25", "40", "50"];
+  const [showMessage, setShowMessage] = useState(false);
   const options2 = ["SPX", "RUT", "NDX"];
-  const [inputs, setInputs] = useState({
-    shortPut: 4100,
-    shortCall: 4170,
-    longPut: 4095,
-    longCall: 4175,
-    premium: 2.15,
-    contracts: 1,
-  });
   const [inputs2, setInputs2] = useState({
     shortPut: 4095,
     shortCall: 4170,
@@ -484,6 +478,7 @@ const DynamicMatrixLong = ({ theme }) => {
             fullIcClose: level.fullIcClose ?? false,
             oneSideClose: level.oneSideClose ?? false,
             outSide: level.outSide ?? false,
+            levelSpread: level.levelSpread ?? selectedValue,
             levelDate: level.levelDate || "",
           };;
           return obj;
@@ -618,6 +613,7 @@ const DynamicMatrixLong = ({ theme }) => {
       });
       if (response.status === 201) {
         setMsgM4({ type: "info", msg: "Matrix saved successfully" });
+        setShowMessage(true);
       }
     } catch (error) {
       if (error.message.includes("Network Error")) {
@@ -625,13 +621,6 @@ const DynamicMatrixLong = ({ theme }) => {
       }
     }
   };
-
-  useMemo(() => {
-    if (dynamicKey) {
-      getMatrixFromAPI();
-      getSPXMatrixAPI(selectedName);
-    }
-  }, [isMatrixSaved, selectedName, dynamicKey])
 
   useMemo(() => {
     setCurrentAllocation((Number(originalSize) * (allocation / 100)).toFixed(2))
@@ -659,7 +648,7 @@ const DynamicMatrixLong = ({ theme }) => {
   function StackMatrix(_) {
     let temp = { ...levels }
     let preVal = 0
-    for (const [key, value] of Object.entries(temp)) {
+    for (const [value] of Object.entries(temp)) {
       if (preVal !== 0) {
         value.value += preVal;
         break;
@@ -744,27 +733,32 @@ const DynamicMatrixLong = ({ theme }) => {
     Regular();
   }
 
-  // Toggle the number of visible rows
-  const toggleShowMore = () => {
-    setShowAllRows(prevState => !prevState);
-  };
-
-  const toggleShowMore2 = () => {
-    setShowAllRows2(prevState => !prevState);
-  };
-
   const handleToggle = (toggleSetter) => {
     toggleSetter((prevState) => !prevState);
   };
 
+  // const handleCheckboxChange = (level) => {
+  //   setLevels({
+  //     ...levels,
+  //     [level]: { ...levels[level], active: !levels[level].active }
+  //   });
+  // };
+
   const handleCheckboxChange = (level) => {
-    setLevels({
-      ...levels,
-      [level]: { ...levels[level], active: !levels[level].active }
+    setLevels((prevLevels) => {
+      const isActivating = !prevLevels[level].active;
+      const currentValue = prevLevels[level].value;
+      return {
+        ...prevLevels,
+        [level]: {
+          ...prevLevels[level],
+          active: isActivating,
+          value: isActivating ? (currentValue < 0 ? 0 : currentValue) : currentValue
+        }
+      };
     });
   };
 
-  // If the value exceeds 10, set an error and change background color to red
   const handleIncrement = (level, field) => {
     const currentValue = Number(levels[level][field]);
     if (currentValue >= 9.99) {
@@ -866,7 +860,7 @@ const DynamicMatrixLong = ({ theme }) => {
     if (!levels[level][checkbox]) {
       setLevels({
         ...levels,
-        [level]: { ...levels[level], "fullICClose": false, "oneSideClose": false, "outSide": false, [checkbox]: !levels[level][checkbox] }
+        [level]: { ...levels[level], "fullIcClose": false, "oneSideClose": false, "outSide": false, [checkbox]: !levels[level][checkbox] }
       });
     } else
       setLevels({
@@ -933,7 +927,7 @@ const DynamicMatrixLong = ({ theme }) => {
       })
 
       let commisionData = 0
-      if (obj.fullICClose) {
+      if (obj.fullIcClose) {
         commisionData = commission * obj.value * 2
       } else if (obj.oneSideClose) {
         commisionData = 1.5 * commission * obj.value
@@ -956,7 +950,7 @@ const DynamicMatrixLong = ({ theme }) => {
 
       if (obj.outSide) {
         profitData = 0
-      } else if (stopData > 0 && (obj.fullICClose || obj.oneSideClose)) {
+      } else if (stopData > 0 && (obj.fullIcClose || obj.oneSideClose)) {
         profitData = ((stopPrice - tradePrice) * t * 100) - commisionData
       } else {
         profitData = ((parseInt(levels[level]?.levelSpread) * 100) * t) - debitValue - commisionData
@@ -972,7 +966,7 @@ const DynamicMatrixLong = ({ theme }) => {
       if (obj.active) {
         if (obj.outSide) {
           lossData = 0 - debitValue - commisionData;
-        } else if (stopData > 0 && (obj.fullICClose || obj.oneSideClose)) {
+        } else if (stopData > 0 && (obj.fullIcClose || obj.oneSideClose)) {
           lossData = -(((tradePrice - stopPrice) * t * 100) + commisionData);
         } else {
           lossData = 0;
@@ -1001,7 +995,9 @@ const DynamicMatrixLong = ({ theme }) => {
       cumulativeLossRef.current = [...cumulativeLossRef.current, previousStatecumulativeLossData];
 
       let seriesGainLossData = 0;
-      seriesGainLossData = (profitData > 0 ? profitData : lossData) + (seriesGainRefValue.current[index - 1] || 0)
+      // seriesGainLossData = (profitData > 0 ? profitData : lossData) + (seriesGainRefValue.current[index - 1] || 0)
+      seriesGainLossData = (profitData > 0 ? profitData : lossData) + (seriesGainRefValue.current[index - 1] < 0 ? seriesGainRefValue.current[index - 1] : 0)
+      //  seriesGainLossData = (profitData > 0 ? profitData : lossData)
 
       setSeriesGainLossTable((pre) => {
         return [...pre, (seriesGainLossData)];
@@ -1044,23 +1040,38 @@ const DynamicMatrixLong = ({ theme }) => {
     initValueSetup();
   }, [levels, commission, selectedValue]);
 
+  // useEffect(() => {
+  //   const areArraysEqual = (arr1, arr2) => {
+  //     if (arr1.length !== arr2.length) return false;
+  //     return arr1.every((value, index) => value === arr2[index]);
+  //   };
+
+  //   const shouldRunSetup =
+  //     CumulativeLossTable?.length === 0 ||
+  //     !areArraysEqual(cumulativeLossRef.current, CumulativeLossTable);
+
+  //   if (shouldRunSetup) {
+  //     // Avoid calling setup on every render by checking the ref first
+  //     cumulativeLossRef.current = [...CumulativeLossTable];
+  //     // Only trigger once to break the cycle
+  //     setTimeout(() => {
+  //       initValueSetup();
+  //     }, 0); 
+  //   }
+  // }, [CumulativeLossTable]);
+
   useEffect(() => {
     const areArraysEqual = (arr1, arr2) => {
       if (arr1.length !== arr2.length) return false;
       return arr1.every((value, index) => value === arr2[index]);
     };
 
-    const shouldRunSetup =
-      CumulativeLossTable?.length === 0 ||
-      !areArraysEqual(cumulativeLossRef.current, CumulativeLossTable);
-
-    if (shouldRunSetup) {
-      // Avoid calling setup on every render by checking the ref first
+    if (!hasInitializedRef.current) {
+      initValueSetup();
+      hasInitializedRef.current = true;
+    } else if (!areArraysEqual(cumulativeLossRef.current, CumulativeLossTable)) {
+      initValueSetup();
       cumulativeLossRef.current = [...CumulativeLossTable];
-      // Only trigger once to break the cycle
-      // setTimeout(() => {
-      //   initValueSetup();
-      // }, 0); 
     }
   }, [CumulativeLossTable]);
 
@@ -1073,20 +1084,33 @@ const DynamicMatrixLong = ({ theme }) => {
     if (msgM1.type !== "")
       setTimeout(() => {
         setMsgM1({ type: "", msg: "" })
-      }, 20 * 100);
+      }, 40 * 100);
     if (msgM2.type !== "")
       setTimeout(() => {
         setMsgM2({ type: "", msg: "" })
-      }, 20 * 100);
+      }, 40 * 100);
     if (msgM3.type !== "")
       setTimeout(() => {
         setMsgM3({ type: "", msg: "" })
-      }, 20 * 100);
+      }, 40 * 100);
     if (msgM4.type !== "")
       setTimeout(() => {
         setMsgM4({ type: "", msg: "" })
-      }, 20 * 100);
+        setShowMessage(false);
+      }, 40 * 100);
   }, [msgM1, msgM2, msgM3, msgM4])
+
+  useMemo(() => {
+    if (dynamicKey) {
+      getMatrixFromAPI();
+    }
+  }, [dynamicKey])
+
+  useMemo(() => {
+    if (dynamicKey) {
+      getSPXMatrixAPI(selectedName);
+    }
+  }, [selectedName, dynamicKey])
 
   useEffect(() => {
     const storedMatrix = sessionStorage.getItem('dyLongMatrix');
@@ -1099,10 +1123,13 @@ const DynamicMatrixLong = ({ theme }) => {
     if (selectedName) {
       sessionStorage.setItem('dyLongMatrix', JSON.stringify(selectedName));
     }
-    if (selectedValue && dynamicKey) {
+  }, [selectedName]);
+
+  useEffect(() => {
+    if (selectedValue) {
       fetchAllocationLevelValuesFromAPI2();
     }
-  }, [selectedName, selectedValue, dynamicKey]);
+  }, [selectedValue]);
 
   // Filter the array to show only values less than 0
   const filteredData = CumulativeLossTable.filter((value, index) => {
@@ -1143,7 +1170,7 @@ const DynamicMatrixLong = ({ theme }) => {
     }
     debounceTimeout.current = setTimeout(() => {
       getLevelDetailsUsingBuyingPower(value);
-    }, 500);
+    }, 100);
   };
 
   const handleCommissionChange = (e) => {
@@ -1215,11 +1242,6 @@ const DynamicMatrixLong = ({ theme }) => {
         setIsFilterModalVisible(false);
       }
 
-      // Menu
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuVisible(false);
-      }
-
       // General Dropdown
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownVisible(false);
@@ -1275,7 +1297,7 @@ const DynamicMatrixLong = ({ theme }) => {
           ...prevLevels[key],
           premium: 0,
           stopLevel: 0,
-          fullICClose: false,
+          fullIcClose: false,
           oneSideClose: false,
           outSide: false,
           active: isActive,
@@ -1283,114 +1305,6 @@ const DynamicMatrixLong = ({ theme }) => {
       });
       return updatedLevels;
     });
-  };
-
-  // Handle click for "Current Short IC Position"
-  const ShortICShowHandel = () => {
-    if (isMobile) {
-      setShortICShow(!shortICShow);
-    } else {
-      const newState = !(shortICShow && longICShow);
-      setShortICShow(newState);
-      setLongICShow(newState);
-    }
-  };
-
-  // Increment and Decrement for each input
-  const handlePremiumIncrement = () => {
-    setInputs((prev) => {
-      const newValue = (parseFloat(prev.premium || 0) + 0.05).toFixed(2);
-      localStorage.setItem('inputs', JSON.stringify({ ...prev, premium: newValue }));
-      return { ...prev, premium: newValue.length <= 4 ? newValue : prev.premium };
-    });
-  };
-
-  const handlePremiumDecrement = () => {
-    setInputs((prev) => {
-      const newValue = Math.max(0, parseFloat(prev.premium || 0) - 0.05).toFixed(2);
-      localStorage.setItem('inputs', JSON.stringify({ ...prev, premium: newValue }));
-      return { ...prev, premium: newValue.length <= 4 ? newValue : prev.premium };
-    });
-  };
-
-  const handleContractIncrement = () => {
-    setInputs((prevInputs) => {
-      const newContracts = prevInputs.contracts + 1;
-      localStorage.setItem('inputs', JSON.stringify({ ...prevInputs, contracts: newContracts }));
-      return { ...prevInputs, contracts: newContracts };
-    });
-  };
-
-  const handleContractDecrement = () => {
-    setInputs((prevInputs) => {
-      const newContracts = prevInputs.contracts - 1;
-      localStorage.setItem('inputs', JSON.stringify({ ...prevInputs, contracts: newContracts }));
-      return { ...prevInputs, contracts: newContracts };
-    });
-  };
-
-  const handleShortCallIncrement = () => {
-    setInputs((prevInputs) => ({
-      ...prevInputs,
-      shortCall: String(Math.min(Number(prevInputs.shortCall || 0) + 5, 99999)),
-    }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, shortCall: String(Number(inputs.shortCall || 0) + 5) }));
-  };
-
-  const handleShortCallDecrement = () => {
-    setInputs((prevInputs) => ({
-      ...prevInputs,
-      shortCall: String(Math.max(Number(prevInputs.shortCall || 0) - 5, 0)),
-    }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, shortCall: String(Number(inputs.shortCall || 0) - 5) }));
-  };
-
-  const handleShortPutIncrement = () => {
-    setInputs((prevInputs) => ({
-      ...prevInputs,
-      shortPut: String(Math.min(Number(prevInputs.shortPut || 0) + 5, 99999)),
-    }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, shortPut: String(Number(inputs.shortPut || 0) + 5) }));
-  };
-
-  const handleShortPutDecrement = () => {
-    setInputs((prevInputs) => ({
-      ...prevInputs,
-      shortPut: String(Math.max(Number(prevInputs.shortPut || 0) - 5, 0)),
-    }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, shortPut: String(Number(inputs.shortPut || 0) - 5) }));
-  };
-
-  const handleLongCallIncrement = () => {
-    setInputs((prevInputs) => ({
-      ...prevInputs,
-      longCall: String(Math.min(Number(prevInputs.longCall || 0) + 5, 99999)),
-    }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, longCall: String(Number(inputs.longCall || 0) + 5) }));
-  };
-
-  const handleLongCallDecrement = () => {
-    setInputs((prevInputs) => ({
-      ...prevInputs,
-      longCall: String(Math.max(Number(prevInputs.longCall || 0) - 5, 0)),
-    }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, longCall: String(Number(inputs.longCall || 0) - 5) }));
-  };
-
-  const handleLongPutIncrement = () => {
-    setInputs((prevInputs) => ({
-      ...prevInputs,
-      longPut: String(Math.min(Number(prevInputs.longPut || 0) + 5, 99999)),
-    }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, longPut: String(Number(inputs.longPut || 0) + 5) }));
-  };
-
-  const handleLongPutDecrement = () => {
-    setInputs((prevInputs) => ({
-      ...prevInputs,
-      longPut: String(Math.max(Number(prevInputs.longPut || 0) - 5, 0)),
-    }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, longPut: String(Number(inputs.longPut || 0) - 5) }));
   };
 
   // Increment and Decrement for each input
@@ -1496,40 +1410,6 @@ const DynamicMatrixLong = ({ theme }) => {
     }
   };
 
-  const handleInputChange3 = (e) => {
-    const { name, value } = e.target;
-    const decimalRegex = /^\d*\.?\d*$/;
-
-    if (value === "" || decimalRegex.test(value)) {
-      if (name === "premium") {
-        if (value !== "" && parseFloat(value) > 5) {
-          setErrors({ ...errors, premium: "Premium value cannot exceed 5" });
-          setTimeout(() => {
-            setErrors({ ...errors, premium: "" });
-          }, 2000);
-        } else {
-          setInputs({
-            ...inputs,
-            [name]: value,
-          });
-          localStorage.setItem('inputs', JSON.stringify({
-            ...inputs,
-            [name]: value,
-          }));
-        }
-      } else {
-        setInputs({
-          ...inputs,
-          [name]: value,
-        });
-        localStorage.setItem('inputs', JSON.stringify({
-          ...inputs,
-          [name]: value,
-        }));
-      }
-    }
-  };
-
   const handleInputChange2 = (e) => {
     const { name, value } = e.target;
     const decimalRegex = /^\d*\.?\d*$/;
@@ -1593,6 +1473,21 @@ const DynamicMatrixLong = ({ theme }) => {
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const handleRateChange = (e) => {
+    const value = e.target.value;
+    setConversionRate(value);
+
+    const rate = parseFloat(value);
+    const cad = parseFloat(originalSize);
+
+    if (!isNaN(rate) && !isNaN(cad)) {
+      const usd = (cad * rate).toFixed(2);
+      setConvertedUsd(usd);
+    } else {
+      setConvertedUsd("");
+    }
+  };
 
 
   return (<>
@@ -1663,6 +1558,25 @@ const DynamicMatrixLong = ({ theme }) => {
         <CapitalAllocationRangSlider allocation={allocation} setAllocation={setAllocation} />
         {(msgM2.msg !== "") && <p className={`text-sm ${msgM2.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM2.msg}.</p>}
 
+        {appContext.currency === "CAD" && <div className='rounded-md max-w-[792px] bg-background6 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633]'>
+          <div className='text-base font-medium text-Primary px-3 py-2 lg:px-5 lg:py-3 shadow-[0px_4px_16.2px_0px_#EBEEF6]'> Check Live Currency Rates </div>
+          <div className='flex flex-wrap 2xl:flex-nowrap items-end gap-4 p-3 lg:p-5'>
+            <div className='w-full'>
+              <label className='flex justify-between gap-2 items-center text-sm lg:text-base text-Primary lg:font-medium'>
+                <span className='flex items-center gap-2'> USD <img src={Converter} alt='Converter' /> CAD </span>
+                <span> Rate 1.40 </span>
+              </label>
+              <div className='flex justify-between items-center text-sm lg:text-base text-Primary font-medium mt-1 lg:mt-2 py-1 px-[6px] lg:p-3 gap-4 border border-borderColor bg-textBoxBg rounded-md'>
+                <span className='font-semibold'>C$</span>
+                <input type='text' maxLength={5} title='Max Length 5' value={conversionRate} onChange={handleRateChange} placeholder='Enter Your Rate' className='bg-transparent w-full focus:outline-none' />
+              </div>
+            </div>
+            <button type="button" className="text-sm lg:text-lg font-semibold text-white bg-ButtonBg rounded-md py-2 lg:py-3 max-w-[173px] w-full">
+              Apply Now
+            </button>
+          </div>
+        </div>}
+
         <div className='rounded-md max-w-[792px] bg-background6 px-3 py-[16px] lg:p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Size'>
           <div className='flex flex-wrap items-end min-[455px]:flex-nowrap gap-3 lg:gap-5'>
             <div className='w-full' ref={containerRef}>
@@ -1707,6 +1621,12 @@ const DynamicMatrixLong = ({ theme }) => {
                               setAllocationHintsVisibility(false);
                               await getSingleLevelAPI(key._id);
                               localStorage.setItem('originalSizeIdDyLong', key._id);
+                              // Convert to USD if rate exists
+                              const rate = parseFloat(conversionRate);
+                              if (!isNaN(rate) && !isNaN(key.buyingPower)) {
+                                const usd = (key.buyingPower * rate).toFixed(2);
+                                setConvertedUsd(usd);
+                              }
                             }}>
                             <span className="text-sm lg:text-base text-Primary font-medium text-wrap flex-1 ml-2">
                               $ {Number(key.buyingPower).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1740,24 +1660,33 @@ const DynamicMatrixLong = ({ theme }) => {
             </div>
           </div>
           <p className='text-sm lg:text-base text-Primary lg:font-medium mt-3 lg:mt-5'>Current Allocation Size: <span className='px-1'>${Number(currentAllocation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+          {convertedUsd && appContext.currency === "CAD" && (<p className='text-sm lg:text-base text-Primary lg:font-medium mt-1'>Current Allocation Size (CAD): <span className='px-1'>C$ {convertedUsd}</span></p>)}
         </div>
 
-        <div className='rounded-md p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
-          <div className='flex flex-wrap justify-between items-start md:items-center gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
-            <div className='flex flex-wrap gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium'>
-              <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md`} onClick={Regular}>Regular</button>
-              <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
-              <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
-              <button type="button" className="focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md" onClick={handleClearLevels}>Clear</button>
+        <div className="fixed top-[30%] right-5 z-20 flex items-center gap-3 lg:gap-4 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-t-lg py-2 px-5 lg:px-7 cursor-pointer -rotate-90 origin-right" onClick={handleSaveMatrix} >
+          <img className='h-4 lg:h-[18px] rotate-90' src={SavedMatrixIcon} alt="" /> Save Matrix
+        </div>
 
-            </div>
-            <div className='md:flex gap-3'>
-              {(msgM4.msg !== "") && <p className={`hidden md:block text-sm text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}, <Link to="/subscription"></Link> </p>}
-              <div className="flex items-center gap-2 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-md py-2 px-5 lg:py-[6px] lg:px-[30px] h-[37px] lg:h-[45px] cursor-pointer" onClick={handleSaveMatrix} >
-                <img className='h-4 lg:h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
+        {showMessage && (
+          <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
+            <div className="relative p-4 lg:p-[30px] bg-background6 rounded-[22px] border border-borderColor5 shadow-[0px_0px_6px_0px_#28236633] w-[300px] lg:w-[380px]">
+              <img className="absolute top-2 right-2 cursor-pointer w-7" onClick={() => setShowMessage(false)} src={PopupCloseIcon} alt="" />
+              <div className="flex justify-center">
+                <div className="mx-auto p-3 lg:p-5 border border-borderColor rounded-md bg-background3">
+                  <img className="w-10" src={SubscriptionUpdateIcon} alt="Update Icon" />
+                </div>
               </div>
-              {(msgM4.msg !== "") && <p className={`block md:hidden text-sm text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}, <Link to="/subscription"></Link> </p>}
+              <p className={`text-base lg:text-xl mx-auto mt-5 text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Primary"}`}>{msgM4.msg} </p>
             </div>
+          </div>
+        )}
+
+        <div className='rounded-md p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
+          <div className='flex flex-wrap gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
+            <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md`} onClick={Regular}>Regular</button>
+            <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
+            <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
+            <button type="button" className="focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md" onClick={handleClearLevels}>Clear</button>
           </div>
           {(msgM3.msg !== "") && <p className={`text-sm ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}.</p>}
           <h3 className='text-xl lg:text-[22px] xl:text-2xl font-semibold text-Primary mb-3'>Levels</h3>
@@ -1773,7 +1702,7 @@ const DynamicMatrixLong = ({ theme }) => {
                     active: false,
                     premium: 0,
                     stopLevel: 0,
-                    fullICClose: false,
+                    fullIcClose: false,
                     oneSideClose: false,
                     outSide: false,
                     levelSpread: selectedValue,
@@ -1909,7 +1838,7 @@ const DynamicMatrixLong = ({ theme }) => {
                     <div className='flex justify-between gap-2 md:gap-5 xl:max-w-[372px] 2xl:max-w-[390px] w-full'>
                       <label className='text-xs lg:text-base text-Primary font-medium w-[130px] xl:w-[100px] xl:block flex items-center gap-[6px]'>
                         Full IC Close
-                        <input type='checkbox' checked={levelData.fullICClose} disabled={!levelData.active} onChange={() => handleCheckboxStateChange(levelKey, 'fullICClose')} className='accent-accentColor h-[15px] w-[15px] lg:h-[19px] lg:w-[19px] cursor-pointer xl:mt-[22px]' />
+                        <input type='checkbox' checked={levelData.fullIcClose} disabled={!levelData.active} onChange={() => handleCheckboxStateChange(levelKey, 'fullIcClose')} className='accent-accentColor h-[15px] w-[15px] lg:h-[19px] lg:w-[19px] cursor-pointer xl:mt-[22px]' />
                       </label>
                       <label className='text-xs lg:text-base text-Primary font-medium w-[150px] xl:w-[130px] xl:block flex items-center gap-[6px]'>
                         One Side Close
@@ -1933,261 +1862,130 @@ const DynamicMatrixLong = ({ theme }) => {
           </div>}
         </div>
 
-        <div className='grid md:grid-cols-2 gap-5 mt-5 lg:mt-10'>
-          <div>
-            <div onClick={ShortICShowHandel}>
-              {!shortICShow && <h2 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary p-3 lg:p-4 xl:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633] cursor-pointer flex items-center gap-5'>Current Short IC Position <img className=' w-4 xl:w-5' src={DownArrowIcon} alt="" /> </h2>}
-            </div>
-            {shortICShow && <div className='rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
-              <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'>
-                <h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary flex items-center gap-4 cursor-pointer' onClick={(e) => { ShortICShowHandel(false) }}>Current Short IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
-                <div ref={dropdownRef1} className="relative w-full max-w-[80px] text-xs lg:text-sm">
-                  <button className="w-full text-left px-3 py-[6px] border border-borderColor rounded-md bg-textBoxBg text-Primary flex items-center justify-between" onClick={() => setOpenDropdown(openDropdown === "first" ? null : "first")} >
-                    {selectedValue2}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-Primary ml-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  {openDropdown === "first" && (
-                    <ul className="absolute z-10 mt-1 w-full bg-white border border-borderColor rounded-md shadow-md">
-                      {options2.map((opt) => (
-                        <li key={opt} onClick={() => handleSelect2(opt)} className="px-3 py-1 hover:bg-borderColor4 hover:text-white text-Primary rounded cursor-pointer">
-                          {opt}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-              <div className='grid sm:grid-cols-2 gap-4 mt-3 lg:mt-5 px-3 lg:px-5'>
-                <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Premium
-                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="premium" maxLength={4} title='Max Length 4' value={inputs.premium} ref={premiumRef} onKeyDown={(e) => handleKeyDown(e, contractsRef)} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                      <button onClick={handlePremiumDecrement}>
-                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                      </button>
-                      <div className='border-r border-borderColor6 h-[26px]'></div>
-                      <button className='w-[22px]' onClick={handlePremiumIncrement}>
-                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                      </button>
-                    </div>
-                  </div>
-                  {errors.premium && (
-                    <p className="text-red-500 text-xs mt-1">{errors.premium}</p>
-                  )}
-                </label>
-                <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Contract
-                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="contracts" value={inputs.contracts} ref={contractsRef} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                      <button onClick={handleContractDecrement}>
-                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                      </button>
-                      <div className='border-r border-borderColor6 h-[26px]'></div>
-                      <button className='w-[22px]' onClick={handleContractIncrement}>
-                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                      </button>
-                    </div>
-                  </div>
-                </label>
-                <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Put
-                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="longPut" maxLength={5} title='Max Length 5' value={inputs.longPut} ref={longPutRef} onKeyDown={(e) => handleKeyDown(e, longCallRef)} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base rounded-md w-full focus:outline-none focus:border-borderColor7' />
-                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                      <button onClick={handleLongPutDecrement}>
-                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                      </button>
-                      <div className='border-r border-borderColor6 h-[26px]'></div>
-                      <button className='w-[22px]' onClick={handleLongPutIncrement}>
-                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                      </button>
-                    </div>
-                  </div>
-                </label>
-                <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Call
-                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="shortCall" maxLength={5} title='Max Length 5' value={inputs.shortCall} ref={shortCallRef} onKeyDown={(e) => handleKeyDown(e, longPutRef)} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                      <button onClick={handleShortCallDecrement}>
-                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                      </button>
-                      <div className='border-r border-borderColor6 h-[26px]'></div>
-                      <button className='w-[22px]' onClick={handleShortCallIncrement}>
-                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                      </button>
-                    </div>
-                  </div>
-                </label>
-                <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Put
-                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="shortPut" maxLength={5} title='Max Length 5' value={inputs.shortPut} onKeyDown={(e) => handleKeyDown(e, shortCallRef)} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                      <button onClick={handleShortPutDecrement}>
-                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                      </button>
-                      <div className='border-r border-borderColor6 h-[26px]'></div>
-                      <button className='w-[22px]' onClick={handleShortPutIncrement}>
-                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                      </button>
-                    </div>
-                  </div>
-                </label>
-                <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Call
-                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="longCall" maxLength={5} title='Max Length 5' value={inputs.longCall} ref={longCallRef} onKeyDown={(e) => handleKeyDown(e, premiumRef)} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                      <button onClick={handleLongCallDecrement}>
-                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                      </button>
-                      <div className='border-r border-borderColor6 h-[26px]'></div>
-                      <button className='w-[22px]' onClick={handleLongCallIncrement}>
-                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                      </button>
-                    </div>
-                  </div>
-                </label>
-              </div>
-              <div className='mt-5 lg:mt-10'>
-                <ICChart inputs={inputs} theme={theme} matrixTypeValue={selectedValue2} />
-              </div>
-            </div>}
+        <div className='mt-5 lg:mt-10 max-w-[750px] w-full'>
+          <div onClick={LongICShowHandel}>
+            {!longICShow && <h2 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary p-3 lg:p-4 xl:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633] cursor-pointer flex items-center gap-5'>Current Long IC Position <img className=' w-4 xl:w-5' src={DownArrowIcon} alt="" /> </h2>}
           </div>
-
-          <div>
-            <div onClick={LongICShowHandel}>
-              {!longICShow && <h2 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary p-3 lg:p-4 xl:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633] cursor-pointer flex items-center gap-5'>Current Long IC Position <img className=' w-4 xl:w-5' src={DownArrowIcon} alt="" /> </h2>}
+          {longICShow && <div className='rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
+            <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'><h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary flex items-center gap-4 cursor-pointer' onClick={(e) => { LongICShowHandel(false) }}>Current Long IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
+              <div ref={dropdownRef2} className="relative w-full max-w-[80px] text-xs lg:text-sm">
+                <button className="w-full text-left px-3 py-[6px] border border-borderColor rounded-md bg-textBoxBg text-Primary flex items-center justify-between" onClick={() => setOpenDropdown(openDropdown === "second" ? null : "second")} >
+                  {selectedValue2}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-Primary ml-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                {openDropdown === "second" && (
+                  <ul className="absolute z-10 mt-1 w-full bg-white border border-borderColor rounded-md shadow-md">
+                    {options2.map((opt) => (
+                      <li key={opt} onClick={() => handleSelect2(opt)} className="px-3 py-1 hover:bg-borderColor4 hover:text-white text-Primary rounded cursor-pointer">
+                        {opt}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
-            {longICShow && <div className='rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
-              <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'><h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary flex items-center gap-4 cursor-pointer' onClick={(e) => { LongICShowHandel(false) }}>Current Long IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
-                <div ref={dropdownRef2} className="relative w-full max-w-[80px] text-xs lg:text-sm">
-                  <button className="w-full text-left px-3 py-[6px] border border-borderColor rounded-md bg-textBoxBg text-Primary flex items-center justify-between" onClick={() => setOpenDropdown(openDropdown === "second" ? null : "second")} >
-                    {selectedValue2}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-Primary ml-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  {openDropdown === "second" && (
-                    <ul className="absolute z-10 mt-1 w-full bg-white border border-borderColor rounded-md shadow-md">
-                      {options2.map((opt) => (
-                        <li key={opt} onClick={() => handleSelect2(opt)} className="px-3 py-1 hover:bg-borderColor4 hover:text-white text-Primary rounded cursor-pointer">
-                          {opt}
-                        </li>
-                      ))}
-                    </ul>
+            <div className='grid sm:grid-cols-2 gap-4 mt-3 lg:mt-5 px-3 lg:px-5'>
+              <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Premium
+                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                  <input type="text" placeholder='...' name="premium" maxLength={4} title='Max Length 4' value={inputs2.premium} ref={premiumRef} onKeyDown={(e) => handleKeyDown(e, contractsRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                  {errors2.premium && (
+                    <p className="text-red-500 text-xs mt-1">{errors2.premium}</p>
                   )}
+                  <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                    <button onClick={handlePremiumDecrement2}>
+                      <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                    </button>
+                    <div className='border-r border-borderColor6 h-[26px]'></div>
+                    <button className='w-[22px]' onClick={handlePremiumIncrement2}>
+                      <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className='grid sm:grid-cols-2 gap-4 mt-3 lg:mt-5 px-3 lg:px-5'>
-                <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Premium
-                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="premium" maxLength={4} title='Max Length 4' value={inputs2.premium} ref={premiumRef} onKeyDown={(e) => handleKeyDown(e, contractsRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                    {errors2.premium && (
-                      <p className="text-red-500 text-xs mt-1">{errors2.premium}</p>
-                    )}
-                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                      <button onClick={handlePremiumDecrement2}>
-                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                      </button>
-                      <div className='border-r border-borderColor6 h-[26px]'></div>
-                      <button className='w-[22px]' onClick={handlePremiumIncrement2}>
-                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                      </button>
-                    </div>
+              </label>
+              <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Contract
+                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                  <input type="text" placeholder='...' name="contracts" value={inputs2.contracts} ref={contractsRef} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                  <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                    <button onClick={handleContractDecrement2}>
+                      <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                    </button>
+                    <div className='border-r border-borderColor6 h-[26px]'></div>
+                    <button className='w-[22px]' onClick={handleContractIncrement2}>
+                      <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                    </button>
                   </div>
-                </label>
-                <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Contract
-                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="contracts" value={inputs2.contracts} ref={contractsRef} onChange={handleInputChange3} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                      <button onClick={handleContractDecrement2}>
-                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                      </button>
-                      <div className='border-r border-borderColor6 h-[26px]'></div>
-                      <button className='w-[22px]' onClick={handleContractIncrement2}>
-                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                      </button>
-                    </div>
+                </div>
+              </label>
+              <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Put
+                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                  <input type="text" placeholder='...' name="shortPut" maxLength={5} title='Max Length 5' value={inputs2.shortPut} onKeyDown={(e) => handleKeyDown(e, shortCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                  <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                    <button onClick={handleShortPutDecrement2}>
+                      <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                    </button>
+                    <div className='border-r border-borderColor6 h-[26px]'></div>
+                    <button className='w-[22px]' onClick={handleShortPutIncrement2}>
+                      <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                    </button>
                   </div>
-                </label>
-                <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Put
-                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="shortPut" maxLength={5} title='Max Length 5' value={inputs2.shortPut} onKeyDown={(e) => handleKeyDown(e, shortCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                      <button onClick={handleShortPutDecrement2}>
-                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                      </button>
-                      <div className='border-r border-borderColor6 h-[26px]'></div>
-                      <button className='w-[22px]' onClick={handleShortPutIncrement2}>
-                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                      </button>
-                    </div>
+                </div>
+              </label>
+              <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Call
+                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                  <input type="text" placeholder='...' name="longCall" maxLength={5} title='Max Length 5' value={inputs2.longCall} ref={longCallRef} onKeyDown={(e) => handleKeyDown(e, premiumRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                  <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                    <button onClick={handleLongCallDecrement2}>
+                      <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                    </button>
+                    <div className='border-r border-borderColor6 h-[26px]'></div>
+                    <button className='w-[22px]' onClick={handleLongCallIncrement2}>
+                      <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                    </button>
                   </div>
-                </label>
-                <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Call
-                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="longCall" maxLength={5} title='Max Length 5' value={inputs2.longCall} ref={longCallRef} onKeyDown={(e) => handleKeyDown(e, premiumRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                      <button onClick={handleLongCallDecrement2}>
-                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                      </button>
-                      <div className='border-r border-borderColor6 h-[26px]'></div>
-                      <button className='w-[22px]' onClick={handleLongCallIncrement2}>
-                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                      </button>
-                    </div>
+                </div>
+              </label>
+              <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Put
+                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                  <input type="text" placeholder='...' name="longPut" maxLength={5} title='Max Length 5' value={inputs2.longPut} ref={longPutRef} onKeyDown={(e) => handleKeyDown(e, longCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                  <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                    <button onClick={handleLongPutDecrement2}>
+                      <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                    </button>
+                    <div className='border-r border-borderColor6 h-[26px]'></div>
+                    <button className='w-[22px]' onClick={handleLongPutIncrement2}>
+                      <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                    </button>
                   </div>
-                </label>
-                <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Put
-                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="longPut" maxLength={5} title='Max Length 5' value={inputs2.longPut} ref={longPutRef} onKeyDown={(e) => handleKeyDown(e, longCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                      <button onClick={handleLongPutDecrement2}>
-                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                      </button>
-                      <div className='border-r border-borderColor6 h-[26px]'></div>
-                      <button className='w-[22px]' onClick={handleLongPutIncrement2}>
-                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                      </button>
-                    </div>
+                </div>
+              </label>
+              <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Call
+                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                  <input type="text" placeholder='...' name="shortCall" maxLength={5} title='Max Length 5' value={inputs2.shortCall} ref={shortCallRef} onKeyDown={(e) => handleKeyDown(e, longPutRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                  <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                    <button onClick={handleShortCallDecrement2}>
+                      <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                    </button>
+                    <div className='border-r border-borderColor6 h-[26px]'></div>
+                    <button className='w-[22px]' onClick={handleShortCallIncrement2}>
+                      <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                    </button>
                   </div>
-                </label>
-                <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Call
-                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="shortCall" maxLength={5} title='Max Length 5' value={inputs2.shortCall} ref={shortCallRef} onKeyDown={(e) => handleKeyDown(e, longPutRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                      <button onClick={handleShortCallDecrement2}>
-                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                      </button>
-                      <div className='border-r border-borderColor6 h-[26px]'></div>
-                      <button className='w-[22px]' onClick={handleShortCallIncrement2}>
-                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                      </button>
-                    </div>
-                  </div>
-                </label>
-              </div>
-              <div className=' mt-5 lg:mt-10'>
-                <ICChart2 inputs2={inputs2} theme={theme} matrixTypeValue={selectedValue2} />
-              </div>
-            </div>}
-          </div>
+                </div>
+              </label>
+            </div>
+            <div className='mt-5 lg:mt-10'>
+              <ICChart2 inputs2={inputs2} theme={theme} matrixTypeValue={selectedValue2} />
+            </div>
+          </div>}
         </div>
 
         <div className='flex justify-between items-center gap-5 mt-5 lg:mt-10 lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full'>
           <h2 className='text-xl lg:text-[22px] xl:text-2xl text-Primary font-semibold'> Dynamic Matrix - Long IC <span className='text-sm lg:text-base text-Primary lg:font-medium mt-5'>(Allocation Size: ${Number(currentAllocation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</span></h2>
-          <div className='flex justify-between md:justify-end items-start gap-3 md:gap-5 w-full md:w-auto'>
-            <div className='md:flex gap-3'>
-              {(msgM4.msg !== "") && <p className={`hidden md:block text-sm text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}, <Link to="/subscription"></Link> </p>}
-              <div className="flex items-center gap-2 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-md py-2 px-5 lg:py-[6px] lg:px-[30px] h-[37px] lg:h-[40px] cursor-pointer" onClick={handleSaveMatrix} >
-                <img className='h-4 lg:h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
-              </div>
-              {(msgM4.msg !== "") && <p className={`block md:hidden text-sm text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}, <Link to="/subscription"></Link> </p>}
-            </div>
-            <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' ref={filterModalRef} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
-              <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
-            </p>
-          </div>
+          <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' ref={filterModalRef} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+            <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
+          </p>
         </div>
 
         {/* Column filter checkboxes */}
@@ -2225,8 +2023,8 @@ const DynamicMatrixLong = ({ theme }) => {
                 {showBP && <th className="border-x border-borderColor px-2 py-2">BP</th>}
                 {showProfit && <th className="border-x border-borderColor px-2 py-2">Profit</th>}
                 {showLoss && <th className="border-x border-borderColor px-2 py-2">Loss</th>}
-                {showCumulativeLoss && <th className="border-x border-borderColor px-2 py-2">Cumulative Loss</th>}
-                {showSeriesGainLoss && <th className="border-x border-borderColor px-2 py-2">Series Gain/Loss</th>}
+                {showCumulativeLoss && <th className="border-x border-borderColor px-2 py-2">Cumulative Loss {appContext.currency === "CAD" && <span className='block'>(CAD)</span>}</th>}
+                {showSeriesGainLoss && <th className="border-x border-borderColor px-2 py-2">Series Gain/Loss {appContext.currency === "CAD" && <span className='block'>(CAD)</span>}</th>}
                 {showAfterWin && <th className="border-x border-borderColor px-2 py-2">After Win</th>}
                 {showGainPercentage && <th className="border-x border-borderColor px-2 py-2">Gain</th>}
                 {showAfterLoss && <th className="border-x border-borderColor px-2 py-2">After Loss</th>}
@@ -2246,8 +2044,24 @@ const DynamicMatrixLong = ({ theme }) => {
                       {showBP && <td className="border-t border-x border-borderColor px-2 py-2">${Number(BPTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                       {showProfit && <td className="border-t border-x border-borderColor px-2 py-2">${Number(ProfitTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                       {showLoss && <td className="border-t border-x border-borderColor px-2 py-2 text-red-500">${Number(LossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
-                      {showCumulativeLoss && <td className="border-t border-x border-borderColor px-2 py-2 text-red-500">${Number(CumulativeLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
-                      {showSeriesGainLoss && <td className={`border-t border-x border-borderColor px-2 py-2 ${SeriesGainLossTable[index] < 0 ? 'text-red-500' : ''} `}>${Number(SeriesGainLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
+                      {showCumulativeLoss && <td className="border-t border-x border-borderColor px-2 py-2 text-red-500">${Number(CumulativeLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {appContext.currency === "CAD" && <span className="block font-medium">
+                          ({conversionRate > 0
+                            ? `$${(CumulativeLossTable[index] * conversionRate).toLocaleString("en-US", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2
+                            })}` : "-"})
+                        </span>}
+                      </td>}
+                      {showSeriesGainLoss && <td className={`border-t border-x border-borderColor px-2 py-2 ${SeriesGainLossTable[index] < 0 ? 'text-red-500' : ''} `}>${Number(SeriesGainLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {appContext.currency === "CAD" && <span className="block font-medium">
+                          ({conversionRate > 0
+                            ? `$${(SeriesGainLossTable[index] * conversionRate).toLocaleString("en-US", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2
+                            })}` : "-"})
+                        </span>}
+                      </td>}
                       {showAfterWin && <td className="border-t border-x border-borderColor px-2 py-2">${Number(AfterWinTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                       {showGainPercentage && <td className={`border-t border-x border-borderColor px-2 py-2 ${GainPreTable[index] < 0 ? 'text-red-500' : ''} `}>{Number(GainPreTable[index]).toFixed(2)}%</td>}
                       {showAfterLoss && <td className={`border-t border-x border-borderColor px-2 py-2 ${AfterLossTable[index] < 0 ? 'text-red-500' : ''} `}>${Number(AfterLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
@@ -2266,12 +2080,6 @@ const DynamicMatrixLong = ({ theme }) => {
             </div>
           </>}
         </div>
-
-        {/* {Object.values(levels).filter(level => level.active).length > 5 && <div className="mt-4 text-center">
-            <button onClick={toggleShowMore} className="text-sm lg:text-base text-Secondary2 font-medium underline">
-              {showAllRows ? 'See Less Levels' : 'See More Levels'}
-            </button>
-          </div>} */}
 
         {dynamicNextGameKey ? (
           <NextGamePalnDynamicICLongMatrix

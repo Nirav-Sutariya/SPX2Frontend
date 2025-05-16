@@ -11,6 +11,7 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
     const [levels, setLevels] = useState({});
     const [showStop, setShowStop] = useState(true);
     const [originalSize, setOriginalSize] = useState(null);
+    const [levelDateTable, setLevelDateTable] = useState([]);
     const [commission, setCommission] = useState(defaultCommission);
     const [currentAllocation, setCurrentAllocation] = useState(originalSize);
     // Table column value
@@ -106,19 +107,23 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
         let levelTableData = [];
         let contractsTableData = [];
         let creditTableData = [];
+        const levelDateTableData = [];
 
         Object.keys(levels).forEach((level, index) => {
+            const item = levels[level];
             if (levels[level].active) {
                 levelTableData.push("Level " + (index + 1));
                 let t = levels[level].value;
                 contractsTableData.push(t);
-                creditTableData.push(Number(levels[level].premium || 0) * t * 100);  // Fixed `premium` key
+                creditTableData.push(Number(levels[level].premium || 0) * t * 100);
+                levelDateTableData.push(item.levelDate?.slice(0, 10) || "-");
             }
         });
 
         setLevelTable(levelTableData);
         setContractsTable(contractsTableData);
         setCreditTable(creditTableData);
+        setLevelDateTable(levelDateTableData);
     }
 
     useEffect(() => {
@@ -200,7 +205,7 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
                 if (t.outSide)
                     temp4 = (500 * t.value) - CreditTable[indx] + CommissionTable[indx]
                 else
-                    if (ProfitTable[indx] === 0 && (t.fullICClose || t.oneSideClose)) {
+                    if (ProfitTable[indx] === 0 && (t.fullIcClose || t.oneSideClose)) {
                         temp4 = Math.abs(CreditTable[indx] - StopTable[indx] - CommissionTable[indx])
                     }
                 // temp4 = Math.abs(CreditTable[indx] - StopTable[indx] - CommissionTable[indx])
@@ -397,7 +402,8 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
                 <table className="table-auto border-collapse w-full">
                     <thead>
                         <tr className="bg-background2 text-white text-sm lg:text-base font-semibold">
-                            <th className="px-2 py-2">Level</th>
+                            <th className="px-2 py-2">Date</th>
+                            <th className="border-x border-borderColor">Level</th>
                             {showContracts && <th className="border-x border-borderColor px-2 py-2">Contracts ({sum(ContractsTable)})</th>}
                             {showCredit && <th className="border-x border-borderColor px-2 py-2">Credit</th>}
                             {showStop && <th className="border-x border-borderColor px-2 py-2">Stop</th>}
@@ -416,7 +422,8 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
                     <tbody>
                         {LevelTable.slice(0, visibleRows).map((value, index) => (
                             <tr key={index} className="text-sm lg:text-base text-center text-Secondary bg-background6 ">
-                                <td className="border-t border-borderColor px-2 py-2">{value}</td>
+                                <td className="border-t border-borderColor px-2 py-2">{levelDateTable[index]}</td>
+                                <td className="border-t border-x border-borderColor px-2 py-2">{value}</td>
                                 {showContracts && <td className="border-t border-x border-borderColor px-2 py-2">{ContractsTable[index]}</td>}
                                 {showCredit && <td className="border-t border-x border-borderColor px-2 py-2"> ${Number(CreditTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                                 {showStop && <td className="border-t border-x border-borderColor px-2 py-2">${Number(StopTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}

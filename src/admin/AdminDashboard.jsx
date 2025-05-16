@@ -63,14 +63,15 @@ const AdminDashboard = () => {
   }
 
   useMemo(() => {
-    if (!adminDashboardData || Object.keys(adminDashboardData).length === 0) {
-      fetchAdminDashboardData();
-    }
     if (msg.type !== "")
       setTimeout(() => {
         setMsg({ type: "", msg: "" })
       }, 40 * 100);
-  }, [selectedMonth, selectedMonth2, msg])
+  }, [msg])
+
+  useEffect(() => {
+    fetchAdminDashboardData();
+  }, [selectedMonth, selectedMonth2])
 
   const toggleDropdown3 = () => {
     setMonth((prev) => !prev);
@@ -188,7 +189,7 @@ const AdminDashboard = () => {
               </span>
               <span>
                 <p className='text-base lg:text-lg text-Secondary2'>Premium Users</p>
-                <h3 className='text-lg lg:text-xl xl:text-[28px] xl:leading-[42px] text-Primary font-semibold'>{adminDashboardData.premiumPlanCount || 0}</h3>
+                <h3 className='text-lg lg:text-xl xl:text-[28px] xl:leading-[42px] text-Primary font-semibold'>{adminDashboardData.totalPremiumUsers || 0}</h3>
               </span>
             </div>
           </div>
@@ -200,13 +201,13 @@ const AdminDashboard = () => {
           <div className='mt-5 p-3 lg:p-[21px] rounded-md bg-background6 shadow-[0px_0px_10px_0px_#28236633] w-full'>
             <div className='flex justify-between items-center relative'>
               <h2 className='text-xl lg:text-xl xl:text-[28px] xl:leading-[42px] text-Primary font-semibold'>Most Saved Matrix </h2>
-              <span ref={Month2Ref} className='flex justify-between items-center gap-2 py-[7px] px-3 border border-borderColor rounded-md bg-background3 w-full max-w-[110px] cursor-pointer' onClick={toggleDropdown4}>
+              <span className='flex justify-between items-center gap-2 py-[7px] px-3 border border-borderColor rounded-md bg-background3 w-full max-w-[110px] cursor-pointer' onClick={toggleDropdown4}>
                 <p className='text-sm xl:text-sm text-Secondary2 font-medium'>{monthFilters2[selectedMonth2]}</p>
                 <img className='w-3' src={DropdownIcon} alt="" />
               </span>
 
               {month2 && (
-                <div className='absolute top-10 right-0 z-10 py-2 mt-1 px-3 rounded-md bg-background6 border border-borderColor2 shadow-[0px_0px_6px_0px_#28236633] max-w-[105px] w-full'>
+                <div ref={Month2Ref} className='absolute top-10 right-0 z-10 py-2 mt-1 px-3 rounded-md bg-background6 border border-borderColor2 shadow-[0px_0px_6px_0px_#28236633] max-w-[105px] w-full'>
                   <p className='text-sm font-medium text-Secondary2 pb-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth2(1); setMonth2(false) }}>Month</p>
                   <p className='text-sm font-medium text-Secondary2 py-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth2(3); setMonth2(false) }}>Month 3</p>
                   <p className='text-sm font-medium text-Secondary2 py-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth2(6); setMonth2(false) }}>Month 6</p>
@@ -257,12 +258,12 @@ const AdminDashboard = () => {
         <div className='p-5 rounded-md bg-background6 shadow-[0px_0px_10px_0px_#28236633] md:max-w-[292px] 2xl:max-w-[312px] w-full h-fit'>
           <span className='relative flex justify-between items-start gap-3 w-full'>
             <h3 className='text-base xl:text-lg text-Primary font-semibold'>All Users</h3>
-            <span ref={MonthRef} className='flex items-center gap-2 py-[6px] px-3 border border-borderColor rounded-md bg-background3 max-w-[120px] cursor-pointer' onClick={toggleDropdown3}>
+            <span className='flex items-center gap-2 py-[6px] px-3 border border-borderColor rounded-md bg-background3 max-w-[120px] cursor-pointer' onClick={toggleDropdown3}>
               <p className='text-sm xl:text-sm text-Secondary2 font-medium'>{monthFilters[selectedMonth]}</p>
               <img className='w-3' src={DropdownIcon} alt="" />
             </span>
             {month && (
-              <div className='absolute top-9 right-0 z-10 py-2 mt-1 px-3 rounded-md bg-background6 border border-borderColor2 shadow-[0px_0px_6px_0px_#28236633] max-w-[105px] w-full'>
+              <div ref={MonthRef} className='absolute top-9 right-0 z-10 py-2 mt-1 px-3 rounded-md bg-background6 border border-borderColor2 shadow-[0px_0px_6px_0px_#28236633] max-w-[105px] w-full'>
                 <p className='text-sm font-medium text-Secondary2 pb-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth(1); setMonth(false) }}>Month</p>
                 <p className='text-sm font-medium text-Secondary2 py-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth(3); setMonth(false) }}>Month 3</p>
                 <p className='text-sm font-medium text-Secondary2 py-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth(6); setMonth(false) }}>Month 6</p>

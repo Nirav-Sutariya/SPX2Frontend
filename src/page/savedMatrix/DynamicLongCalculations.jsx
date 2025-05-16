@@ -24,6 +24,7 @@ function DynamicLongCalculations({ savedData, nextGamePlan, DynamicShowHandel })
   const [GainPreTable, setGainPreTable] = useState([]);
   const [LossPreTable, setLossPreTable] = useState([]);
   const [AfterWinTable, setAfterWinTable] = useState([]);
+  const [levelDateTable, setLevelDateTable] = useState([]);
   const [ContractsTable, setContractsTable] = useState([]);
   const [AfterLossTable, setAfterLossTable] = useState([]);
   const [CommissionTable, setCommissionTable] = useState([]);
@@ -119,6 +120,7 @@ function DynamicLongCalculations({ savedData, nextGamePlan, DynamicShowHandel })
     setGainPreTable([]);
     setAfterLossTable([]);
     setLossPreTable([]);
+    setLevelDateTable([]);
 
     Object.keys(levels).map((level, index) => {
       setLevelTable((pre) => {
@@ -126,8 +128,11 @@ function DynamicLongCalculations({ savedData, nextGamePlan, DynamicShowHandel })
       })
 
       let t = (levels[level]?.active ? levels[level].value : 0) || 0;
-      let tradePrice = levels[level].premium || 0
-      let stopPrice = levels[level].stopLevel || 0
+      let tradePrice = levels[level].premium || 0;
+      let stopPrice = levels[level].stopLevel || 0;
+
+      const item = levels[level];
+      setLevelDateTable(prev => [...prev, item.levelDate?.slice(0, 10) || "-"]);
 
       setContractsTable((pre) => {
         return [...pre, t]
@@ -152,7 +157,7 @@ function DynamicLongCalculations({ savedData, nextGamePlan, DynamicShowHandel })
       })
 
       let commissionData = 0
-      if (obj.fullICClose) {
+      if (obj.fullIcClose) {
         commissionData = commission * obj.value * 2
       } else if (obj.oneSideClose) {
         commissionData = 1.5 * commission * obj.value
@@ -175,7 +180,7 @@ function DynamicLongCalculations({ savedData, nextGamePlan, DynamicShowHandel })
 
       if (obj.outSide) {
         profitData = 0
-      } else if (stopData > 0 && (obj.fullICClose || obj.oneSideClose)) {
+      } else if (stopData > 0 && (obj.fullIcClose || obj.oneSideClose)) {
         profitData = ((stopPrice - tradePrice) * t * 100) - commissionData
       } else {
         profitData = (500 * t) - debitValue - commissionData
@@ -191,7 +196,7 @@ function DynamicLongCalculations({ savedData, nextGamePlan, DynamicShowHandel })
       if (obj.active) {
         if (obj.outSide) {
           lossData = 0 - debitValue - commissionData;
-        } else if (stopData > 0 && (obj.fullICClose || obj.oneSideClose)) {
+        } else if (stopData > 0 && (obj.fullIcClose || obj.oneSideClose)) {
           lossData = -(((tradePrice - stopPrice) * t * 100) + commissionData);
         } else {
           lossData = 0;
@@ -352,7 +357,8 @@ function DynamicLongCalculations({ savedData, nextGamePlan, DynamicShowHandel })
         <table className="table-auto border-collapse w-full">
           <thead>
             <tr className="bg-background2 text-white text-sm lg:text-base font-semibold">
-              <th className="px-2 py-2">Level</th>
+              <th className="px-2 py-2">Date</th>
+              <th className="border-x border-borderColor px-2 py-2">Level</th>
               {showContracts && <th className="border-x border-borderColor px-2 py-2">Contracts ({sum(ContractsTable)})</th>}
               {showCredit && <th className="border-x border-borderColor px-2 py-2">Debit</th>}
               {showStop && <th className="border-x border-borderColor px-2 py-2">Stop</th>}
@@ -373,7 +379,8 @@ function DynamicLongCalculations({ savedData, nextGamePlan, DynamicShowHandel })
               if (levels[level].active) {
                 return (
                   <tr key={index} className="text-sm lg:text-base text-center text-Secondary bg-background6 ">
-                    <td className="border-t border-borderColor px-2 py-2">{index + 1}</td>
+                    <td className="border-t border-borderColor px-2 py-2">{levelDateTable[index]}</td>
+                      <td className="border-t border-x border-borderColor px-2 py-2">{index + 1}</td>
                     {showContracts && <td className="border-t border-x border-borderColor px-2 py-2">{ContractsTable[index]}</td>}
                     {showCredit && <td className="border-t border-x border-borderColor px-2 py-2">${Number(CreditTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                     {showStop && <td className="border-t border-x border-borderColor px-2 py-2">${Number(StopTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}

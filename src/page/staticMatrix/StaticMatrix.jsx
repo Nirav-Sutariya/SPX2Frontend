@@ -9,21 +9,23 @@ import MinimumIcon from '../../assets/svg/MinmumIcon.svg';
 import DropdownIcon from '../../assets/svg/DropdownIcon.svg';
 import MatrixEditIcon from '../../assets/svg/MatrixEditIcon.svg';
 import SavedMatrixIcon from '../../assets/svg/SaveMatrixIcon.svg';
+import Converter from '../../assets/Images/StaticMatrix/Converter.png';
 import DeleteIcon from '../../assets/Images/StaticMatrix/DeleteIcon.svg';
 import DeleteIcon2 from '../../assets/Images/StaticMatrix/DeleteIcon2.svg';
+import PopupCloseIcon from '../../assets/Images/SuperDashboard/PopupCloseIcon.svg';
+import SubscriptionUpdateIcon from '../../assets/Images/Subscription/SubscriptionUpdateIcon.svg';
 import CapitalAllocationRangSlider from '../../components/CapitalAllocationRangSlider';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { AppContext } from '../../components/AppContext';
 import { getToken, getUserId } from '../login/loginAPI';
-import { defaultTradePrice, defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModalShort } from '../../components/utils';
+import { defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModalShort } from '../../components/utils';
 
 
 const StaticMatrix = () => {
 
   const MINIMUM_VALUE = 0;
   const MAXIMUM_VALUE = 99.00;
-  const menuRef = useRef(null);
   const dropdownRef = useRef(null);
   const containerRef = useRef(null);
   const dropdown2Ref = useRef(null);
@@ -33,7 +35,9 @@ const StaticMatrix = () => {
   let appContext = useContext(AppContext);
   const allocationDropdownRef = useRef(null);
   const [names, setNames] = useState(appContext.names);
+  const [convertedUsd, setConvertedUsd] = useState("");
   const [selectedValue, setSelectedValue] = useState(5);
+  const [conversionRate, setConversionRate] = useState("");
   const [allocation, setAllocation] = useState(defaultAllocation);
   const [tradePrice, setTradePrice] = useState(appContext.shortTradePrice);
   const [commission, setCommission] = useState(defaultCommission);
@@ -74,9 +78,8 @@ const StaticMatrix = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showAllRows, setShowAllRows] = useState(false);
   const [showAfterWin, setShowAfterWin] = useState(true);
-  const visibleRows = showAllRows ? LevelTable.length : 6;
+  const visibleRows = showAllRows ? LevelTable.length : 5;
   const [showAllRows2, setShowAllRows2] = useState(false);
-  const [isMenuVisible, setMenuVisible] = useState(false);
   const [showContracts, setShowContracts] = useState(true);
   const [showAfterLoss, setShowAfterLoss] = useState(true);
   const [isMatrixSaved, setIsMatrixSaved] = useState(false);
@@ -97,6 +100,7 @@ const StaticMatrix = () => {
   const [msgM3, setMsgM3] = useState({ type: "", msg: "", });
   const [msgM4, setMsgM4] = useState({ type: "", msg: "", });
   const options = ["5", "10", "15", "20", "25", "40", "50"];
+  const [showMessage, setShowMessage] = useState(false);
 
 
   const toggleDropdown2 = () => setIsOpen(prev => !prev);
@@ -137,6 +141,29 @@ const StaticMatrix = () => {
     }
     finally {
       setIsMessageVisible(false);
+    }
+  }
+
+  // Get Admin This Page Access For Admin Api 
+  async function getStaticTradePrice() {
+    try {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_STATIC_TRADE_PRICE), { userId: getUserId() }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 200) {
+        setTradePrice(response.data.data.staticShortTradePrice);
+
+        appContext.setAppContext((curr) => ({
+          ...curr,
+          shortTradePrice: response.data.data.staticShortTradePrice,
+        }));
+      }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      }
     }
   }
 
@@ -515,10 +542,12 @@ const StaticMatrix = () => {
       });
       if (response.status === 201) {
         setMsgM3({ type: "info", msg: "Matrix saved successfully" });
+        setShowMessage(true);
       }
     } catch (error) {
       if (error.message.includes("Network Error")) {
         setMsgM3({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+        setShowMessage(true);
       }
     }
   };
@@ -526,11 +555,6 @@ const StaticMatrix = () => {
   useMemo(() => {
     setCurrentAllocation((Number(originalSize) * (allocation / 100)).toFixed(2));
   }, [allocation, originalSize])
-
-  // Fetch saved matrix if it exists
-  useMemo(() => {
-    getSPXMatrixAPI(selectedName);
-  }, [selectedName]);
 
   useMemo(() => {
     setLoss((tradePrice * 100 - (100 * selectedValue)).toFixed(2));
@@ -870,15 +894,13 @@ const StaticMatrix = () => {
       if (isFilterModalVisible && filterModalRef.current && !filterModalRef.current.contains(event.target)) {
         setIsFilterModalVisible(false);
       }
-      // Close menu dropdown
-      if (isMenuVisible && menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuVisible(false);
-      }
+
       // Close general dropdown
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownVisible(false);
         setEditIndex(null);
       }
+
       // Close allocation hints dropdown
       if (
         allocationDropdownRef.current && !allocationDropdownRef.current.contains(event.target) &&
@@ -897,25 +919,26 @@ const StaticMatrix = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMenuVisible, isFilterModalVisible]);
+  }, [isFilterModalVisible]);
 
   useMemo(() => {
     if (msgM1.type !== "")
       setTimeout(() => {
         setMsgM1({ type: "", msg: "" })
-      }, 20 * 100);
+      }, 40 * 100);
     if (msgM2.type !== "")
       setTimeout(() => {
         setMsgM2({ type: "", msg: "" })
-      }, 20 * 100);
+      }, 40 * 100);
     if (msgM3.type !== "")
       setTimeout(() => {
         setMsgM3({ type: "", msg: "" })
-      }, 20 * 100);
+        setShowMessage(false);
+      }, 40 * 100);
     if (msgM4.type !== "")
       setTimeout(() => {
         setMsgM4({ type: "", msg: "" })
-      }, 20 * 100);
+      }, 40 * 100);
   }, [msgM1, msgM2, msgM3, msgM4])
 
   useEffect(() => {
@@ -934,13 +957,40 @@ const StaticMatrix = () => {
     if (selectedName) {
       sessionStorage.setItem('staticShortMatrix', JSON.stringify(selectedName));
     }
+  }, [selectedName]);
+
+  useEffect(() => {
     if (selectedValue) {
       fetchAllocationLevelValuesFromAPI2();
     }
+  }, [selectedValue]);
+
+  // Fetch saved matrix if it exists
+  useMemo(() => {
+    getSPXMatrixAPI(selectedName);
+  }, [selectedName]);
+
+  // useEffect(() => {
+  //   const storedKey = sessionStorage.getItem('staticShortMatrix');
+
+  //   if (storedKey && performance.navigation.type === 1) { // Only on refresh
+  //     const parsedKey = JSON.parse(storedKey);
+  //     setSelectedName(parsedKey); // optionally update state
+  //     getSPXMatrixAPI(parsedKey); // call only once
+  //   }
+  // }, []);
+
+  useEffect(() => {
     if (appContext.staticShortKey === null) {
       getStaticKey();
     }
-  }, [selectedName, selectedValue, appContext.staticShortKey]);
+  }, [appContext.staticShortKey]);
+
+  useEffect(() => {
+    if (appContext.shortTradePrice === null) {
+      getStaticTradePrice();
+    }
+  }, [appContext.shortTradePrice]);
 
   const handleTradePriceChange = (e) => {
     const inputValue = e.target.value;
@@ -987,8 +1037,65 @@ const StaticMatrix = () => {
     }
     debounceTimeout.current = setTimeout(() => {
       getLevelDetailsUsingBuyingPower(value);
-    }, 500);
+    }, 100);
+
+    const rate = parseFloat(conversionRate);
+    const cad = parseFloat(value);
+
+    if (!isNaN(rate) && !isNaN(cad)) {
+      const usd = (cad * rate).toFixed(2);
+      setConvertedUsd(usd);
+    } else {
+      setConvertedUsd("");
+    }
   };
+
+  const handleRateChange = (e) => {
+    const value = e.target.value;
+    setConversionRate(value);
+
+    const rate = parseFloat(value);
+    const cad = parseFloat(originalSize);
+
+    if (!isNaN(rate) && !isNaN(cad)) {
+      const usd = (cad * rate).toFixed(2);
+      setConvertedUsd(usd);
+    } else {
+      setConvertedUsd("");
+    }
+  };
+  
+
+  //   const [cadRate, setCadRate] = useState(null);
+
+  // useEffect(() => {
+  //   async function fetchCADRate() {
+  //     try {
+  //       const response = await axios.get('https://api.currencyapi.com/v3/latest', {
+  //         params: {
+  //           apikey: 'cur_live_giEGKYdPO6sOIqofvSNmOgihi9QpQwSrpLlKpGJI',
+  //           currencies: 'CAD',
+  //         },
+  //       });
+
+  //       const rate = parseFloat(response.data?.data?.CAD?.value).toFixed(3);
+
+  //       setCadRate(rate);
+  //       appContext.setAppContext((curr) => ({
+  //         ...curr,
+  //         cadRate: rate,
+  //       }));
+
+  //     } catch (err) {
+  //       console.error('Error fetching CAD rate:', err.message);
+  //     }
+  //   }
+
+  //   if (appContext.currency === 'CAD' && (appContext.cadRate === null || appContext.cadRate === undefined)) {
+  //     fetchCADRate();
+  //   }
+  // }, [appContext.currency]);
+
 
 
   return (<>
@@ -1060,6 +1167,25 @@ const StaticMatrix = () => {
         {/* Capital Allocation Range Slider Section */}
         <CapitalAllocationRangSlider allocation={allocation} setAllocation={setAllocation} />
 
+        {appContext.currency === "CAD" && <div className='rounded-md max-w-[792px] bg-background6 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633]'>
+          <div className='text-base font-medium text-Primary px-3 py-2 lg:px-5 lg:py-3 shadow-[0px_4px_16.2px_0px_#EBEEF6]'> Check Live Currency Rates </div>
+          <div className='flex flex-wrap 2xl:flex-nowrap items-end gap-4 p-3 lg:p-5'>
+            <div className='w-full'>
+              <label className='flex justify-between gap-2 items-center text-sm lg:text-base text-Primary lg:font-medium'>
+                <span className='flex items-center gap-2'> USD <img src={Converter} alt='Converter' /> CAD </span>
+                <span> Rate 1.40 </span>
+              </label>
+              <div className='flex justify-between items-center text-sm lg:text-base text-Primary font-medium mt-1 lg:mt-2 py-1 px-[6px] lg:p-3 gap-4 border border-borderColor bg-textBoxBg rounded-md'>
+                <span className='font-semibold'>C$</span>
+                <input type='text' maxLength={4} title='Max Length 4' value={conversionRate} onChange={handleRateChange} placeholder='Enter Your Rate' className='bg-transparent w-full focus:outline-none' />
+              </div>
+            </div>
+            <button type="button" className="text-sm lg:text-lg font-semibold text-white bg-ButtonBg rounded-md py-2 lg:py-3 max-w-[173px] w-full">
+              Apply Now
+            </button>
+          </div>
+        </div>}
+
         <div className='rounded-md max-w-[792px] bg-background6 p-3 lg:p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Size'>
           <div className='flex flex-wrap min-[430px]:flex-nowrap items-end gap-3 lg:gap-5'>
             <div className='w-full'>
@@ -1105,6 +1231,12 @@ const StaticMatrix = () => {
                                 setAllocationHintsVisibility(false);
                                 await getSingleLevelAPI(key._id);
                                 localStorage.setItem('originalSizeIdShort', key._id);
+                                // Convert to USD if rate exists
+                                const rate = parseFloat(conversionRate);
+                                if (!isNaN(rate) && !isNaN(key.buyingPower)) {
+                                  const usd = (key.buyingPower * rate).toFixed(2);
+                                  setConvertedUsd(usd);
+                                }
                               }}>
                               <span className="text-sm lg:text-base text-Primary font-medium text-wrap flex-1 ml-2">
                                 $ {Number(key.buyingPower).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1152,23 +1284,33 @@ const StaticMatrix = () => {
             </div>
           </div>
           <p className='text-sm lg:text-base text-Primary lg:font-medium mt-4'>Current Allocation Size: <span className='px-1'>${Number(currentAllocation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+          {convertedUsd && appContext.currency === "CAD" && (<p className='text-sm lg:text-base text-Primary lg:font-medium mt-1'>Current Allocation Size (CAD): <span className='px-1'>C$ {convertedUsd}</span></p>)}
         </div>
         {(msgM4.msg !== "") && <p className={`text-sm ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}.</p>}
 
-        <div className='rounded-md p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
-          <div className='flex flex-wrap justify-between items-start md:items-center gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
-            <div className='flex gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium '>
-              <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md`} onClick={Regular}>Regular</button>
-              <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
-              <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
-            </div>
-            <div className='md:flex gap-3'>
-              {(msgM3.msg !== "") && <p className={`hidden md:block text-sm text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}, <Link to="/subscription"></Link> </p>}
-              <div className="flex items-center gap-2 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-md py-2 px-5 lg:py-[6px] lg:px-[30px] h-[37px] lg:h-[45px] cursor-pointer" onClick={handleSaveMatrix} >
-                <img className='h-4 lg:h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
+        <div className="fixed top-[30%] right-5 z-20 flex items-center gap-3 lg:gap-4 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-t-lg py-2 px-5 lg:px-7 cursor-pointer -rotate-90 origin-right" onClick={handleSaveMatrix} >
+          <img className='h-4 lg:h-[18px] rotate-90' src={SavedMatrixIcon} alt="" /> Save Matrix
+        </div>
+
+        {showMessage && (
+          <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
+            <div className="relative p-4 lg:p-[30px] bg-background6 rounded-[22px] border border-borderColor5 shadow-[0px_0px_6px_0px_#28236633] w-[300px] lg:w-[380px]">
+              <img className="absolute top-2 right-2 cursor-pointer w-7" onClick={() => setShowMessage(false)} src={PopupCloseIcon} alt="" />
+              <div className="flex justify-center">
+                <div className="mx-auto p-3 lg:p-5 border border-borderColor rounded-md bg-background3">
+                  <img className="w-10" src={SubscriptionUpdateIcon} alt="Update Icon" />
+                </div>
               </div>
-              {(msgM3.msg !== "") && <p className={`block md:hidden text-sm text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}, <Link to="/subscription"></Link> </p>}
+              <p className={`text-base lg:text-xl mx-auto mt-5 text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Primary"}`}>{msgM3.msg} </p>
             </div>
+          </div>
+        )}
+
+        <div className='rounded-md p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
+          <div className='flex gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
+            <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md`} onClick={Regular}>Regular</button>
+            <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
+            <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
           </div>
           {(msgM2.msg !== "") && <p className={`text-sm ${msgM2.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM2.msg}.</p>}
           {errorMessage && (<p className="text-[#D82525] text-sm mb-2">{errorMessage}</p>)}
@@ -1178,6 +1320,9 @@ const StaticMatrix = () => {
             {Array.from(
               { length: Math.max(appContext.shortMatrixLength, Object.keys(levels).length) },
               (_, index) => {
+
+                if (!showAllRows2 && index >= 6) return null;
+
                 const levelKey = `level${index + 1}`;
                 if (!levels[levelKey]) {
                   setLevels((prevLevels) => ({
@@ -1236,18 +1381,9 @@ const StaticMatrix = () => {
 
         <div className='flex justify-between items-center mt-5 lg:mt-10 lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full'>
           <h2 className='text-xl lg:text-[22px] xl:text-2xl text-Primary font-semibold text-nowrap'> Static Matrix - Short IC</h2>
-          <div className='flex justify-between sm:justify-end items-start gap-5 mt-3 sm:mt-0 w-full'>
-            <div className='md:flex gap-3'>
-              {(msgM3.msg !== "") && <p className={`hidden md:block text-sm text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}, <Link to="/subscription"></Link> </p>}
-              <div className="flex items-center gap-2 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-md py-2 px-5 lg:py-[6px] lg:px-[30px] h-[37px] lg:h-[40px] cursor-pointer" onClick={handleSaveMatrix} >
-                <img className='h-4 lg:h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
-              </div>
-              {(msgM3.msg !== "") && <p className={`block md:hidden text-sm text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}, <Link to="/subscription"></Link> </p>}
-            </div>
-            <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' ref={filterModalRef} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
-              <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
-            </p>
-          </div>
+          <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' ref={filterModalRef} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+            <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
+          </p>
         </div>
 
         <div className="flex justify-end">
@@ -1283,8 +1419,8 @@ const StaticMatrix = () => {
                 {showBP && <th className="border-x border-borderColor px-2 py-2">BP</th>}
                 {showProfit && <th className="border-x border-borderColor px-2 py-2">Profit</th>}
                 {showLoss && <th className="border-x border-borderColor px-2 py-2">Loss</th>}
-                {showCumulativeLoss && <th className="border-x border-borderColor px-2 py-2">Cumulative Loss</th>}
-                {showSeriesGainLoss && <th className="border-x border-borderColor px-2 py-2">Series Gain/Loss</th>}
+                {showCumulativeLoss && <th className="border-x border-borderColor px-2 py-2">Cumulative Loss {appContext.currency === "CAD" && <span className='block'>(CAD)</span>}</th>}
+                {showSeriesGainLoss && <th className="border-x border-borderColor px-2 py-2">Series Gain/Loss {appContext.currency === "CAD" && <span className='block'>(CAD)</span>}</th>}
                 {showAfterWin && <th className="border-x border-borderColor px-2 py-2">After Win</th>}
                 {showGainPercentage && <th className="border-x border-borderColor px-2 py-2">Gain</th>}
                 {showAfterLoss && <th className="border-x border-borderColor px-2 py-2">After Loss</th>}
@@ -1301,8 +1437,24 @@ const StaticMatrix = () => {
                   {showBP && <td className="border-t border-x border-borderColor px-2 py-2">${Number(BPTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                   {showProfit && <td className="border-t border-x border-borderColor px-2 py-2"> ${Number(ProfitTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                   {showLoss && <td className="border-t border-x border-borderColor px-2 py-2 text-red-500">-${Number(LossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
-                  {showCumulativeLoss && <td className="border-t border-x border-borderColor px-2 py-2 text-red-500">-${Number(CumulativeLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
-                  {showSeriesGainLoss && <td className={`border-t border-x border-borderColor px-2 py-2 ${SeriesGainLossTable[index] < 0 ? 'text-red-500' : ''} `}> ${Number(SeriesGainLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
+                  {showCumulativeLoss && <td className="border-t border-x border-borderColor px-2 py-2 text-red-500">-${Number(CumulativeLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {appContext.currency === "CAD" && <span className="block font-medium">
+                      ({conversionRate > 0
+                        ? `-$${(CumulativeLossTable[index] * conversionRate).toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}` : "-"})
+                    </span>}
+                  </td>}
+                  {showSeriesGainLoss && <td className={`border-t border-x border-borderColor px-2 py-2 ${SeriesGainLossTable[index] < 0 ? 'text-red-500' : ''} `}> ${Number(SeriesGainLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {appContext.currency === "CAD" && <span className="block font-medium">
+                      ({conversionRate > 0
+                        ? `$${(SeriesGainLossTable[index] * conversionRate).toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}` : "-"})
+                    </span>}
+                  </td>}
                   {showAfterWin && <td className="border-t border-x border-borderColor px-2 py-2">${Number(AfterWinTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                   {showGainPercentage && <td className={`border-t border-x border-borderColor px-2 py-2 ${GainPreTable[index] < 0 ? 'text-red-500' : ''} `}>{GainPreTable[index]}%</td>}
                   {showAfterLoss && <td className={`border-t border-x border-borderColor px-2 py-2 ${AfterLossTable[index] < 0 ? 'text-red-500' : ''} `}>${Number(AfterLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}

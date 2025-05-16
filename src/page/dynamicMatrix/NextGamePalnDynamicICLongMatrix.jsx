@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import Filter from '../../assets/svg/FilterIcon.svg';
-import Slider from 'rc-slider'; // Import Slider from rc-slider
-import 'rc-slider/assets/index.css'; // Import default slider styles
+import Slider from 'rc-slider';
+import 'rc-slider/assets/index.css';
 
 function NextGamePalnDynamicICLongMatrix({
   CumulativeLossTable, commission, Credit, setCredit, BEGain1, setBEGain1, BEGain2, setBEGain2,
@@ -25,7 +25,7 @@ function NextGamePalnDynamicICLongMatrix({
     }
     let beContracts = Math.ceil(dynamicCumulativeLoss / ((5 - premium) * 100));
     while (true) {
-      if (isNaN(beContracts)) break; 
+      if (isNaN(beContracts)) break;
       const totalCommission = beContracts * commission;
       const adjustedLoss = dynamicCumulativeLoss + totalCommission;
       const newBEContracts = Math.ceil(adjustedLoss / ((5 - premium) * 100));
@@ -58,18 +58,19 @@ function NextGamePalnDynamicICLongMatrix({
 
   valueSetup();
 
-  const handleClickOutside = (event) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setIsFilterModalVisible2(false);
-    }
-  };
-
   useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsFilterModalVisible2(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [setIsFilterModalVisible2]);
+
 
   // Range Slider
   const MIN_CREDIT = 1.0;

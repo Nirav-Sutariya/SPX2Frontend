@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import Filter from '../../assets/svg/FilterIcon.svg';
-import Slider from 'rc-slider'; // Import Slider from rc-slider
-import 'rc-slider/assets/index.css'; // Import default slider styles
+import Slider from 'rc-slider';
+import 'rc-slider/assets/index.css';
 
 function NextGamePlanDynamicLongMatrix({
   CumulativeLossTable, commission, Credit, setCredit, BEGain1, setBEGain1, BEGain2, setBEGain2,
@@ -17,6 +17,9 @@ function NextGamePlanDynamicLongMatrix({
 
   // Next Game plan calculations 
   const premiums = [5.00, 4.95, 4.90, 4.85, 4.80, 4.75, 4.70, 4.65, 4.60, 4.55, 4.50, 4.45, 4.40, 4.35, 4.30, 4.25, 4.20, 4.15, 4.10, 4.05, 4.00, 3.95, 3.90, 3.85, 3.80, 3.75, 3.70, 3.65, 3.60, 3.55, 3.50, 3.45, 3.40, 3.35, 3.30, 3.25, 3.20, 3.15, 3.10, 3.05, 3.00, 2.95, 2.90, 2.85, 2.80, 2.75, 2.70, 2.65, 2.60, 2.55, 2.50, 2.45, 2.40, 2.35, 2.30, 2.25, 2.20, 2.15, 2.10, 2.05, 2.00, 1.95, 1.90, 1.85, 1.80, 1.75, 1.70, 1.65, 1.60, 1.55, 1.50, 1.45, 1.40, 1.35, 1.30, 1.25, 1.20, 1.15, 1.10, 1.05, 1.00];
+
+  // const premiums = Array.from({ length: Math.round((10 - 1) / 0.05) + 1 }, (_, i) => (10 - i * 0.05).toFixed(2)).map(Number);
+
 
   // Function to calculate BE Contracts dynamically (adapted from your JS code)
   const calculateDynamicBEContracts = (dynamicCumulativeLoss, premium, commission) => {
@@ -58,20 +61,19 @@ function NextGamePlanDynamicLongMatrix({
 
   valueSetup();
 
-  console.log("valueSetup", valueSetup);
-
-  const handleClickOutside = (event) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setIsFilterModalVisible2(false);
-    }
-  };
-
   useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsFilterModalVisible2(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [setIsFilterModalVisible2]);
+
 
 
   // Range Slider

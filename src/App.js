@@ -117,11 +117,30 @@ const App = () => {
               phone: phoneNo || "",
             },
             profilePhoto: response.data.data.profilePicture,
+            currency: response.data.data.currency,
           }));
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
+  }
+
+  // Get Admin This Page Access For Admin Api 
+  async function getMatrixLevel() {
+    try {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_LEVEL_LENGTH), { userId: getUserId() }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 200) {
+        appContext.setAppContext((curr) => ({
+          ...curr,
+          shortMatrixLength: response.data.data.shortMatrix,
+          longMatrixLength: response.data.data.longMatrix,
+        }));
+      }
+    } catch (error) { }
   }
 
   // Set the initial theme from localStorage or default to light
@@ -170,6 +189,7 @@ const App = () => {
 
         // Call getUserData only if token is valid
         await getUserData();
+        await getMatrixLevel();
       } else {
         console.warn("No valid token found.");
       }
@@ -227,6 +247,7 @@ const App = () => {
 
     return null; // Or a loading spinner if you want
   };
+
 
   return (
     <>

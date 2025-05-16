@@ -3,6 +3,8 @@ import { createContext } from "react";
 export const AppContext = createContext({
   email: "",
   otp: "",
+  currency: null,
+  cadRate: null,
   names: {},
   namesLong: {},
   namesDynamicShort: {},

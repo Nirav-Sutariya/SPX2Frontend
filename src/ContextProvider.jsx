@@ -7,6 +7,8 @@ export default function ContextProvider() {
   const [appContext, setAppContext] = useState({
     email: "",
     otp: "",
+    currency: null,
+    cadRate: null,
     names: {},
     namesLong: {},
     namesDynamicShort: {},
@@ -56,8 +58,8 @@ export default function ContextProvider() {
     nextGamePlanShort: false,
     nextGamePlanLong: false,
     selectedUser: null,
-    shortMatrixLength: 6,
-    longMatrixLength: 12,
+    shortMatrixLength: null,
+    longMatrixLength: null,
     shortTradePrice: null,
     longTradePrice: null,
   });
