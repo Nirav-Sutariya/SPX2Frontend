@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import MenuIcon from '../assets/svg/MenuIcon.svg';
 import Icon1 from '../assets/Images/Landing/1.svg';
 import Icon2 from '../assets/Images/Landing/2.svg';
 import Icon3 from '../assets/Images/Landing/3.svg';
 import Icon4 from '../assets/Images/Landing/4.svg';
 import Icon5 from '../assets/Images/Landing/5.svg';
 import Icon6 from '../assets/Images/Landing/6.svg';
+import MenuIcon from '../assets/Images/Menu/MenuIcon.svg';
 import PlusIcon from '../assets/Images/Halp/PlusIcon.svg';
 import MinimumIcon from '../assets/Images/Halp/MinimumIcon.svg';
 import EmailIcon from '../assets/Images/Landing/EmailIcon.svg';

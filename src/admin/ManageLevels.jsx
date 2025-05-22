@@ -124,7 +124,7 @@ const ManageLevels = ({ }) => {
   // Get Trade Price 
   async function fetchTradePrice() {
     try {
-      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_STATIC_TRADE_PRICE), { userId: getUserId() }, {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_STATIC_TRADE_PRICE), { userId: getUserId(), matrixType: matrixTypeValue, spread: selectedValue }, {
         headers: {
           'x-access-token': getToken()
         }
@@ -154,7 +154,7 @@ const ManageLevels = ({ }) => {
       return
     }
     try {
-      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_SET_STATIC_TRADE_PRICE), { userId: getUserId(), staticShortTradePrice: shortTradePrice, staticLongTradePrice: longTradePrice }, {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_SET_STATIC_TRADE_PRICE), { userId: getUserId(), matrixType: matrixTypeValue, spread: selectedValue, staticShortTradePrice: shortTradePrice, staticLongTradePrice: longTradePrice }, {
         headers: {
           'x-access-token': getToken()
         }
@@ -518,8 +518,8 @@ const ManageLevels = ({ }) => {
         </div>
 
         {/* Trade Price */}
-        <div className='px-5 md:px-[30px] py-5 md:py-[34px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] max-w-[459px] lg:max-w-[509px] w-full'>
-          <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Trade Price <span className='text-xs text-[#B7D1E0] font-medium'>(Static Short)</span>
+        <div className='px-5 md:px-[30px] py-5 md:py-[34px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] max-w-[459px] lg:max-w-[509px] w-full h-fit'>
+          {matrixTypeValue === "StaticShort" && <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Trade Price <span className='text-xs text-[#B7D1E0] font-medium'>(Static Short)</span>
             <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
               <input
                 type='text'
@@ -540,8 +540,8 @@ const ManageLevels = ({ }) => {
                 </button>
               </div>
             </div>
-          </label>
-          <label className='block text-sm lg:text-base text-Primary lg:font-medium mt-5'>Trade Price <span className='text-xs text-[#B7D1E0] font-medium'>(Static Long)</span>
+          </label>}
+          {matrixTypeValue === "StaticLong" && <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Trade Price <span className='text-xs text-[#B7D1E0] font-medium'>(Static Long)</span>
             <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
               <input
                 type='text'
@@ -562,7 +562,7 @@ const ManageLevels = ({ }) => {
                 </button>
               </div>
             </div>
-          </label>
+          </label>}
           <div className="flex justify-end mt-5 md:mt-[30px]">
             <button type="button" onClick={updateTradePrice} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]">
               Update

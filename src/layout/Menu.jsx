@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
 import Help from '../assets/Images/Menu/Help.png';
 import LogoIcon from '../assets/svg/LogoIcon.svg';
-import MenuIcon from '../assets/svg/MenuIcon.svg';
 import LogoSmall from '../assets/svg/LogoSmall.svg';
+import MenuIcon from '../assets/Images/Menu/MenuIcon.svg';
 import Settings from '../assets/Images/Menu/settings.png';
 import SavedMatrix from '../assets/svg/SaveMatrixIcon.svg';
-import SwitchToAdminIcon from '../assets/svg/SwitchToAdmin.svg';
-import StaticMatrixIcon from '../assets/svg/StaticMatrixIcon.svg';
 import DynamicMatrix from '../assets/Images/Menu/DynamicMatrix.png';
+import SwitchToAdminIcon from '../assets/Images/Menu/SwitchToAdmin.svg';
 import Dashboard from '../assets/Images/SuperAdminMenu/DashboardIcon.svg';
 import Subscription from '../assets/Images/SuperAdminMenu/SubscriptionIcon.svg';
+import StaticMatrixIcon from '../assets/Images/StaticMatrix/StaticMatrixIcon.svg';
 import SuperAdminMenu from './SuperAdminMenu';
 import { AppContext } from '../components/AppContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';

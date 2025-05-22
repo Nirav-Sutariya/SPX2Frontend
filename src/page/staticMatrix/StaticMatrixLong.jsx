@@ -9,7 +9,6 @@ import MinimumIcon from '../../assets/svg/MinmumIcon.svg';
 import DropdownIcon from '../../assets/svg/DropdownIcon.svg';
 import MatrixEditIcon from '../../assets/svg/MatrixEditIcon.svg';
 import SavedMatrixIcon from '../../assets/svg/SaveMatrixIcon.svg';
-import Converter from '../../assets/Images/StaticMatrix/Converter.png';
 import DeleteIcon from '../../assets/Images/StaticMatrix/DeleteIcon.svg';
 import DeleteIcon2 from '../../assets/Images/StaticMatrix/DeleteIcon2.svg';
 import PopupCloseIcon from '../../assets/Images/SuperDashboard/PopupCloseIcon.svg';
@@ -34,8 +33,6 @@ const StaticMatrixLong = () => {
   let appContext = useContext(AppContext);
   const allocationDropdownRef = useRef(null);
   const [editKey, setEditKey] = useState(null);
-  const [convertedUsd, setConvertedUsd] = useState("");
-  const [conversionRate, setConversionRate] = useState("");
   const [selectedValue, setSelectedValue] = useState(5);
   const [names, setNames] = useState(appContext.namesLong);
   const [allocation, setAllocation] = useState(defaultAllocation);
@@ -106,6 +103,7 @@ const StaticMatrixLong = () => {
   const handleSelect = (value) => {
     setSelectedValue(value);
     setIsOpen(false);
+    getStaticTradePrice(value);
   };
 
   // Table 6 level Visible Condition 
@@ -148,19 +146,19 @@ const StaticMatrixLong = () => {
   }
 
   // Get Admin This Page Access For Admin Api 
-  async function getStaticTradePrice() {
+  async function getStaticTradePrice(spreadValue) {
     try {
-      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_STATIC_TRADE_PRICE), { userId: getUserId() }, {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_STATIC_TRADE_PRICE), { userId: getUserId(), matrixType: "StaticLong", spread: spreadValue }, {
         headers: {
           'x-access-token': getToken()
         }
       })
       if (response.status === 200) {
-        setTradePrice(response.data.data.staticLongTradePrice);
+        setTradePrice(response.data.data?.staticLongTradePrice);
 
         appContext.setAppContext((curr) => ({
           ...curr,
-          longTradePrice: response.data.data.staticLongTradePrice,
+          longTradePrice: response.data.data?.staticLongTradePrice,
         }));
       }
     } catch (error) {
@@ -893,7 +891,7 @@ const StaticMatrixLong = () => {
       setTimeout(() => {
         setMsgM3({ type: "", msg: "" })
         setShowMessage(false);
-      }, 40 * 100);
+      }, 20 * 100);
     if (msgM4.type !== "")
       setTimeout(() => {
         setMsgM4({ type: "", msg: "" })
@@ -933,7 +931,7 @@ const StaticMatrixLong = () => {
 
   useEffect(() => {
     if (appContext.longTradePrice === null) {
-      getStaticTradePrice();
+      getStaticTradePrice(selectedValue);
     }
   }, [appContext.longTradePrice]);
 
@@ -960,16 +958,6 @@ const StaticMatrixLong = () => {
     debounceTimeout.current = setTimeout(() => {
       getLevelDetailsUsingBuyingPower(value);
     }, 100);
-
-    const rate = parseFloat(conversionRate);
-    const cad = parseFloat(value);
-
-    if (!isNaN(rate) && !isNaN(cad)) {
-      const usd = (cad * rate).toFixed(2);
-      setConvertedUsd(usd);
-    } else {
-      setConvertedUsd("");
-    }
   };
 
   const handleTradePriceChange = (e) => {
@@ -993,21 +981,6 @@ const StaticMatrixLong = () => {
   const increaseTradePrice = () => {
     const newValue = (Number(tradePrice) + DefaultInDeCrement).toFixed(2);
     if (newValue <= 5) setTradePrice(newValue);
-  };
-
-  const handleRateChange = (e) => {
-    const value = e.target.value;
-    setConversionRate(value);
-
-    const rate = parseFloat(value);
-    const cad = parseFloat(originalSize);
-
-    if (!isNaN(rate) && !isNaN(cad)) {
-      const usd = (cad * rate).toFixed(2);
-      setConvertedUsd(usd);
-    } else {
-      setConvertedUsd("");
-    }
   };
 
 
@@ -1078,25 +1051,6 @@ const StaticMatrixLong = () => {
 
         <CapitalAllocationRangSlider allocation={allocation} setAllocation={setAllocation} />
 
-        {appContext.currency === "CAD" && <div className='rounded-md max-w-[792px] bg-background6 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633]'>
-          <div className='text-base font-medium text-Primary px-3 py-2 lg:px-5 lg:py-3 shadow-[0px_4px_16.2px_0px_#EBEEF6]'> Check Live Currency Rates </div>
-          <div className='flex flex-wrap 2xl:flex-nowrap items-end gap-4 p-3 lg:p-5'>
-            <div className='w-full'>
-              <label className='flex justify-between gap-2 items-center text-sm lg:text-base text-Primary lg:font-medium'>
-                <span className='flex items-center gap-2'> USD <img src={Converter} alt='Converter' /> CAD </span>
-                <span> Rate 1.40 </span>
-              </label>
-              <div className='flex justify-between items-center text-sm lg:text-base text-Primary font-medium mt-1 lg:mt-2 py-1 px-[6px] lg:p-3 gap-4 border border-borderColor bg-textBoxBg rounded-md'>
-                <span className='font-semibold'>C$</span>
-                <input type='text' maxLength={5} title='Max Length 5' value={conversionRate} onChange={handleRateChange} placeholder='Enter Your Rate' className='bg-transparent w-full focus:outline-none' />
-              </div>
-            </div>
-            <button type="button" className="text-sm lg:text-lg font-semibold text-white bg-ButtonBg rounded-md py-2 lg:py-3 max-w-[173px] w-full">
-              Apply Now
-            </button>
-          </div>
-        </div>}
-
         <div className='rounded-md max-w-[792px] bg-background6 p-3 lg:p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Size'>
           <div className='flex flex-wrap items-end min-[430px]:flex-nowrap gap-3 lg:gap-5'>
             <div className='w-full '>
@@ -1142,12 +1096,6 @@ const StaticMatrixLong = () => {
                                 setAllocationHintsVisibility(false);
                                 await getSingleLevelAPI(key._id);
                                 localStorage.setItem('originalSizeIdLong', key._id);
-                                // Convert to USD if rate exists
-                                const rate = parseFloat(conversionRate);
-                                if (!isNaN(rate) && !isNaN(key.buyingPower)) {
-                                  const usd = (key.buyingPower * rate).toFixed(2);
-                                  setConvertedUsd(usd);
-                                }
                               }}>
                               <span className="text-sm lg:text-base text-Primary font-medium text-wrap flex-1 ml-2">
                                 $ {Number(key.buyingPower).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1166,7 +1114,7 @@ const StaticMatrixLong = () => {
               <label className='block text-sm lg:text-base text-Primary lg:font-medium mt-3 min-[430px]:mt-5'>Trade Price:</label>
               <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                 <span>$</span>
-                <input type='text' maxLength={4} title='Max Length 4' value={tradePrice} onChange={handleTradePriceChange} className='bg-transparent w-full focus:outline-none' />
+                <input type='text' maxLength={4} title='Max Length 4' value={tradePrice || appContext.shortTradePrice} onChange={handleTradePriceChange} className='bg-transparent w-full focus:outline-none' />
                 <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                   <button onClick={decreaseTradePrice} >
                     <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
@@ -1200,8 +1148,16 @@ const StaticMatrixLong = () => {
             </div>
           </div>
           <p className='text-sm lg:text-base text-Primary lg:font-medium mt-4'>Current Allocation Size: <span className='px-1'>${Number(currentAllocation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
-          {convertedUsd && appContext.currency === "CAD" && (<p className='text-sm lg:text-base text-Primary lg:font-medium mt-1'>Current Allocation Size (CAD): <span className='px-1'>C$ {convertedUsd}</span></p>)}
-        </div>
+          {(appContext.currency === "CAD" || appContext.currency === "AUD") && (<p className='text-sm lg:text-base text-Primary lg:font-semibold mt-1'>Current Allocation Size ({appContext.currency}):
+            <span className='px-1'>
+              {appContext.currency === "CAD" &&
+                `$${Number(currentAllocation * appContext.cadRate).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              }
+              {appContext.currency === "AUD" &&
+                `$${Number(currentAllocation * appContext.audRate).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              }
+            </span>
+          </p>)}        </div>
         {(msgM4.msg !== "") && <p className={`text-sm ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}.</p>}
 
         <div className="fixed top-[30%] right-5 z-20 flex items-center gap-3 lg:gap-4 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-t-lg py-2 px-5 lg:px-7 cursor-pointer -rotate-90 origin-right" onClick={handleSaveMatrix} >
@@ -1209,15 +1165,15 @@ const StaticMatrixLong = () => {
         </div>
 
         {showMessage && (
-          <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
-            <div className="relative p-4 lg:p-[30px] bg-background6 rounded-[22px] border border-borderColor5 shadow-[0px_0px_6px_0px_#28236633] w-[300px] lg:w-[380px]">
+          <div className="fixed right-0 bottom-0 p-3 lg:p-5 z-20">
+            <div className="relative p-3 lg:p-5 bg-background6 rounded-[22px] border border-borderColor5 shadow-[0px_0px_6px_0px_#28236633] w-[300px] lg:w-[300px]">
               <img className="absolute top-2 right-2 cursor-pointer w-7" onClick={() => setShowMessage(false)} src={PopupCloseIcon} alt="" />
               <div className="flex justify-center">
-                <div className="mx-auto p-3 lg:p-5 border border-borderColor rounded-md bg-background3">
+                <div className="mx-auto p-2 lg:p-4 border border-borderColor rounded-md bg-background3">
                   <img className="w-10" src={SubscriptionUpdateIcon} alt="Update Icon" />
                 </div>
               </div>
-              <p className={`text-base lg:text-xl mx-auto mt-5 text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Primary"}`}>{msgM3.msg} </p>
+              <p className={`text-sm lg:text-lg mx-auto mt-5 text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Primary"}`}>{msgM3.msg} </p>
             </div>
           </div>
         )}
@@ -1333,8 +1289,8 @@ const StaticMatrixLong = () => {
                 {showBP && <th className="border-x border-borderColor px-2 py-2">BP</th>}
                 {showProfit && <th className="border-x border-borderColor px-2 py-2">Profit</th>}
                 {showLoss && <th className="border-x border-borderColor px-2 py-2">Loss</th>}
-                {showCumulativeLoss && <th className="border-x border-borderColor px-2 py-2">Cumulative Loss {appContext.currency === "CAD" && <span className='block'>(CAD)</span>}</th>}
-                {showSeriesGainLoss && <th className="border-x border-borderColor px-2 py-2">Series Gain/Loss {appContext.currency === "CAD" && <span className='block'>(CAD)</span>}</th>}
+                {showCumulativeLoss && <th className="border-x border-borderColor px-2 py-2">Cumulative Loss {(appContext.currency === "CAD" || appContext.currency === "AUD") && <span className='block'>({appContext.currency})</span>}</th>}
+                {showSeriesGainLoss && <th className="border-x border-borderColor px-2 py-2">Series Gain/Loss {(appContext.currency === "CAD" || appContext.currency === "AUD") && <span className='block'>({appContext.currency})</span>}</th>}
                 {showAfterWin && <th className="border-x border-borderColor px-2 py-2">After Win</th>}
                 {showGainPercentage && <th className="border-x border-borderColor px-2 py-2">Gain</th>}
                 {showAfterLoss && <th className="border-x border-borderColor px-2 py-2">After Loss</th>}
@@ -1355,22 +1311,24 @@ const StaticMatrixLong = () => {
                       {showProfit && <td className="border-t border-x border-borderColor px-2 py-2">${Number(ProfitTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                       {showLoss && <td className="border-t border-x border-borderColor px-2 py-2 text-red-500">${Number(LossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                       {showCumulativeLoss && <td className="border-t border-x border-borderColor px-2 py-2 text-red-500">${Number(CumulativeLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        {appContext.currency === "CAD" && <span className="block font-medium">
-                          ({conversionRate > 0
-                            ? `$${(CumulativeLossTable[index] * conversionRate).toLocaleString("en-US", {
+                        {(appContext.currency === "CAD" || appContext.currency === "AUD") && (
+                          <span className="block font-medium">
+                            ({`${appContext.currency === "CAD" ? '$' : '$'}${(CumulativeLossTable[index] * (appContext.currency === "CAD" ? appContext.cadRate : appContext.audRate)).toLocaleString("en-US", {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2
-                            })}` : "-"})
-                        </span>}
+                            })}`})
+                          </span>
+                        )}
                       </td>}
                       {showSeriesGainLoss && <td className={`border-t border-x border-borderColor px-2 py-2 ${SeriesGainLossTable[index] < 0 ? 'text-red-500' : ''} `}>${Number(SeriesGainLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        {appContext.currency === "CAD" && <span className="block font-medium">
-                          ({conversionRate > 0
-                            ? `$${(SeriesGainLossTable[index] * conversionRate).toLocaleString("en-US", {
+                        {(appContext.currency === "CAD" || appContext.currency === "AUD") && (
+                          <span className="block font-medium">
+                            ({`${appContext.currency === "CAD" ? '$' : '$'}${(SeriesGainLossTable[index] * (appContext.currency === "CAD" ? appContext.cadRate : appContext.audRate)).toLocaleString("en-US", {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2
-                            })}` : "-"})
-                        </span>}
+                            })}`})
+                          </span>
+                        )}
                       </td>}
                       {showAfterWin && <td className="border-t border-x border-borderColor px-2 py-2">${Number(AfterWinTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                       {showGainPercentage && <td className={`border-t border-x border-borderColor px-2 py-2 ${GainPreTable[index] < 0 ? 'text-red-500' : ''} `}>{GainPreTable[index]}%</td>}
@@ -1391,11 +1349,11 @@ const StaticMatrixLong = () => {
           }
         </div>
 
-        {Object.values(levels).filter(level => level.active).length > 5 && <div className="mt-4 text-center">
+        {/* {Object.values(levels).filter(level => level.active).length > 5 && <div className="mt-4 text-center">
           <button onClick={toggleShowMore} className="text-sm lg:text-base text-Secondary2 font-medium underline">
             {showAllRows ? 'See Less Levels' : 'See More Levels'}
           </button>
-        </div>}
+        </div>} */}
 
         <Button className="flex items-center gap-2 lg:gap-[17px] h-[38px] lg:h-[55px] mt-5 lg:mt-10 mx-auto" onClick={handleSaveMatrix}>
           <img className='h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix

@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { DateTime } from 'luxon';
 import { AppContext } from "./components/AppContext";
 import { getToken, getUserId, isSuperUser, removeTokens } from "./page/login/loginAPI";
 import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from "react-router-dom";
@@ -45,6 +46,7 @@ const App = () => {
   const [activeLink, setActiveLink] = useState("/dashboard");
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(localStorage.getItem("theme") === "dark");
+  const timezone = 'America/New_York';
 
 
   // Validates the token using your API.
@@ -116,8 +118,10 @@ const App = () => {
               slackID: slackId || "",
               phone: phoneNo || "",
             },
-            profilePhoto: response.data.data.profilePicture,
-            currency: response.data.data.currency,
+            profilePhoto: response.data.data?.profilePicture,
+            currency: response.data.data?.currency,
+            audRate: response.data.data?.userCurrencyData?.aud,
+            cadRate: response.data.data?.userCurrencyData?.cad,
           }));
         }
       } catch (error) {
@@ -136,12 +140,51 @@ const App = () => {
       if (response.status === 200) {
         appContext.setAppContext((curr) => ({
           ...curr,
-          shortMatrixLength: response.data.data.shortMatrix,
-          longMatrixLength: response.data.data.longMatrix,
+          shortMatrixLength: response.data.data?.shortMatrix,
+          longMatrixLength: response.data.data?.longMatrix,
         }));
       }
     } catch (error) { }
   }
+
+  const formatData = (data) => ({
+    price: data.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    change: data.change.toFixed(2),
+  });
+
+  const fetchMarketData = async () => {
+    try {
+      const response = await axios.post(
+        process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_GET_SPX_DATA_URL,
+        { userId: getUserId() },
+        {
+          headers: {
+            'x-access-token': getToken(),
+          },
+        }
+      );
+
+      if (response.status === 200 && response.data?.data) {
+        const { spx, rut, ndx, vix } = response.data.data;
+        const marketTime = DateTime.now().setZone('America/New_York').toISO();
+        const formattedData = ({
+          spx: formatData(spx),
+          rut: formatData(rut),
+          ndx: formatData(ndx),
+          vix: formatData(vix),
+        });
+
+        // ✅ Store in appContext for global use
+        appContext.setAppContext((prev) => ({
+          ...prev,
+          marketData: formattedData,
+          marketTime: marketTime,
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching market data:', error);
+    }
+  };
 
   // Set the initial theme from localStorage or default to light
   useEffect(() => {
@@ -189,6 +232,7 @@ const App = () => {
 
         // Call getUserData only if token is valid
         await getUserData();
+        await fetchMarketData();
         await getMatrixLevel();
       } else {
         console.warn("No valid token found.");
@@ -197,6 +241,31 @@ const App = () => {
 
     runStartupLogic();
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    const now = DateTime.now().setZone(timezone);
+    const openingTime = DateTime.fromFormat('09:30 AM -04:00', 'hh:mm a ZZZ', { zone: timezone });
+    const closingTime = DateTime.fromFormat('04:00 PM -04:00', 'hh:mm a ZZZ', { zone: timezone });
+
+    const marketIsOpen = now >= openingTime && now <= closingTime;
+    const marketDataIsEmpty = !appContext.marketData || Object.keys(appContext.marketData).length === 0;
+
+    // ✅ Always call on page load if market is open
+    // ✅ Or if market is closed but context is empty
+    if (marketIsOpen || marketDataIsEmpty) {
+      fetchMarketData();
+    }
+
+    // ✅ Set interval only during market hours
+    let interval;
+    if (marketIsOpen) {
+      interval = setInterval(() => {
+        fetchMarketData();
+      }, 1000); // every 1 sec
+    }
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Apply dark mode class when isDarkTheme is true else Apply light mode class when isDarkTheme is false
   useEffect(() => {

@@ -9,7 +9,6 @@ import MinimumIcon from '../../assets/svg/MinmumIcon.svg';
 import DropdownIcon from '../../assets/svg/DropdownIcon.svg';
 import MatrixEditIcon from '../../assets/svg/MatrixEditIcon.svg';
 import SavedMatrixIcon from '../../assets/svg/SaveMatrixIcon.svg';
-import Converter from '../../assets/Images/StaticMatrix/Converter.png';
 import DeleteIcon from '../../assets/Images/StaticMatrix/DeleteIcon.svg';
 import DeleteIcon2 from '../../assets/Images/StaticMatrix/DeleteIcon2.svg';
 import PopupCloseIcon from '../../assets/Images/SuperDashboard/PopupCloseIcon.svg';
@@ -35,9 +34,7 @@ const StaticMatrix = () => {
   let appContext = useContext(AppContext);
   const allocationDropdownRef = useRef(null);
   const [names, setNames] = useState(appContext.names);
-  const [convertedUsd, setConvertedUsd] = useState("");
   const [selectedValue, setSelectedValue] = useState(5);
-  const [conversionRate, setConversionRate] = useState("");
   const [allocation, setAllocation] = useState(defaultAllocation);
   const [tradePrice, setTradePrice] = useState(appContext.shortTradePrice);
   const [commission, setCommission] = useState(defaultCommission);
@@ -82,7 +79,6 @@ const StaticMatrix = () => {
   const [showAllRows2, setShowAllRows2] = useState(false);
   const [showContracts, setShowContracts] = useState(true);
   const [showAfterLoss, setShowAfterLoss] = useState(true);
-  const [isMatrixSaved, setIsMatrixSaved] = useState(false);
   const [showCommission, setShowCommission] = useState(true);
   const [stackOrShiftFlag, setStackOrShiftFlag] = useState(true);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -109,6 +105,7 @@ const StaticMatrix = () => {
   const handleSelect = (value) => {
     setSelectedValue(value);
     setIsOpen(false);
+    getStaticTradePrice(value);
   };
 
   // Call API only if firstKey exists and API hasn't been called yet
@@ -145,19 +142,19 @@ const StaticMatrix = () => {
   }
 
   // Get Admin This Page Access For Admin Api 
-  async function getStaticTradePrice() {
+  async function getStaticTradePrice(spreadValue) {
     try {
-      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_STATIC_TRADE_PRICE), { userId: getUserId() }, {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_STATIC_TRADE_PRICE), { userId: getUserId(), matrixType: "StaticShort", spread: spreadValue }, {
         headers: {
           'x-access-token': getToken()
         }
       })
       if (response.status === 200) {
-        setTradePrice(response.data.data.staticShortTradePrice);
+        setTradePrice(response.data.data?.staticShortTradePrice);
 
         appContext.setAppContext((curr) => ({
           ...curr,
-          shortTradePrice: response.data.data.staticShortTradePrice,
+          shortTradePrice: response.data.data?.staticShortTradePrice,
         }));
       }
     } catch (error) {
@@ -471,7 +468,6 @@ const StaticMatrix = () => {
 
         if (Object.keys(savedLevelsObject).length > 0) {
           setLevels(savedLevelsObject);
-          setIsMatrixSaved(true);
           setShowContracts(response.data.data.tableVisibility.showContracts ?? true);
           setShowCredit(response.data.data.tableVisibility.showCredit ?? true);
           setShowCommission(response.data.data.tableVisibility.showCommission ?? true);
@@ -487,9 +483,6 @@ const StaticMatrix = () => {
         } else {
           fetchAllocationLevelValuesFromAPI();
         }
-      }
-      else {
-        setIsMatrixSaved(false);
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
@@ -934,7 +927,7 @@ const StaticMatrix = () => {
       setTimeout(() => {
         setMsgM3({ type: "", msg: "" })
         setShowMessage(false);
-      }, 40 * 100);
+      }, 20 * 100);
     if (msgM4.type !== "")
       setTimeout(() => {
         setMsgM4({ type: "", msg: "" })
@@ -988,7 +981,7 @@ const StaticMatrix = () => {
 
   useEffect(() => {
     if (appContext.shortTradePrice === null) {
-      getStaticTradePrice();
+      getStaticTradePrice(selectedValue);
     }
   }, [appContext.shortTradePrice]);
 
@@ -1038,64 +1031,14 @@ const StaticMatrix = () => {
     debounceTimeout.current = setTimeout(() => {
       getLevelDetailsUsingBuyingPower(value);
     }, 100);
-
-    const rate = parseFloat(conversionRate);
-    const cad = parseFloat(value);
-
-    if (!isNaN(rate) && !isNaN(cad)) {
-      const usd = (cad * rate).toFixed(2);
-      setConvertedUsd(usd);
-    } else {
-      setConvertedUsd("");
-    }
   };
 
-  const handleRateChange = (e) => {
-    const value = e.target.value;
-    setConversionRate(value);
-
-    const rate = parseFloat(value);
-    const cad = parseFloat(originalSize);
-
-    if (!isNaN(rate) && !isNaN(cad)) {
-      const usd = (cad * rate).toFixed(2);
-      setConvertedUsd(usd);
-    } else {
-      setConvertedUsd("");
-    }
+  const handleClick = async (key) => {
+    setOriginalSize(key.buyingPower);
+    setAllocationHintsVisibility(false);
+    await getSingleLevelAPI(key._id);
+    localStorage.setItem('originalSizeIdShort', key._id);
   };
-  
-
-  //   const [cadRate, setCadRate] = useState(null);
-
-  // useEffect(() => {
-  //   async function fetchCADRate() {
-  //     try {
-  //       const response = await axios.get('https://api.currencyapi.com/v3/latest', {
-  //         params: {
-  //           apikey: 'cur_live_giEGKYdPO6sOIqofvSNmOgihi9QpQwSrpLlKpGJI',
-  //           currencies: 'CAD',
-  //         },
-  //       });
-
-  //       const rate = parseFloat(response.data?.data?.CAD?.value).toFixed(3);
-
-  //       setCadRate(rate);
-  //       appContext.setAppContext((curr) => ({
-  //         ...curr,
-  //         cadRate: rate,
-  //       }));
-
-  //     } catch (err) {
-  //       console.error('Error fetching CAD rate:', err.message);
-  //     }
-  //   }
-
-  //   if (appContext.currency === 'CAD' && (appContext.cadRate === null || appContext.cadRate === undefined)) {
-  //     fetchCADRate();
-  //   }
-  // }, [appContext.currency]);
-
 
 
   return (<>
@@ -1167,25 +1110,6 @@ const StaticMatrix = () => {
         {/* Capital Allocation Range Slider Section */}
         <CapitalAllocationRangSlider allocation={allocation} setAllocation={setAllocation} />
 
-        {appContext.currency === "CAD" && <div className='rounded-md max-w-[792px] bg-background6 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633]'>
-          <div className='text-base font-medium text-Primary px-3 py-2 lg:px-5 lg:py-3 shadow-[0px_4px_16.2px_0px_#EBEEF6]'> Check Live Currency Rates </div>
-          <div className='flex flex-wrap 2xl:flex-nowrap items-end gap-4 p-3 lg:p-5'>
-            <div className='w-full'>
-              <label className='flex justify-between gap-2 items-center text-sm lg:text-base text-Primary lg:font-medium'>
-                <span className='flex items-center gap-2'> USD <img src={Converter} alt='Converter' /> CAD </span>
-                <span> Rate 1.40 </span>
-              </label>
-              <div className='flex justify-between items-center text-sm lg:text-base text-Primary font-medium mt-1 lg:mt-2 py-1 px-[6px] lg:p-3 gap-4 border border-borderColor bg-textBoxBg rounded-md'>
-                <span className='font-semibold'>C$</span>
-                <input type='text' maxLength={4} title='Max Length 4' value={conversionRate} onChange={handleRateChange} placeholder='Enter Your Rate' className='bg-transparent w-full focus:outline-none' />
-              </div>
-            </div>
-            <button type="button" className="text-sm lg:text-lg font-semibold text-white bg-ButtonBg rounded-md py-2 lg:py-3 max-w-[173px] w-full">
-              Apply Now
-            </button>
-          </div>
-        </div>}
-
         <div className='rounded-md max-w-[792px] bg-background6 p-3 lg:p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Size'>
           <div className='flex flex-wrap min-[430px]:flex-nowrap items-end gap-3 lg:gap-5'>
             <div className='w-full'>
@@ -1222,28 +1146,13 @@ const StaticMatrix = () => {
                   {allocationHintsVisibility && (
                     <div ref={allocationDropdownRef} className='absolute top-full z-10 mt-2 bg-background6 rounded-md shadow-[0px_0px_6px_0px_#28236633] w-[259px]'>
                       <div className='px-3 lg:px-[18px] py-1 pb-[14px] overscroll-auto'>
-                        {staticLevelDefaultValue.length > 0 ? (
-                          staticLevelDefaultValue.map((key, index) => (
-                            <div key={index}
-                              className={`flex justify-between items-center cursor-pointer border-b border-borderColor py-2 lg:py-[10px] ${originalSize === key.buyingPower ? "underline decoration-sky-500" : ""}`}
-                              onClick={async () => {
-                                setOriginalSize(key.buyingPower);
-                                setAllocationHintsVisibility(false);
-                                await getSingleLevelAPI(key._id);
-                                localStorage.setItem('originalSizeIdShort', key._id);
-                                // Convert to USD if rate exists
-                                const rate = parseFloat(conversionRate);
-                                if (!isNaN(rate) && !isNaN(key.buyingPower)) {
-                                  const usd = (key.buyingPower * rate).toFixed(2);
-                                  setConvertedUsd(usd);
-                                }
-                              }}>
-                              <span className="text-sm lg:text-base text-Primary font-medium text-wrap flex-1 ml-2">
-                                $ {Number(key.buyingPower).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </span>
-                            </div>
-                          ))
-                        ) : (
+                        {staticLevelDefaultValue.length > 0 ? (staticLevelDefaultValue.map((key, index) => (
+                          <div key={index} className={`flex justify-between items-center cursor-pointer border-b border-borderColor py-2 lg:py-[10px] ${originalSize === key.buyingPower ? "underline decoration-sky-500" : ""}`} onClick={() => handleClick(key)}>
+                            <span className="text-sm lg:text-base text-Primary font-medium text-wrap flex-1 ml-2">
+                              $ {Number(key.buyingPower).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        ))) : (
                           <p className='text-sm lg:text-base text-Secondary2 font-medium mt-2'>No data available</p>
                         )}
                       </div>
@@ -1254,7 +1163,7 @@ const StaticMatrix = () => {
               <label className='block text-sm lg:text-base text-Primary lg:font-medium mt-3 min-[430px]:mt-5'>Trade Price:</label>
               <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                 <span>$</span>
-                <input type='text' maxLength={4} title='Max Length 4' value={tradePrice} onChange={handleTradePriceChange} className='bg-transparent w-full focus:outline-none' />
+                <input type='text' maxLength={4} title='Max Length 4' value={tradePrice || appContext.shortTradePrice} onChange={handleTradePriceChange} className='bg-transparent w-full focus:outline-none' />
                 <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                   <button onClick={decrementTradePrice} > <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" /></button>
                   <div className='border-r border-borderColor6 h-[26px]'></div>
@@ -1284,7 +1193,16 @@ const StaticMatrix = () => {
             </div>
           </div>
           <p className='text-sm lg:text-base text-Primary lg:font-medium mt-4'>Current Allocation Size: <span className='px-1'>${Number(currentAllocation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
-          {convertedUsd && appContext.currency === "CAD" && (<p className='text-sm lg:text-base text-Primary lg:font-medium mt-1'>Current Allocation Size (CAD): <span className='px-1'>C$ {convertedUsd}</span></p>)}
+          {(appContext.currency === "CAD" || appContext.currency === "AUD") && (<p className='text-sm lg:text-base text-Primary lg:font-semibold mt-1'>Current Allocation Size ({appContext.currency}):
+            <span className='px-1'>
+              {appContext.currency === "CAD" &&
+                `$${Number(currentAllocation * appContext.cadRate).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              }
+              {appContext.currency === "AUD" &&
+                `$${Number(currentAllocation * appContext.audRate).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              }
+            </span>
+          </p>)}
         </div>
         {(msgM4.msg !== "") && <p className={`text-sm ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}.</p>}
 
@@ -1293,15 +1211,15 @@ const StaticMatrix = () => {
         </div>
 
         {showMessage && (
-          <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
-            <div className="relative p-4 lg:p-[30px] bg-background6 rounded-[22px] border border-borderColor5 shadow-[0px_0px_6px_0px_#28236633] w-[300px] lg:w-[380px]">
+          <div className="fixed right-0 bottom-0 p-3 lg:p-5 z-20">
+            <div className="relative p-3 lg:p-5 bg-background6 rounded-[22px] border border-borderColor5 shadow-[0px_0px_6px_0px_#28236633] w-[300px] lg:w-[300px]">
               <img className="absolute top-2 right-2 cursor-pointer w-7" onClick={() => setShowMessage(false)} src={PopupCloseIcon} alt="" />
               <div className="flex justify-center">
-                <div className="mx-auto p-3 lg:p-5 border border-borderColor rounded-md bg-background3">
+                <div className="mx-auto p-2 lg:p-4 border border-borderColor rounded-md bg-background3">
                   <img className="w-10" src={SubscriptionUpdateIcon} alt="Update Icon" />
                 </div>
               </div>
-              <p className={`text-base lg:text-xl mx-auto mt-5 text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Primary"}`}>{msgM3.msg} </p>
+              <p className={`text-sm lg:text-lg mx-auto mt-5 text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Primary"}`}>{msgM3.msg} </p>
             </div>
           </div>
         )}
@@ -1419,8 +1337,8 @@ const StaticMatrix = () => {
                 {showBP && <th className="border-x border-borderColor px-2 py-2">BP</th>}
                 {showProfit && <th className="border-x border-borderColor px-2 py-2">Profit</th>}
                 {showLoss && <th className="border-x border-borderColor px-2 py-2">Loss</th>}
-                {showCumulativeLoss && <th className="border-x border-borderColor px-2 py-2">Cumulative Loss {appContext.currency === "CAD" && <span className='block'>(CAD)</span>}</th>}
-                {showSeriesGainLoss && <th className="border-x border-borderColor px-2 py-2">Series Gain/Loss {appContext.currency === "CAD" && <span className='block'>(CAD)</span>}</th>}
+                {showCumulativeLoss && <th className="border-x border-borderColor px-2 py-2">Cumulative Loss {(appContext.currency === "CAD" || appContext.currency === "AUD") && <span className='block'>({appContext.currency})</span>}</th>}
+                {showSeriesGainLoss && <th className="border-x border-borderColor px-2 py-2">Series Gain/Loss {(appContext.currency === "CAD" || appContext.currency === "AUD") && <span className='block'>({appContext.currency})</span>}</th>}
                 {showAfterWin && <th className="border-x border-borderColor px-2 py-2">After Win</th>}
                 {showGainPercentage && <th className="border-x border-borderColor px-2 py-2">Gain</th>}
                 {showAfterLoss && <th className="border-x border-borderColor px-2 py-2">After Loss</th>}
@@ -1438,22 +1356,24 @@ const StaticMatrix = () => {
                   {showProfit && <td className="border-t border-x border-borderColor px-2 py-2"> ${Number(ProfitTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                   {showLoss && <td className="border-t border-x border-borderColor px-2 py-2 text-red-500">-${Number(LossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                   {showCumulativeLoss && <td className="border-t border-x border-borderColor px-2 py-2 text-red-500">-${Number(CumulativeLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    {appContext.currency === "CAD" && <span className="block font-medium">
-                      ({conversionRate > 0
-                        ? `-$${(CumulativeLossTable[index] * conversionRate).toLocaleString("en-US", {
+                    {(appContext.currency === "CAD" || appContext.currency === "AUD") && (
+                      <span className="block font-medium">
+                        ({`${appContext.currency === "CAD" ? '-$' : '-$'}${(CumulativeLossTable[index] * (appContext.currency === "CAD" ? appContext.cadRate : appContext.audRate)).toLocaleString("en-US", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2
-                        })}` : "-"})
-                    </span>}
+                        })}`})
+                      </span>
+                    )}
                   </td>}
                   {showSeriesGainLoss && <td className={`border-t border-x border-borderColor px-2 py-2 ${SeriesGainLossTable[index] < 0 ? 'text-red-500' : ''} `}> ${Number(SeriesGainLossTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    {appContext.currency === "CAD" && <span className="block font-medium">
-                      ({conversionRate > 0
-                        ? `$${(SeriesGainLossTable[index] * conversionRate).toLocaleString("en-US", {
+                    {(appContext.currency === "CAD" || appContext.currency === "AUD") && (
+                      <span className="block font-medium">
+                        ({`${appContext.currency === "CAD" ? '$' : '$'}${(SeriesGainLossTable[index] * (appContext.currency === "CAD" ? appContext.cadRate : appContext.audRate)).toLocaleString("en-US", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2
-                        })}` : "-"})
-                    </span>}
+                        })}`})
+                      </span>
+                    )}
                   </td>}
                   {showAfterWin && <td className="border-t border-x border-borderColor px-2 py-2">${Number(AfterWinTable[index]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>}
                   {showGainPercentage && <td className={`border-t border-x border-borderColor px-2 py-2 ${GainPreTable[index] < 0 ? 'text-red-500' : ''} `}>{GainPreTable[index]}%</td>}

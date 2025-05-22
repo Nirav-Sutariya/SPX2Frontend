@@ -1,21 +1,27 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import Logout from '../assets/svg/Logout.svg';
-import Logout2 from '../assets/svg/logout2.svg';
-import MenuIcon from '../assets/svg/MenuIcon.svg';
-import LogoIcon from '../assets/svg/LogoIcon.svg';
 import ManImag from '../assets/Images/Man.png';
-import LogoutIcon from '../assets/svg/LogoutIcon.svg';
+import AUS from '../assets/Images/Menu/AUS.png';
+import CAD from '../assets/Images/Menu/CAD.png';
+import USA from '../assets/Images/Menu/US.png';
+import LogoIcon from '../assets/svg/LogoIcon.svg';
+import Logout from '../assets/Images/Login/Logout.svg';
+import Logout2 from '../assets/Images/Login/logout2.svg';
+import MenuIcon from '../assets/Images/Menu/MenuIcon.svg';
 import HelpIcon from '../assets/Images/Menu/HelpIcon.svg';
-import SettingsIcon from '../assets/svg/SettingsIcon.svg';
-import EditProfileIcon from '../assets/svg/EditProfileIcon.svg';
+import LogoutIcon from '../assets/Images/Login/LogoutIcon.svg';
+import SettingsIcon from '../assets/Images/Setting/SettingsIcon.svg';
 import SaveMatrixIcon from '../assets/Images/Menu/SaveMatrixIcon.svg';
 import StaticMatrixIcon from '../assets/Images/Menu/StaticMatrixIcon.svg';
 import SubscriptionIcon from '../assets/Images/Menu/SubscriptionIcon.svg';
 import DashboardIcon from '../assets/Images/AdminHeader/DashboardIcon.svg';
+import EditProfileIcon from '../assets/Images/Setting/EditProfileIcon.svg';
 import DynamicMatrixIcon from '../assets/Images/DynamicMatrix/DynamicMatrixIcon.svg';
 import { AppContext } from '../components/AppContext';
-import { removeTokens } from '../page/login/loginAPI';
+import { getToken, getUserId, removeTokens } from '../page/login/loginAPI';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import TradingViewOverview from '../components/TradingViewOverview';
+import axios from 'axios';
+
 
 const handleLogout = async (setIsLoggedIn) => {
   removeTokens();
@@ -26,14 +32,30 @@ const handleLogout = async (setIsLoggedIn) => {
 const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLink, setIsLoggedIn }) => {
 
   let navigate = useNavigate();
+  const ref = useRef();
   const menuRef = useRef(null);
   const location = useLocation();
   const dropdownRef = useRef(null);
   let appContext = useContext(AppContext);
+  const [open, setOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isMenuVisible, setMenuVisible] = useState(false);
   const [isAdmin, setIsAdmin] = useState(appContext.isAdmin);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [currency, setCurrency] = useState(appContext.currency);
+  const options = ['USD', 'CAD', 'AUD'];
+  const optionImages = {
+    AUD: AUS,
+    CAD: CAD,
+    USD: USA,
+  };
+  const showTradingView = [
+    '/dashboard',
+    '/static-matrix-short',
+    '/static-matrix-long',
+    '/dynamic-matrix-short',
+    '/dynamic-matrix-long'
+  ].includes(location.pathname);
 
 
   // Function to handle when a link is clicked
@@ -46,6 +68,24 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
   const getLinkClass = (link) => {
     return activeLink === link ? 'bg-background4 text-Secondary font-medium' : '';
   };
+
+  async function currencyUser(newCurrency) {
+    try {
+      let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_UPDATE_USER_CURRENCY_URL), { userId: getUserId(), currency: newCurrency }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 201) {
+        setCurrency(response.data.data.currency);
+        appContext.setAppContext((curr) => ({
+          ...curr,
+          currency: response.data.data.currency,
+        }));
+      }
+    } catch (error) {
+    }
+  }
 
   // Toggle theme and update API
   useEffect(() => {
@@ -82,17 +122,35 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
         setIsOpen(false);
       }
     };
-  
+
     const shouldDisableScroll = showLogoutModal || isMenuVisible;
     document.body.classList.toggle('no-scroll', shouldDisableScroll);
-  
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.body.classList.remove('no-scroll');
     };
   }, [showLogoutModal, isMenuVisible]);
-  
+
+  useEffect(() => {
+    if (appContext?.currency) {
+      setCurrency(appContext.currency);
+    }
+  }, [appContext.currency]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  console.log("appContext.marketTime", appContext.marketTime);
+
 
   return (
     <>
@@ -188,8 +246,65 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
         </div>
       )}
 
-      <div className='relative flex flex-wrap gap-5 justify-between w-full pt-6 lg:pt-11 px-[14px] lg:px-[40px]'>
+      {showTradingView && (
+        <div className='w-full flex flex-wrap sm:flex-nowrap justify-between items-start gap-2 pt-1 px-[14px] lg:pl-10 lg:pr-6'>
+          <div className='w-full max-w-[950px]'>
+            <TradingViewOverview />
+          </div>
+
+          {/* <div className="flex items-center rounded-md p-2 min-w-[220px] bg-background6 shadow-[0px_0px_8px_0px_#28236633]">
+            <div className="text-base text-Primary font-semibold">
+              <p className='text-sm text-Primary'>Last updated at: {new Date(appContext?.marketTime).toLocaleString('en-US', {
+                  timeZone: 'America/New_York',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: true,
+                })}</p>
+            </div>
+          </div> */}
+        </div>
+      )}
+
+      <div className={`relative flex flex-wrap gap-5 justify-between w-full ${showTradingView ? "pt-4" : "pt-6 lg:pt-11"} px-[14px] lg:px-10`}>
         <div className='absolute right-6 hidden lg:flex items-center gap-[30px] FilterModalVisible order-1 lg:order-2'>
+          <div ref={ref} className="relative inline-block text-left w-[110px]">
+            <div
+              onClick={() => setOpen(!open)}
+              className="cursor-pointer bg-userBg text-white text-base px-3 py-1 rounded-md flex gap-2 justify-between items-center"
+            > <img
+                src={optionImages[currency]}
+                alt={currency}
+              />
+              {currency}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary" viewBox="0 0 20 20" fill="#fff">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
+
+            {open && (
+              <div className="absolute mt-1 w-full rounded-md shadow-lg bg-userBg z-10">
+                {options.map((option) => (
+                  <div
+                    key={option}
+                    onClick={() => {
+                      setCurrency(option);
+                      setOpen(false);
+                      currencyUser(option);
+                    }}
+                    className={`flex items-center gap-3 px-4 py-2 text-xs lg:text-sm text-white cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${currency === option ? 'bg-borderColor4' : ''
+                      }`}
+                  >
+                    <img
+                      src={optionImages[option]}
+                      alt={option}
+                    />
+                    {option}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <div className={`flex items-center gap-[30px] FilterModalVisible`}>
             <label className="switch">
               <input type="checkbox" onClick={toggleTheme} checked={isDarkTheme} />

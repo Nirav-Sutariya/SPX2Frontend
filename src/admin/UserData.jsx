@@ -1,16 +1,16 @@
 import React, { useContext, useMemo, useRef, useState, useEffect } from 'react';
 import Man from '../assets/Images/Man.png';
 import PlusIcon from '../assets/svg/PlusIcon.svg';
+import DropdownIcon from '../assets/svg/DropdownIcon.svg';
 import BanIcon from '../assets/Images/UserData/BanIcon.svg';
-import ProfilePicture from '../assets/svg/ProfilePicture.svg';
 import EditIcon from '../assets/Images/UserData/EditIcon.svg';
 import ActionIcon from '../assets/Images/UserData/ActionIcon.svg';
 import DeleteIcon from '../assets/Images/UserData/DeleteIcon.svg';
+import SearchIcon from '../assets/Images/UserData/SearchIcon.svg';
 import BanPopupIcon from '../assets/Images/UserData/BanPopupIcon.svg';
+import ProfilePicture from '../assets/Images/Setting/ProfilePicture.svg';
 import DeletePopupIcon from '../assets/Images/UserData/DeletePopupIcon.svg';
 import PopupCloseIcon from '../assets/Images/SuperDashboard/PopupCloseIcon.svg';
-import DropdownIcon from '../assets/svg/DropdownIcon.svg';
-import SearchIcon from '../assets/svg/SearchIcon.svg';
 import axios from 'axios';
 import { validateEmail } from '../components/utils';
 import { Link, useNavigate } from 'react-router-dom';
@@ -744,7 +744,7 @@ const UserData = () => {
               </div>
             </div>
 
-            <div className="flex justify-end mt-5 lg:mt-auto">
+            <div className="flex justify-end mt-5 lg:mt-1">
               <button type="submit" ref={submitButtonRef} onClick={addNewUser} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]">
                 Submit
               </button>
@@ -838,7 +838,7 @@ const UserData = () => {
               </div>
             </div>
 
-            <div className="flex justify-end mt-5 lg:mt-auto">
+            <div className="flex justify-end mt-5 lg:mt-1">
               <button type="button" ref={submitButtonEditRef} onClick={editExistingUser} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]" >
                 Update Changes
               </button>

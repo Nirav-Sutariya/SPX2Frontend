@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import Logout2 from '../assets/svg/logout2.svg';
 import ManImag from '../assets/Images/Man.png';
-import MenuIcon from '../assets/svg/MenuIcon.svg';
 import LogoIconMenu from '../assets/svg/LogoIcon.svg';
-import LogoutIcon from '../assets/svg/LogoutIcon.svg';
+import Logout2 from '../assets/Images/Login/logout2.svg';
+import MenuIcon from '../assets/Images/Menu/MenuIcon.svg';
+import LogoutIcon from '../assets/Images/Login/LogoutIcon.svg';
 import UserDataIcon from '../assets/Images/AdminHeader/UserDataIcon.svg';
 import DashboardIcon from '../assets/Images/AdminHeader/DashboardIcon.svg';
 import SupportUserIcon from '../assets/Images/AdminHeader/SupportUserIcon.svg';

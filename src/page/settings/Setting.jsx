@@ -4,10 +4,11 @@ import { Link } from 'react-router-dom';
 import { handleLogout } from '../../layout/Header'
 import { getToken, getUserId } from '../login/loginAPI';
 import { AppContext } from "../../components/AppContext";
-import SettingIcon from '../../assets/svg/Setting.svg';
-import DeleteIcon from '../../assets/svg/DeleteIcon.svg'
-import DataPrivacy from '../../assets/svg/DataPrivacy.svg';
 import Currency from '../../assets/Images/Setting/Currency.svg';
+import SettingIcon from '../../assets/Images/Setting/Setting.svg';
+import DeleteIcon from '../../assets/Images/Setting/DeleteIcon.svg';
+import DataPrivacy from '../../assets/Images/Setting/DataPrivacy.svg';
+import Converter from '../../assets/Images/StaticMatrix/Converter.png';
 
 
 const Setting = ({ setIsLoggedIn }) => {
@@ -15,10 +16,13 @@ const Setting = ({ setIsLoggedIn }) => {
   const DataRef = useRef();
   let appContext = useContext(AppContext);
   const [data, setData] = useState(false);
+  const [conversionRateCad, setConversionRateCad] = useState("");
+  const [conversionRateAud, setConversionRateAud] = useState("");
   const [msg, setMsg] = useState({ type: "", msg: "", });
   const [showCurrency, setShowCurrency] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState(appContext.currency);
+  const [currencyTime, setCurrencyTime] = useState(appContext.currency);
 
 
   const handleCurrencyChange = (e) => {
@@ -79,6 +83,123 @@ const Setting = ({ setIsLoggedIn }) => {
     }
   }, [appContext.currency]);
 
+  const handleReset = () => {
+    setSelectedCurrency('USD');
+    currencyUser("USD")
+  };
+
+  const handleResetAudRate = () => {
+    setConversionRateAud(appContext.audLiveRate.toString());
+  };
+
+  const handleResetCadRate = () => {
+    setConversionRateCad(appContext.cadLiveRate.toString());
+  };
+
+  // Get Admin This Page Access For Admin Api 
+  async function getCadRate() {
+    try {
+      let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_GET_USD_TO_CAD_CURRENCY_URL), { userId: getUserId() }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 200) {
+        const rawRateCad = response.data.data?.usdToCad;
+        const rawRateAud = response.data.data?.usdToAud;
+        const currencyTime = response.data.data?.lastUpdatedDate;
+        const formattedRateCad = parseFloat(rawRateCad).toFixed(3);
+        const formattedRateAud = parseFloat(rawRateAud).toFixed(3);
+        const rateCad = Number(formattedRateCad);
+        const rateAud = Number(formattedRateAud);
+        appContext.setAppContext((curr) => ({
+          ...curr,
+          cadLiveRate: rateCad,
+          audLiveRate: rateAud,
+          currencyTime: currencyTime,
+        }));
+      }
+    } catch (error) {
+    }
+  }
+
+  useEffect(() => {
+    if (appContext.cadRate === null) {
+      getCadRate();
+    } else {
+      setConversionRateCad(appContext.cadRate.toString());
+      setConversionRateAud(appContext.audRate.toString());
+    }
+  }, [appContext.cadRate]);
+
+  useEffect(() => {
+    if (appContext.cadLiveRate === null) {
+      getCadRate();
+    }
+  }, [appContext.cadLiveRate]);
+
+  const handleRateChangeAud = (e) => {
+    const value = e.target.value;
+    setConversionRateAud(value);
+  };
+
+  const handleApplyAudRate = () => {
+    if (conversionRateAud.trim() !== "") {
+      currencyUserAudRate(conversionRateAud);
+    } else {
+      setMsg({ type: "error", msg: "Please enter a valid AUD rate." });
+    }
+  };
+
+  const handleRateChangeCad = (e) => {
+    const value = e.target.value;
+    setConversionRateCad(value);
+  };
+
+  const handleApplyCadRate = () => {
+    if (conversionRateCad.trim() !== "") {
+      currencyUserCadRate(conversionRateCad);
+    } else {
+      setMsg({ type: "error", msg: "Please enter a valid CAD rate." });
+    }
+  };
+
+  async function currencyUserAudRate(newRate) {
+    try {
+      let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_USER_CURRENCY_URL), { userId: getUserId(), aud: newRate }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 201) {
+        setConversionRateAud(response.data.data.aud);
+        setMsg({ type: 'info', msg: 'AUD Rate updated successfully.' });
+      }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
+      }
+    }
+  }
+
+  async function currencyUserCadRate(newRate) {
+    try {
+      let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_USER_CURRENCY_URL), { userId: getUserId(), cad: newRate }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 201) {
+        setConversionRateCad(response.data.data.cad);
+        setMsg({ type: 'info', msg: 'CAD Rate updated successfully.' });
+      }
+    } catch (error) {
+      if (error.message.includes('Network Error')) {
+        setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
+      }
+    }
+  }
+
 
   return (
     <>
@@ -133,31 +254,117 @@ const Setting = ({ setIsLoggedIn }) => {
         </div>
 
         {showCurrency && <>
-          <div className='flex gap-5 lg:gap-10 mt-10 p-5 lg:p-[30px] bg-background6 rounded-md shadow-[0px_0px_6px_0px_#28236633] max-w-[564px] w-full'>
-            <label className='flex items-center  gap-5 text-lg lg:text-[22px] lg:leading-[33px] font-medium text-Primary'>
-              <input
-                type="radio"
-                name="currency"
-                value="USD"
-                className="accent-Primary w-5 h-5"
-                checked={selectedCurrency === 'USD'}
-                onChange={handleCurrencyChange}
-              />USD</label>
-
+          <div className='mt-10 p-5 lg:p-[30px] bg-background6 rounded-md shadow-[0px_0px_6px_0px_#28236633] max-w-[564px] w-full'>
             <label className='flex items-center gap-5 text-lg lg:text-[22px] lg:leading-[33px] font-medium text-Primary'>
               <input
                 type="radio"
-                name="currency"
-                value="CAD"
+                name="USD"
+                value="USD"
+                defaultChecked
                 className="accent-Primary w-5 h-5"
-                checked={selectedCurrency === 'CAD'}
-                onChange={handleCurrencyChange}
-              />CAD</label>
+              />USD (Default)</label>
+
+            <div className='border-t border-borderColor5 my-5'></div>
+
+            <div className='flex justify-between items-center gap-5 lg:gap-10 mt-5'>
+              <div className='flex gap-5 lg:gap-10'>
+                <label className='flex items-center  gap-5 text-lg lg:text-[22px] lg:leading-[33px] font-medium text-Primary'>
+                  <input
+                    type="radio"
+                    name="currency"
+                    value="AUD"
+                    className="accent-Primary w-5 h-5"
+                    checked={selectedCurrency === 'AUD'}
+                    onChange={handleCurrencyChange}
+                  />AUD</label>
+
+                <label className='flex items-center gap-5 text-lg lg:text-[22px] lg:leading-[33px] font-medium text-Primary'>
+                  <input
+                    type="radio"
+                    name="currency"
+                    value="CAD"
+                    className="accent-Primary w-5 h-5"
+                    checked={selectedCurrency === 'CAD'}
+                    onChange={handleCurrencyChange}
+                  />CAD</label>
+              </div>
+
+              <button type="button" className="text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-md py-1 max-w-[100px] w-full" onClick={handleReset}>
+                Reset
+              </button>
+            </div>
+
+            {appContext.currency === "AUD" && <div className='rounded-md max-w-[792px] bg-background6 mt-5 lg:mt-10 border border-borderColor2 shadow-[0px_0px_8px_0px_#28236633]'>
+              <div className='text-base font-medium text-Primary flex justify-between px-3 py-2 lg:px-5 lg:py-3 border-b border-borderColor2 shadow-[0px_4px_16.2px_0px_#28236633]'> Check Live Currency Rates
+                <button type="button" className="text-sm lg:text-base underline" onClick={handleResetAudRate}>
+                  Reset Rate
+                </button>
+              </div>
+              <div className='flex flex-wrap sm:flex-nowrap items-end gap-4 p-3 lg:p-5'>
+                <div className='w-full'>
+                  <label className='flex justify-between gap-2 items-center text-sm lg:text-base text-Primary lg:font-medium'>
+                    <span className='flex items-center gap-2'> USD <img src={Converter} alt='Converter' /> AUD </span>
+                    <span> Rate {appContext.audLiveRate || 1.55} </span>
+                  </label>
+                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary font-medium mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-4 border border-borderColor bg-textBoxBg rounded-md'>
+                    <span className='font-semibold'>C$</span>
+                    <input type='text' maxLength={5} title='Max Length 5' value={conversionRateAud} onChange={handleRateChangeAud} placeholder='Enter Your Rate' className='bg-transparent w-full focus:outline-none' />
+                  </div>
+                </div>
+                <button type="button" className="text-sm lg:text-base font-semibold text-white bg-ButtonBg rounded-md py-2 lg:py-3 max-w-[130px] w-full" onClick={handleApplyAudRate}>
+                  Apply Now
+                </button>
+              </div>
+              <div className="flex items-center rounded-md px-3 lg:px-5 pb-3 lg:pb-5 min-w-[220px] bg-background6 ">
+                <div className="text-base text-Primary font-semibold">
+                  <p className='text-sm text-Primary'>Last updated at (UTC): {new Date(appContext?.currencyTime).toLocaleString('en-US', {
+                    timeZone: 'utc',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false,
+                  })}</p>
+                </div>
+              </div>
+            </div>}
+
+            {appContext.currency === "CAD" && <div className='rounded-md max-w-[792px] bg-background6 mt-5 lg:mt-10 border border-borderColor shadow-[0px_0px_8px_0px_#28236633]'>
+              <div className='text-base font-medium text-Primary flex justify-between px-3 py-2 lg:px-5 lg:py-3 border-b border-borderColor2 shadow-[0px_4px_16.2px_0px_#28236633]'> Check Live Currency Rates
+                <button type="button" className="text-sm lg:text-base underline" onClick={handleResetCadRate}>
+                  Reset Rate
+                </button>
+              </div>
+              <div className='flex flex-wrap sm:flex-nowrap items-end gap-4 p-3 lg:p-5'>
+                <div className='w-full'>
+                  <label className='flex justify-between gap-2 items-center text-sm lg:text-base text-Primary lg:font-medium'>
+                    <span className='flex items-center gap-2'> USD <img src={Converter} alt='Converter' /> CAD </span>
+                    <span> Rate {appContext.cadLiveRate || 1.40} </span>
+                  </label>
+                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary font-medium mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-4 border border-borderColor bg-textBoxBg rounded-md'>
+                    <span className='font-semibold'>C$</span>
+                    <input type='number' maxLength={5} title='Max Length 5' value={conversionRateCad} onChange={handleRateChangeCad} placeholder='Enter Your Rate' className='bg-transparent w-full focus:outline-none' />
+                  </div>
+                </div>
+                <button type="button" className="text-sm lg:text-base font-semibold text-white bg-ButtonBg rounded-md py-2 lg:py-3 max-w-[130px] w-full" onClick={handleApplyCadRate}>
+                  Apply Now
+                </button>
+              </div>
+              <div className="flex items-center rounded-md px-3 lg:px-5 pb-3 lg:pb-5 min-w-[220px] bg-background6 ">
+                <div className="text-base text-Primary font-semibold">
+                  <p className='text-sm text-Primary'>Last updated at (UTC): {new Date(appContext?.currencyTime).toLocaleString('en-US', {
+                    timeZone: 'utc',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false,
+                  })}</p>
+                </div>
+              </div>
+            </div>}
           </div>
         </>}
 
         {(msg.msg !== "") && <p className={`text-sm lg:text-base mt-1 lg:mt-2 ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msg.msg}.</p>}
-
       </div>
     </>
   );

@@ -33,7 +33,7 @@ const Dashboard = ({ theme }) => {
   const dropdownRef1 = useRef(null);
   const dropdownRef2 = useRef(null);
   const DynamicMatrixRef = useRef(null);
-  const options = ["SPX", "RUT", "NDX"];
+  const options = ["SPX", "RUT", "NDX", "VIX"];
   const [names, setNames] = useState({});
   let appContext = useContext(AppContext);
   const [matrix, setMatrix] = useState(false);
@@ -748,7 +748,7 @@ const Dashboard = ({ theme }) => {
                 </label>
               </div>
               <div className='mt-5 lg:mt-10'>
-                <ICChart inputs={inputs} theme={theme} matrixTypeValue={selectedValue} />
+                <ICChart inputs={inputs} theme={theme} matrixTypeValue={selectedValue} price={appContext.marketData?.[selectedValue.toLowerCase()]?.price} />
               </div>
             </div>}
           </div>
@@ -867,15 +867,14 @@ const Dashboard = ({ theme }) => {
                 </label>
               </div>
               <div className=' mt-5 lg:mt-10'>
-                <ICChart2 inputs2={inputs2} theme={theme} matrixTypeValue={selectedValue} />
+                <ICChart2 inputs2={inputs2} theme={theme} matrixTypeValue={selectedValue} price={appContext.marketData?.[selectedValue.toLowerCase()]?.price} />
               </div>
             </div>}
           </div>
         </div>
 
         <div className='mt-5 lg:mt-10 p-4 lg:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
-          <TradingViewTicker theme={theme} />
-          <div className='TradingViewChart mt-3 lg:mt-5'>
+          <div className='TradingViewChart'>
             <TradingViewChart theme={theme} />
           </div>
         </div>
@@ -886,10 +885,6 @@ const Dashboard = ({ theme }) => {
               <div id="tradingview-widget" className="tradingview-widget-container__widget"></div>
             </div>
           </div>
-        </div>
-
-        <div className='TradingViewChart mt-5 lg:mt-10 p-4 lg:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
-          <TradingViewOverview theme={theme} />
         </div>
       </div>
       :

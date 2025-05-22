@@ -268,7 +268,7 @@ const UserDataSubPage = () => {
         </div>
       </div>
 
-      <div className='flex justify-end gap-5 mb-3 pt-5 lg:pt-10 sm:mt-5 lg:mt-auto'>
+      <div className='flex justify-end gap-5 mb-3 pt-5 lg:pt-10 sm:mt-5 lg:mt-2'>
         {isActiveSub ? <li className='text-base lg:text-lg text-[#6FBA47]'>Active</li> :
           <li className='text-base lg:text-lg text-[#EF4646]'>Cancelled</li>}
       </div>
@@ -411,7 +411,7 @@ const UserDataSubPage = () => {
               </div>
             </div>
 
-            <div className="flex justify-end mt-5 lg:mt-auto">
+            <div className="flex justify-end mt-5 lg:mt-1">
               <button type="button" ref={submitButtonEditRef} onClick={editExistingUser} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]" >
                 Update Changes
               </button>

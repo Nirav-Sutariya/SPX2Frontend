@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useState, useRef } from 'react';
 import PlusIcon from '../assets/svg/PlusIcon.svg';
-import DeleteIcon from '../assets/svg/DeleteIcon.svg';
 import DropdownIcon from '../assets/svg/DropdownIcon.svg';
+import DeleteIcon from '../assets/Images/Setting/DeleteIcon.svg';
 import SubscriptionUpdateIcon from '../assets/Images/Subscription/SubscriptionUpdateIcon.svg';
 import axios from 'axios';
 import { AppContext } from '../components/AppContext';
@@ -142,7 +142,7 @@ function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
                 )}
               </div>
 
-              <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center relative w-full max-w-[217px] md:max-w-[300px] sm:mt-auto">
+              <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center relative w-full max-w-[217px] md:max-w-[300px]">
                 <div className="flex gap-2 text-xs lg:text-sm text-Primary mt-2 px-3 md:px-5 py-[10px] md:py-[13px] border border-borderColor rounded-md bg-textBoxBg w-full focus:outline-none focus:border-borderColor7">
                   <label className='flex items-center gap-1 text-xs md:text-sm text-Primary'>
                     <input className='accent-Primary' type="radio" name={`available-plain${plainId}-${featureIndex}`} value="available" checked={feature.available} onChange={() => {

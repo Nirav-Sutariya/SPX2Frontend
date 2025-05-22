@@ -4,10 +4,10 @@ import { Link } from 'react-router-dom';
 import { getToken, getUserId } from '../login/loginAPI';
 import { AppContext } from '../../components/AppContext';
 import BackIcon from '../../assets/svg/BackIcon.svg';
-import ProfilePicture from '../../assets/svg/ProfilePicture.svg';
 import PasswordIIcon from '../../assets/Images/Login/PasswordIIcon.svg';
 import DeleteIcon from '../../assets/Images/StaticMatrix/DeleteIcon.svg';
 import PasswordIIcon2 from '../../assets/Images/Login/PasswordIIcon2.svg';
+import ProfilePicture from '../../assets/Images/Setting/ProfilePicture.svg';
 import DeletePopupIcon from '../../assets/Images/UserData/DeletePopupIcon.svg';
 import PopupCloseIcon from '../../assets/Images/SuperDashboard/PopupCloseIcon.svg';
 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import MatrixIcon from '../../assets/svg/MatrixIcon.svg';
 import DropdownIcon from '../../assets/svg/DropdownIcon.svg';
-import StaticMatrixIcon from '../../assets/svg/StaticMatrixIcon.svg';
 import DropdownIconWhite from '../../assets/svg/DropDwonIconWite.svg';
+import StaticMatrixIcon from '../../assets/Images/StaticMatrix/StaticMatrixIcon.svg';
 import DynamicMatrixIcon from '../../assets/Images/DynamicMatrix/DynamicMatrixIcon.svg';
 import axios from 'axios';
 import StaticCalculations from './StaticCalculations';

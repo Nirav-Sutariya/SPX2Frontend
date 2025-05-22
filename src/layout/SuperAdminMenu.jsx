@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
 import LogoIcon from '../assets/svg/LogoIcon.svg';
-import MenuIcon from '../assets/svg/MenuIcon.svg';
 import LogoSmall from '../assets/svg/LogoSmall.svg';
-import SwitchToAdminIcon from '../assets/svg/SwitchToAdmin.svg';
+import MenuIcon from '../assets/Images/Menu/MenuIcon.svg';
+import SwitchToAdminIcon from '../assets/Images/Menu/SwitchToAdmin.svg';
 import UserData from '../assets/Images/SuperAdminMenu/UserDataIcon.svg';
 import Dashboard from '../assets/Images/SuperAdminMenu/DashboardIcon.svg';
 import SupportUser from '../assets/Images/SuperAdminMenu/SupportUserIcon.svg';
@@ -36,7 +36,7 @@ const SuperAdminMenu = ({ activeLink, setActiveLink }) => {
       }
       return 'bg-[#2C7CAC]';
     }
-    return ''; 
+    return '';
   };
 
   // Sync activeLink state with the current URL path
@@ -80,14 +80,14 @@ const SuperAdminMenu = ({ activeLink, setActiveLink }) => {
         setMenuVisible(false);
       }
     };
-  
+
     if (isMenuVisible) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-  
+
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMenuVisible]);
-  
+
 
   return (
     <>
@@ -131,7 +131,7 @@ const SuperAdminMenu = ({ activeLink, setActiveLink }) => {
         <>
           <div className='hidden lg:block h-full max-h-[780px] bg-gradient rounded-3xl sticky top-4'>
             <img className='px-[27px] pt-[27px]' src={LogoSmall} alt="" />
-            <img className='mx-auto mt-3 rotate-180 px-[6px] py-[9px] rounded-md shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setMenuVisible(prev => !prev)}  src={MenuIcon} alt="MenuIcon" />
+            <img className='mx-auto mt-3 rotate-180 px-[6px] py-[9px] rounded-md shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setMenuVisible(prev => !prev)} src={MenuIcon} alt="MenuIcon" />
             <div className='grid gap-[10px] py-[50px]'>
               <Link to='/admin-dashboard' className={`w-full py-[22px] px-[7px] flex justify-center ${getLinkClass('admin-dashboard')}`} onClick={() => handleLinkClick('admin-dashboard')} ><img src={Dashboard} alt="" /></Link>
               <Link to='/support-user' className={`w-full py-[22px] px-[7px] flex justify-center ${getLinkClass('support-user')}`} onClick={() => handleLinkClick('support-user')} ><img src={SupportUser} alt="" /></Link>

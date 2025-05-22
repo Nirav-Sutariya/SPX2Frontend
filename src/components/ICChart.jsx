@@ -2,8 +2,7 @@ import React from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
-const AreaChart = ({ inputs, theme, matrixTypeValue }) => {
-
+const AreaChart = ({ inputs, theme, matrixTypeValue, price }) => {
   const calculateChartData = () => {
     const { shortPut, shortCall, longPut, longCall, premium, contracts } = inputs;
 
@@ -68,6 +67,7 @@ const AreaChart = ({ inputs, theme, matrixTypeValue }) => {
   const negativeZoneColor = theme === "dark" ? "rgba(255, 0, 0, 0.5)" : "rgba(255, 0, 0, 0.3)";
   const positiveZoneColor = theme === "dark" ? "rgba(0, 255, 0, 0.5)" : "rgba(0, 255, 0, 0.3)";
   const axisTextColor = theme === "dark" ? "#e0e0e0" : "#000000";
+  const spxValue = parseFloat(price?.toString().replace(/,/g, '')); // removes comma and converts to float
 
   const options = {
     chart: {
@@ -78,32 +78,52 @@ const AreaChart = ({ inputs, theme, matrixTypeValue }) => {
       text: "",
     },
     xAxis: {
-      categories: xValues, // Use generated x-axis values
+      categories: xValues,
+      type: 'linear',
+      tickInterval: 5,
       labels: {
         style: {
-          color: axisTextColor, // X-axis label color
+          color: axisTextColor,
         },
         formatter: function () {
-          return Math.round(this.value); // Ensure only integer values are displayed
+          return Math.round(this.value);
         },
       },
       title: {
         style: {
-          color: axisTextColor, // X-axis title color
+          color: axisTextColor,
         },
       },
-      allowDecimals: false, // Disable decimals on the x-axis
+      allowDecimals: false,
+      plotLines: [
+        {
+          color: 'red',
+          width: 2,
+          value: spxValue,
+          dashStyle: 'Dash',
+          label: {
+            align: 'center',
+            rotation: 0,
+            y: -0,
+            text: spxValue,
+            style: {
+              color: 'red',
+            }
+          },
+          zIndex: 1,
+        }
+      ],
     },
     yAxis: {
       title: {
         text: "Profit/Loss",
         style: {
-          color: axisTextColor, // Y-axis title color
+          color: axisTextColor,
         },
       },
       labels: {
         style: {
-          color: axisTextColor, // Y-axis label color
+          color: axisTextColor,
         },
       },
     },
@@ -133,15 +153,15 @@ const AreaChart = ({ inputs, theme, matrixTypeValue }) => {
     series: [
       {
         name: "Profit/Loss",
-        data: yValues, // Use calculated y-axis values
+        data: xValues.map((x, i) => [x, yValues[i]]), 
         zones: [
           {
-            value: 0, // Values less than 0 will be red
-            color: negativeZoneColor, // Red for negative
+            value: 0,
+            color: negativeZoneColor,
           },
           {
-            value: Number.MAX_VALUE, // Positive values will be green
-            color: positiveZoneColor, // Green for positive
+            value: Number.MAX_VALUE,
+            color: positiveZoneColor,
           },
         ],
       },
@@ -150,6 +170,7 @@ const AreaChart = ({ inputs, theme, matrixTypeValue }) => {
       enabled: false,
     },
   };
+
 
   return (
     <div className="lg:pr-1 xl:pr-3 lg:pl-1">
