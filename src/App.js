@@ -243,26 +243,25 @@ const App = () => {
   }, [isLoggedIn]);
 
   useEffect(() => {
-    const now = DateTime.now().setZone(timezone);
-    const openingTime = DateTime.fromFormat('09:30 AM -04:00', 'hh:mm a ZZZ', { zone: timezone });
-    const closingTime = DateTime.fromFormat('04:00 PM -04:00', 'hh:mm a ZZZ', { zone: timezone });
+    const timezone = 'America/New_York';
+    const openingHour = '09:30 AM';
+    const closingHour = '04:00 PM';
 
-    const marketIsOpen = now >= openingTime && now <= closingTime;
-    const marketDataIsEmpty = !appContext.marketData || Object.keys(appContext.marketData).length === 0;
+    const shouldMarketBeOpen = () => {
+      const now = DateTime.now().setZone(timezone);
+      const today = now.toFormat('yyyy-MM-dd');
 
-    // ✅ Always call on page load if market is open
-    // ✅ Or if market is closed but context is empty
-    if (marketIsOpen || marketDataIsEmpty) {
-      fetchMarketData();
-    }
+      const openTime = DateTime.fromFormat(`${today} ${openingHour}`, 'yyyy-MM-dd hh:mm a', { zone: timezone });
+      const closeTime = DateTime.fromFormat(`${today} ${closingHour}`, 'yyyy-MM-dd hh:mm a', { zone: timezone });
 
-    // ✅ Set interval only during market hours
-    let interval;
-    if (marketIsOpen) {
-      interval = setInterval(() => {
+      return now >= openTime && now <= closeTime;
+    };  
+
+    const interval = setInterval(() => {
+      if (shouldMarketBeOpen()) {
         fetchMarketData();
-      }, 1000); // every 1 sec
-    }
+      }
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);

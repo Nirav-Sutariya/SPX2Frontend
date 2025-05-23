@@ -1483,6 +1483,7 @@ const DynamicMatrixLong = ({ theme }) => {
   const handleSelect2 = (value) => {
     setSelectedValue2(value);
     setOpenDropdown(null);
+    getCurrentIcPosition(value);
   };
 
   // Detect screen size
@@ -1496,6 +1497,61 @@ const DynamicMatrixLong = ({ theme }) => {
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Detect screen size
+  useEffect(() => {
+    getCurrentIcPosition("SPX");
+  }, []);
+
+  // Get User Data Fined
+  async function currentIcPosition() {
+    const payload = {
+      userId: getUserId(),
+      typeIc: "long",
+      type: selectedValue,
+      premium: parseFloat(inputs2.premium),
+      contract: parseInt(inputs2.contracts),
+      longCall: parseInt(inputs2.longCall),
+      longPut: parseInt(inputs2.longPut),
+      shortCall: parseInt(inputs2.shortCall),
+      shortPut: parseInt(inputs2.shortPut),
+    };
+    try {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_CREATE_CURRENT_IC_POSITION_URL), { ...payload }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 201) {
+        setMsgM3({ type: "info", msg: 'Current Short IC Position Save successful' });
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  }
+
+  async function getCurrentIcPosition(newType) {
+    try {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_CURRENT_IC_POSITION_URL), { userId: getUserId(), typeIc: "long", type: newType }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 200) {
+        const data = response.data.data;
+        setInputs2({
+          premium: data.premium || 2.15,
+          contracts: data.contract || 1,
+          longCall: data.longCall || 4175,
+          longPut: data.longPut || 4095,
+          shortCall: data.shortCall || 4170,
+          shortPut: data.shortPut || 4100,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  }
 
 
   return (<>
@@ -1858,23 +1914,29 @@ const DynamicMatrixLong = ({ theme }) => {
             {!longICShow && <h2 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary p-3 lg:p-4 xl:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633] cursor-pointer flex items-center gap-5'>Current Long IC Position <img className=' w-4 xl:w-5' src={DownArrowIcon} alt="" /> </h2>}
           </div>
           {longICShow && <div className='rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
-            <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'><h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary flex items-center gap-4 cursor-pointer' onClick={(e) => { LongICShowHandel(false) }}>Current Long IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
-              <div ref={dropdownRef2} className="relative w-full max-w-[80px] text-xs lg:text-sm">
-                <button className="w-full text-left px-3 py-[6px] border border-borderColor rounded-md bg-textBoxBg text-Primary flex items-center justify-between" onClick={() => setOpenDropdown(openDropdown === "second" ? null : "second")} >
-                  {selectedValue2}
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-Primary ml-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
+            <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'>
+              <h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary flex items-center gap-4 cursor-pointer' onClick={(e) => { LongICShowHandel(false) }}>Current Long IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
+              <div className='flex gap-3 w-[160px]'>
+                <button type="button" className="text-sm lg:text-base text-white bg-ButtonBg rounded-md py-1 max-w-[80px] w-full" onClick={currentIcPosition}>
+                  Save
                 </button>
-                {openDropdown === "second" && (
-                  <ul className="absolute z-10 mt-1 w-full bg-white border border-borderColor rounded-md shadow-md">
-                    {options2.map((opt) => (
-                      <li key={opt} onClick={() => handleSelect2(opt)} className="px-3 py-1 hover:bg-borderColor4 hover:text-white text-Primary rounded cursor-pointer">
-                        {opt}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <div ref={dropdownRef2} className="relative w-full max-w-[80px] text-xs lg:text-sm">
+                  <button className="w-full text-left px-3 py-[6px] border border-borderColor rounded-md bg-textBoxBg text-Primary flex items-center justify-between" onClick={() => setOpenDropdown(openDropdown === "second" ? null : "second")} >
+                    {selectedValue2}
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-Primary ml-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  {openDropdown === "second" && (
+                    <ul className="absolute z-10 mt-1 w-full bg-white border border-borderColor rounded-md shadow-md">
+                      {options2.map((opt) => (
+                        <li key={opt} onClick={() => handleSelect2(opt)} className="px-3 py-1 hover:bg-borderColor4 hover:text-white text-Primary rounded cursor-pointer">
+                          {opt}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
             </div>
             <div className='grid sm:grid-cols-2 gap-4 mt-3 lg:mt-5 px-3 lg:px-5'>

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo, useContext, useEffect } from 'react';
 import axios from 'axios';
+import { DateTime } from 'luxon';
 import { Link } from 'react-router-dom';
 import { handleLogout } from '../../layout/Header'
 import { getToken, getUserId } from '../login/loginAPI';
@@ -22,7 +23,9 @@ const Setting = ({ setIsLoggedIn }) => {
   const [showCurrency, setShowCurrency] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState(appContext.currency);
-  const [currencyTime, setCurrencyTime] = useState(appContext.currency);
+  const timezone = 'America/New_York';
+  const openingHour = '09:30 AM';
+  const closingHour = '04:00 PM';
 
 
   const handleCurrencyChange = (e) => {
@@ -122,6 +125,26 @@ const Setting = ({ setIsLoggedIn }) => {
     } catch (error) {
     }
   }
+
+  const shouldMarketBeOpen = () => {
+    const now = DateTime.now().setZone(timezone);
+    const today = now.toFormat('yyyy-MM-dd');
+
+    const openTime = DateTime.fromFormat(`${today} ${openingHour}`, 'yyyy-MM-dd hh:mm a', { zone: timezone });
+    const closeTime = DateTime.fromFormat(`${today} ${closingHour}`, 'yyyy-MM-dd hh:mm a', { zone: timezone });
+
+    return now >= openTime && now <= closeTime;
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (shouldMarketBeOpen()) {
+        getCadRate();
+      }
+    }, 5 * 60 * 1000); // every 5 minutes
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (appContext.cadRate === null) {

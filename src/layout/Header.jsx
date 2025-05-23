@@ -247,7 +247,7 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
       )}
 
       {showTradingView && (
-        <div className='w-full flex flex-wrap sm:flex-nowrap justify-between items-start gap-2 pt-1 px-[14px] lg:pl-10 lg:pr-6'>
+        <div className=' lg:fixed top-0 z-10 w-[95%] sm:w-[98%] flex flex-wrap sm:flex-nowrap justify-between items-start gap-2 pb-2 pt-4 mx-[14px] lg:ml-10 lg:mr-6 bg-background6'>
           <div className='w-full max-w-[950px]'>
             <TradingViewOverview />
           </div>
@@ -266,7 +266,7 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
         </div>
       )}
 
-      <div className={`relative flex flex-wrap gap-5 justify-between w-full ${showTradingView ? "pt-4" : "pt-6 lg:pt-11"} px-[14px] lg:px-10`}>
+      <div className={`relative flex flex-wrap gap-5 justify-between w-full ${showTradingView ? "pt-5 lg:pt-16" : "pt-6 lg:pt-11"} px-[14px] lg:px-10`}>
         <div className='absolute right-6 hidden lg:flex items-center gap-[30px] FilterModalVisible order-1 lg:order-2'>
           <div ref={ref} className="relative inline-block text-left w-[110px]">
             <div

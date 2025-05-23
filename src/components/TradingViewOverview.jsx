@@ -11,13 +11,18 @@ const TradingViewOverview = () => {
     return <div className='text-sm text-Primary'>Wait For 10 Seconds Loading market data ...</div>;
   }
 
-  // Timezone logic
+  // Hardcoded market hours for NASDAQ
   const timezone = 'America/New_York';
+  const openingHour = '09:30 AM';
+  const closingHour = '04:00 PM';
+
   const now = DateTime.now().setZone(timezone);
-  const openingTime = DateTime.fromFormat('09:30 AM -04:00', 'hh:mm a ZZZ', { zone: timezone });
-  const closingTime = DateTime.fromFormat('04:00 PM -04:00', 'hh:mm a ZZZ', { zone: timezone });
+  const today = now.toFormat('yyyy-MM-dd');
+  const openingTime = DateTime.fromFormat(`${today} ${openingHour}`, 'yyyy-MM-dd hh:mm a', { zone: timezone });
+  const closingTime = DateTime.fromFormat(`${today} ${closingHour}`, 'yyyy-MM-dd hh:mm a', { zone: timezone });
 
   const isMarketOpen = now >= openingTime && now <= closingTime;
+
 
   const renderBox = (label, color, data) => (
     <div className={`flex items-center rounded-md p-2 bg-background6 shadow-[0px_0px_8px_0px_#28236633]  ${isMarketOpen ? 'border border-[#4D8F78]' : 'border border-[#EF4646]'} bg-background6`}>

@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
+import { DateTime } from 'luxon';
+import GaugeChart from 'react-gauge-chart';
 
 const AreaChart = ({ inputs, theme, matrixTypeValue, price }) => {
   const calculateChartData = () => {
@@ -153,7 +155,7 @@ const AreaChart = ({ inputs, theme, matrixTypeValue, price }) => {
     series: [
       {
         name: "Profit/Loss",
-        data: xValues.map((x, i) => [x, yValues[i]]), 
+        data: xValues.map((x, i) => [x, yValues[i]]),
         zones: [
           {
             value: 0,
@@ -171,6 +173,57 @@ const AreaChart = ({ inputs, theme, matrixTypeValue, price }) => {
     },
   };
 
+  const timezone = 'America/New_York';
+  const openingHour = '09:30 AM';
+  const closingHour = '04:00 PM';
+
+  const shouldMarketBeOpen = () => {
+    const now = DateTime.now().setZone(timezone);
+    const today = now.toFormat('yyyy-MM-dd');
+    const openTime = DateTime.fromFormat(`${today} ${openingHour}`, 'yyyy-MM-dd hh:mm a', { zone: timezone });
+    const closeTime = DateTime.fromFormat(`${today} ${closingHour}`, 'yyyy-MM-dd hh:mm a', { zone: timezone });
+    return now >= openTime && now <= closeTime;
+  };
+
+  const getMarketStatus = (spxValue, isMarketOpen) => {
+    const insideMin = shortPutInt;
+    const insideMax = shortCallInt;
+
+    const partiallyInsideBuffer = 2.15;
+    const partiallyOutsideBuffer = 5;
+
+    const partiallyInsideMin = insideMin - partiallyInsideBuffer;
+    const partiallyInsideMax = insideMax + partiallyInsideBuffer;
+
+    const partiallyOutsideMin = insideMin - partiallyOutsideBuffer;
+    const partiallyOutsideMax = insideMax + partiallyOutsideBuffer;
+
+    if (isMarketOpen) {
+      if (spxValue >= insideMin && spxValue <= insideMax) return 'Inside';
+      if ((spxValue >= partiallyInsideMin && spxValue < insideMin) || (spxValue > insideMax && spxValue <= partiallyInsideMax)) return 'Partially Inside';
+      if ((spxValue >= partiallyOutsideMin && spxValue < partiallyInsideMin) || (spxValue > partiallyInsideMax && spxValue <= partiallyOutsideMax)) return 'Partially Outside';
+      return 'Outside';
+    } else {
+      if (spxValue >= insideMin && spxValue <= insideMax) return `${matrixTypeValue} Close Inside`;
+      if ((spxValue >= partiallyInsideMin && spxValue < insideMin) || (spxValue > insideMax && spxValue <= partiallyInsideMax)) return `${matrixTypeValue} Close Partially Inside`;
+      if ((spxValue >= partiallyOutsideMin && spxValue < partiallyInsideMin) || (spxValue > partiallyInsideMax && spxValue <= partiallyOutsideMax)) return `${matrixTypeValue} Close Partially Outside`;
+      return `${matrixTypeValue} Close Outside`;
+    }
+  };
+
+
+  const [isMarketOpen, setIsMarketOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMarketOpen(shouldMarketBeOpen());
+  }, []);
+
+  const statusText = getMarketStatus(spxValue, isMarketOpen);
+  const minRange = longPutInt - 5;
+  const maxRange = longCallInt + 5;
+  const percent = Math.max(0, Math.min(1, (spxValue - minRange) / (maxRange - minRange)));
+
+
 
   return (
     <div className="lg:pr-1 xl:pr-3 lg:pl-1">
@@ -184,6 +237,21 @@ const AreaChart = ({ inputs, theme, matrixTypeValue, price }) => {
         <p className="text-sm text-Primary mt-1"><span className="font-semibold">Partial Profit :</span> {matrixTypeValue} close between {shortPutInt} and {customBeforeShortPut} or between {shortCallInt} and {customAfterShortCall}</p>
         <p className="text-sm text-Primary mt-1"><span className="font-semibold">Partial Loss :</span> {matrixTypeValue} close between {customBeforeShortPut} and {longPutInt} or between {customAfterShortCall} and {longCallInt}</p>
         <p className="text-sm text-Primary mt-1"><span className="font-semibold">Max Loss :</span> {matrixTypeValue} close above {longCallInt} or close below {longPutInt}</p>
+      </div>
+
+      <div className="w-full p-4">
+        <GaugeChart
+          id="spx-status-gauge"
+          nrOfLevels={30}
+          arcsLength={[0.222, 0.589, 0.222]} // normalized from [2.85, 2.15, 5, 2.85]
+          colors={['#f39c12', '#2ecc71', '#f39c12']}
+          percent={percent}
+          arcPadding={0.03}
+          textColor="#"
+          formatTextValue={() => statusText}
+        />
+
+        <p className="text-center mt-4 font-medium text-lg">Status: {statusText}</p>
       </div>
     </div>
   );

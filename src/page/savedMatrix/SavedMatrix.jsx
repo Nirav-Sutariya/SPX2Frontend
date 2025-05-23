@@ -19,7 +19,10 @@ const SavedMatrix = () => {
   const [names, setNames] = useState({});
   const [matrix, setMatrix] = useState(false);
   const [savedData, setSavedData] = useState({});
-  const [totalSaved, setTotalSaved] = useState(0);
+  const [savedSMLCount, setSavedSMLCount] = useState(0);
+  const [savedSMSCount, setSavedSMSCount] = useState(0);
+  const [savedDMLCount, setSavedDMLCount] = useState(0);
+  const [savedDSMCount, setSavedDSMCount] = useState(0);
   const [recordLimit, setRecordLimit] = useState(0);
   const [msg, setMsg] = useState({ type: "", msg: "", });
   const [selectedName, setSelectedName] = useState(null);
@@ -57,7 +60,10 @@ const SavedMatrix = () => {
         }
       })
       if (response.status === 200) {
-        setTotalSaved(response.data.data)
+        setSavedSMSCount(response.data.data.SMSCount);
+        setSavedSMLCount(response.data.data.SMLCount);
+        setSavedDSMCount(response.data.data.DSMCount);
+        setSavedDMLCount(response.data.data.DMLCount);
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
@@ -177,8 +183,8 @@ const SavedMatrix = () => {
       </div>
       {(msg.msg !== "") && <p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msg.msg}.</p>}
 
-      <div className='flex flex-wrap justify-between gap-3 lg:gap-5 mt-3 lg:mt-[30px]'>
-        <div className='relative max-w-[350px]' ref={MatrixRef}>
+      <div className='flex flex-wrap justify-between gap-3 lg:gap-5'>
+        <div className='relative mt-3 lg:mt-[30px] max-w-[350px]' ref={MatrixRef}>
           <div className='flex justify-between items-center gap-2 md:gap-3 px-5 py-[9px] rounded-md bg-background6 w-fit max-w-[350px] shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setMatrix((prev) => !prev)}>
             <span className='flex gap-3'>
               <img className='w-5 lg:w-auto' src={MatrixIcon} alt="" />
@@ -203,7 +209,10 @@ const SavedMatrix = () => {
           )}
         </div>
         <div className='text-start sm:text-end'>
-          <p className='text-base lg:text-lg font-medium text-Primary'>Total Saved - {totalSaved} Table</p>
+          <p className='text-base lg:text-base font-medium text-Primary'>Short IC Saved - {savedSMSCount} Table</p>
+          <p className='text-base lg:text-base font-medium text-Primary'>Long IC Saved - {savedSMLCount} Table</p>
+          <p className='text-base lg:text-base font-medium text-Primary'>DY Short Saved - {savedDSMCount} Table</p>
+          <p className='text-base lg:text-base font-medium text-Primary'>DY Long Saved - {savedDMLCount} Table</p>
           <p className='text-sm lg:text-base text-[#B7D1E0]'>Saved Limit - {recordLimit || 0} Table</p>
         </div>
       </div>

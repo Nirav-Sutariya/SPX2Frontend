@@ -11,13 +11,11 @@ import ICChart2 from '../components/ICChart2';
 import * as am4core from '@amcharts/amcharts4/core';
 import { getToken, getUserId } from './login/loginAPI';
 import TradingViewChart from '../components/TradingViewChart';
-import TradingViewTicker from '../components/TradingViewTicker';
 import DynamicCalculations from './savedMatrix/DynamicCalculations';
 import am4themes_animated from '@amcharts/amcharts4/themes/animated';
 import DynamicLongCalculations from './savedMatrix/DynamicLongCalculations';
 import { Link } from 'react-router-dom';
 import { AppContext } from '../components/AppContext';
-import TradingViewOverview from '../components/TradingViewOverview';
 
 // Apply animated theme
 am4core.useTheme(am4themes_animated);
@@ -126,13 +124,6 @@ const Dashboard = ({ theme }) => {
 
   // Load stored values from localStorage
   useEffect(() => {
-    const storedInputs = JSON.parse(localStorage.getItem('inputs'));
-    const storedInputs2 = JSON.parse(localStorage.getItem('inputs2'));
-
-    if (storedInputs) setInputs(storedInputs);
-    if (storedInputs2) setInputs2(storedInputs2);
-
-    // Outside click handler
     const handleClickOutside = (event) => {
       if (
         DynamicMatrixRef.current &&
@@ -170,7 +161,6 @@ const Dashboard = ({ theme }) => {
   const handlePremiumIncrement = () => {
     setInputs((prev) => {
       const newValue = (parseFloat(prev.premium || 0) + 0.05).toFixed(2);
-      localStorage.setItem('inputs', JSON.stringify({ ...prev, premium: newValue }));
       return { ...prev, premium: newValue.length <= 4 ? newValue : prev.premium };
     });
   };
@@ -178,7 +168,6 @@ const Dashboard = ({ theme }) => {
   const handlePremiumDecrement = () => {
     setInputs((prev) => {
       const newValue = Math.max(0, parseFloat(prev.premium || 0) - 0.05).toFixed(2);
-      localStorage.setItem('inputs', JSON.stringify({ ...prev, premium: newValue }));
       return { ...prev, premium: newValue.length <= 4 ? newValue : prev.premium };
     });
   };
@@ -186,7 +175,6 @@ const Dashboard = ({ theme }) => {
   const handleContractIncrement = () => {
     setInputs((prevInputs) => {
       const newContracts = prevInputs.contracts + 1;
-      localStorage.setItem('inputs', JSON.stringify({ ...prevInputs, contracts: newContracts }));
       return { ...prevInputs, contracts: newContracts };
     });
   };
@@ -194,7 +182,6 @@ const Dashboard = ({ theme }) => {
   const handleContractDecrement = () => {
     setInputs((prevInputs) => {
       const newContracts = prevInputs.contracts - 1;
-      localStorage.setItem('inputs', JSON.stringify({ ...prevInputs, contracts: newContracts }));
       return { ...prevInputs, contracts: newContracts };
     });
   };
@@ -204,7 +191,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       shortCall: String(Math.min(Number(prevInputs.shortCall || 0) + 5, 99999)),
     }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, shortCall: String(Number(inputs.shortCall || 0) + 5) }));
   };
 
   const handleShortCallDecrement = () => {
@@ -212,7 +198,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       shortCall: String(Math.max(Number(prevInputs.shortCall || 0) - 5, 0)),
     }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, shortCall: String(Number(inputs.shortCall || 0) - 5) }));
   };
 
   const handleShortPutIncrement = () => {
@@ -220,7 +205,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       shortPut: String(Math.min(Number(prevInputs.shortPut || 0) + 5, 99999)),
     }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, shortPut: String(Number(inputs.shortPut || 0) + 5) }));
   };
 
   const handleShortPutDecrement = () => {
@@ -228,7 +212,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       shortPut: String(Math.max(Number(prevInputs.shortPut || 0) - 5, 0)),
     }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, shortPut: String(Number(inputs.shortPut || 0) - 5) }));
   };
 
   const handleLongCallIncrement = () => {
@@ -236,7 +219,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       longCall: String(Math.min(Number(prevInputs.longCall || 0) + 5, 99999)),
     }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, longCall: String(Number(inputs.longCall || 0) + 5) }));
   };
 
   const handleLongCallDecrement = () => {
@@ -244,7 +226,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       longCall: String(Math.max(Number(prevInputs.longCall || 0) - 5, 0)),
     }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, longCall: String(Number(inputs.longCall || 0) - 5) }));
   };
 
   const handleLongPutIncrement = () => {
@@ -252,7 +233,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       longPut: String(Math.min(Number(prevInputs.longPut || 0) + 5, 99999)),
     }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, longPut: String(Number(inputs.longPut || 0) + 5) }));
   };
 
   const handleLongPutDecrement = () => {
@@ -260,14 +240,12 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       longPut: String(Math.max(Number(prevInputs.longPut || 0) - 5, 0)),
     }));
-    localStorage.setItem('inputs', JSON.stringify({ ...inputs, longPut: String(Number(inputs.longPut || 0) - 5) }));
   };
 
   // Increment and Decrement for each input
   const handlePremiumIncrement2 = () => {
     setInputs2((prev) => {
       const newValue = (parseFloat(prev.premium || 0) + 0.05).toFixed(2);
-      localStorage.setItem('inputs2', JSON.stringify({ ...prev, premium: newValue }));
       return { ...prev, premium: newValue.length <= 4 ? newValue : prev.premium };
     });
   };
@@ -275,7 +253,6 @@ const Dashboard = ({ theme }) => {
   const handlePremiumDecrement2 = () => {
     setInputs2((prev) => {
       const newValue = Math.max(0, parseFloat(prev.premium || 0) - 0.05).toFixed(2);
-      localStorage.setItem('inputs2', JSON.stringify({ ...prev, premium: newValue }));
       return { ...prev, premium: newValue.length <= 4 ? newValue : prev.premium };
     });
   };
@@ -283,7 +260,6 @@ const Dashboard = ({ theme }) => {
   const handleContractIncrement2 = () => {
     setInputs2((prevInputs) => {
       const newContracts = prevInputs.contracts + 1;
-      localStorage.setItem('inputs2', JSON.stringify({ ...prevInputs, contracts: newContracts }));
       return { ...prevInputs, contracts: newContracts };
     });
   };
@@ -291,7 +267,6 @@ const Dashboard = ({ theme }) => {
   const handleContractDecrement2 = () => {
     setInputs2((prevInputs) => {
       const newContracts = prevInputs.contracts - 1;
-      localStorage.setItem('inputs2', JSON.stringify({ ...prevInputs, contracts: newContracts }));
       return { ...prevInputs, contracts: newContracts };
     });
   };
@@ -301,7 +276,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       shortCall: String(Math.min(Number(prevInputs.shortCall || 0) + 5, 99999)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, shortCall: String(Number(inputs2.shortCall || 0) + 5) }));
   };
 
   const handleShortCallDecrement2 = () => {
@@ -309,7 +283,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       shortCall: String(Math.max(Number(prevInputs.shortCall || 0) - 5, 0)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, shortCall: String(Number(inputs2.shortCall || 0) - 5) }));
   };
 
   const handleShortPutIncrement2 = () => {
@@ -317,7 +290,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       shortPut: String(Math.min(Number(prevInputs.shortPut || 0) + 5, 99999)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, shortPut: String(Number(inputs2.shortPut || 0) + 5) }));
   };
 
   const handleShortPutDecrement2 = () => {
@@ -325,7 +297,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       shortPut: String(Math.max(Number(prevInputs.shortPut || 0) - 5, 0)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, shortPut: String(Number(inputs2.shortPut || 0) - 5) }));
   };
 
   const handleLongCallIncrement2 = () => {
@@ -333,7 +304,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       longCall: String(Math.min(Number(prevInputs.longCall || 0) + 5, 99999)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, longCall: String(Number(inputs2.longCall || 0) + 5) }));
   };
 
   const handleLongCallDecrement2 = () => {
@@ -341,7 +311,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       longCall: String(Math.max(Number(prevInputs.longCall || 0) - 5, 0)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, longCall: String(Number(inputs2.longCall || 0) - 5) }));
   };
 
   const handleLongPutIncrement2 = () => {
@@ -349,7 +318,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       longPut: String(Math.min(Number(prevInputs.longPut || 0) + 5, 99999)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, longPut: String(Number(inputs2.longPut || 0) + 5) }));
   };
 
   const handleLongPutDecrement2 = () => {
@@ -357,7 +325,6 @@ const Dashboard = ({ theme }) => {
       ...prevInputs,
       longPut: String(Math.max(Number(prevInputs.longPut || 0) - 5, 0)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, longPut: String(Number(inputs2.longPut || 0) - 5) }));
   };
 
   const handleKeyDown = (e, nextInputRef) => {
@@ -431,14 +398,6 @@ const Dashboard = ({ theme }) => {
     };
   }, [theme, isAPILoaded]);
 
-  useEffect(() => {
-    const storedInputs = JSON.parse(localStorage.getItem('inputs'));
-    const storedInputs2 = JSON.parse(localStorage.getItem('inputs2'));
-
-    if (storedInputs) setInputs(storedInputs);
-    if (storedInputs2) setInputs2(storedInputs2);
-  }, []);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const decimalRegex = /^\d*\.?\d*$/;
@@ -455,20 +414,12 @@ const Dashboard = ({ theme }) => {
             ...inputs,
             [name]: value,
           });
-          localStorage.setItem('inputs', JSON.stringify({
-            ...inputs,
-            [name]: value,
-          }));
         }
       } else {
         setInputs({
           ...inputs,
           [name]: value,
         });
-        localStorage.setItem('inputs', JSON.stringify({
-          ...inputs,
-          [name]: value,
-        }));
       }
     }
   };
@@ -489,10 +440,6 @@ const Dashboard = ({ theme }) => {
             ...inputs2,
             [name]: value,
           });
-          localStorage.setItem('inputs2', JSON.stringify({
-            ...inputs2,
-            [name]: value,
-          }));
         }
       }
     } else {
@@ -501,10 +448,6 @@ const Dashboard = ({ theme }) => {
           ...inputs2,
           [name]: value,
         });
-        localStorage.setItem('inputs2', JSON.stringify({
-          ...inputs2,
-          [name]: value,
-        }));
       }
     }
   };
@@ -519,6 +462,8 @@ const Dashboard = ({ theme }) => {
   const handleSelect = (value) => {
     setSelectedValue(value);
     setOpenDropdown(null);
+    getCurrentIcPosition(value);
+    getCurrentIcPosition2(value);
   };
 
   const handleOutsideClick = (e) => {
@@ -536,6 +481,111 @@ const Dashboard = ({ theme }) => {
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
+
+  useEffect(() => {
+    getCurrentIcPosition("SPX");
+    getCurrentIcPosition2("SPX");
+  }, []);
+
+  // Get User Data Fined
+  async function currentIcPosition() {
+    const payload = {
+      userId: getUserId(),
+      typeIc: "short",
+      type: selectedValue,
+      premium: parseFloat(inputs.premium),
+      contract: parseInt(inputs.contracts),
+      longCall: parseInt(inputs.longCall),
+      longPut: parseInt(inputs.longPut),
+      shortCall: parseInt(inputs.shortCall),
+      shortPut: parseInt(inputs.shortPut),
+    };
+    try {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_CREATE_CURRENT_IC_POSITION_URL), { ...payload }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 201) {
+        setMsg({ type: "info", msg: 'Current Short IC Position Save successful' });
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  }
+
+  // Get User Data Fined
+  async function currentIcPosition2() {
+    const payload = {
+      userId: getUserId(),
+      typeIc: "long",
+      type: selectedValue,
+      premium: parseFloat(inputs2.premium),
+      contract: parseInt(inputs2.contracts),
+      longCall: parseInt(inputs2.longCall),
+      longPut: parseInt(inputs2.longPut),
+      shortCall: parseInt(inputs2.shortCall),
+      shortPut: parseInt(inputs2.shortPut),
+    };
+    try {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_CREATE_CURRENT_IC_POSITION_URL), { ...payload }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 201) {
+        setMsg({ type: "info", msg: 'Current Short IC Position Save successful' });
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  }
+
+  async function getCurrentIcPosition(newType) {
+    try {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_CURRENT_IC_POSITION_URL), { userId: getUserId(), typeIc: "short", type: newType }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 200) {
+        const data = response.data.data;
+        setInputs({
+          premium: data.premium || 2.15,
+          contracts: data.contract || 1,
+          longCall: data.longCall || 4175,
+          longPut: data.longPut || 4095,
+          shortCall: data.shortCall || 4170,
+          shortPut: data.shortPut || 4100,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  }
+
+  async function getCurrentIcPosition2(newType) {
+    try {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_GET_CURRENT_IC_POSITION_URL), { userId: getUserId(), typeIc: "long", type: newType }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 200) {
+        const data = response.data.data;
+        setInputs2({
+          premium: data.premium || 2.15,
+          contracts: data.contract || 1,
+          longCall: data.longCall || 4175,
+          longPut: data.longPut || 4095,
+          shortCall: data.shortCall || 4170,
+          shortPut: data.shortPut || 4100,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  }
 
 
   return (<>
@@ -640,22 +690,27 @@ const Dashboard = ({ theme }) => {
             {shortICShow && <div className='rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
               <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'>
                 <h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary flex items-center gap-4 cursor-pointer' onClick={(e) => { ShortICShowHandel(false) }}>Current Short IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
-                <div ref={dropdownRef1} className="relative w-full max-w-[80px] text-xs lg:text-sm">
-                  <button className="w-full text-left px-3 py-[6px] border border-borderColor rounded-md bg-textBoxBg text-Primary flex items-center justify-between" onClick={() => setOpenDropdown(openDropdown === "first" ? null : "first")} >
-                    {selectedValue}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-Primary ml-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
+                <div className='flex gap-3 w-[160px]'>
+                  <button type="button" className="text-sm lg:text-base text-white bg-ButtonBg rounded-md py-1 max-w-[80px] w-full" onClick={currentIcPosition}>
+                    Save
                   </button>
-                  {openDropdown === "first" && (
-                    <ul className="absolute z-10 mt-1 w-full bg-white border border-borderColor rounded-md shadow-md">
-                      {options.map((opt) => (
-                        <li key={opt} onClick={() => handleSelect(opt)} className="px-3 py-1 hover:bg-borderColor4 hover:text-white text-Primary rounded cursor-pointer">
-                          {opt}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  <div ref={dropdownRef1} className="relative w-full max-w-[80px] text-xs lg:text-sm">
+                    <button className="w-full text-left px-3 py-[6px] border border-borderColor rounded-md bg-textBoxBg text-Primary flex items-center justify-between" onClick={() => setOpenDropdown(openDropdown === "first" ? null : "first")} >
+                      {selectedValue}
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-Primary ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    {openDropdown === "first" && (
+                      <ul className="absolute z-10 mt-1 w-full bg-white border border-borderColor rounded-md shadow-md">
+                        {options.map((opt) => (
+                          <li key={opt} onClick={() => handleSelect(opt)} className="px-3 py-1 hover:bg-borderColor4 hover:text-white text-Primary rounded cursor-pointer">
+                            {opt}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className='grid sm:grid-cols-2 gap-4 mt-3 lg:mt-5 px-3 lg:px-5'>
@@ -758,23 +813,29 @@ const Dashboard = ({ theme }) => {
               {!longICShow && <h2 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary p-3 lg:p-4 xl:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633] cursor-pointer flex items-center gap-5'>Current Long IC Position <img className=' w-4 xl:w-5' src={DownArrowIcon} alt="" /> </h2>}
             </div>
             {longICShow && <div className='rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
-              <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'><h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary flex items-center gap-4 cursor-pointer' onClick={(e) => { LongICShowHandel(false) }}>Current Long IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
-                <div ref={dropdownRef2} className="relative w-full max-w-[80px] text-xs lg:text-sm">
-                  <button className="w-full text-left px-3 py-[6px] border border-borderColor rounded-md bg-textBoxBg text-Primary flex items-center justify-between" onClick={() => setOpenDropdown(openDropdown === "second" ? null : "second")} >
-                    {selectedValue}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-Primary ml-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
+              <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'>
+                <h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary flex items-center gap-4 cursor-pointer' onClick={(e) => { LongICShowHandel(false) }}>Current Long IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
+                <div className='flex gap-3 w-[160px]'>
+                  <button type="button" className="text-sm lg:text-base text-white bg-ButtonBg rounded-md py-1 max-w-[80px] w-full" onClick={currentIcPosition2}>
+                    Save
                   </button>
-                  {openDropdown === "second" && (
-                    <ul className="absolute z-10 mt-1 w-full bg-white border border-borderColor rounded-md shadow-md">
-                      {options.map((opt) => (
-                        <li key={opt} onClick={() => handleSelect(opt)} className="px-3 py-1 hover:bg-borderColor4 hover:text-white text-Primary rounded cursor-pointer">
-                          {opt}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  <div ref={dropdownRef2} className="relative w-full max-w-[80px] text-xs lg:text-sm">
+                    <button className="w-full text-left px-3 py-[6px] border border-borderColor rounded-md bg-textBoxBg text-Primary flex items-center justify-between" onClick={() => setOpenDropdown(openDropdown === "second" ? null : "second")} >
+                      {selectedValue}
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-Primary ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    {openDropdown === "second" && (
+                      <ul className="absolute z-10 mt-1 w-full bg-white border border-borderColor rounded-md shadow-md">
+                        {options.map((opt) => (
+                          <li key={opt} onClick={() => handleSelect(opt)} className="px-3 py-1 hover:bg-borderColor4 hover:text-white text-Primary rounded cursor-pointer">
+                            {opt}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className='grid sm:grid-cols-2 gap-4 mt-3 lg:mt-5 px-3 lg:px-5'>
