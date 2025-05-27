@@ -20,6 +20,8 @@ import { Link } from 'react-router-dom';
 import ICChart from '../../components/ICChart';
 import { getToken, getUserId } from '../login/loginAPI';
 import { AppContext } from '../../components/AppContext';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import NextGamePlanDynamicLongMatrix from './NextGamePlanDynamicLongMatrix';
 import { defaultDynamicTradePrice, defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModalShort } from '../../components/utils';
 
@@ -125,7 +127,7 @@ const DynamicMatrixShort = ({ theme }) => {
   const [dynamicNextGameKey, setDynamicNextGameKey] = useState(appContext.dynamicNextGameLongKey);
   const options = ["5", "10", "15", "20", "25", "40", "50"];
   const [showMessage, setShowMessage] = useState(false);
-  const options2 = ["SPX", "RUT", "NDX", "VIX"];
+  const options2 = ["SPX", "RUT", "NDX"];
   const [inputs, setInputs] = useState({
     shortPut: 4100,
     shortCall: 4170,
@@ -1361,9 +1363,15 @@ const DynamicMatrixShort = ({ theme }) => {
       let firstActiveSet = false;
 
       Object.keys(prevLevels).forEach((key) => {
-        const level = prevLevels[key];
-        const isValidValue = level.value >= 0;
-        const isActive = isValidValue && !firstActiveSet;
+        // const level = prevLevels[key];
+        // const isValidValue = level.value >= 0;
+        // const isActive = isValidValue && !firstActiveSet;
+        const rawValue = Number(prevLevels[key].value);
+        const value = rawValue < 0 ? -1 : rawValue;
+        const isActive = prevLevels[key].active && value > 0;
+
+        // const level = levels[key];
+        // const isActive = level.active && level.value > 0 && !firstActiveSet;
 
         if (isActive) firstActiveSet = true;
 
@@ -1374,7 +1382,8 @@ const DynamicMatrixShort = ({ theme }) => {
           fullIcClose: false,
           oneSideClose: false,
           outSide: false,
-          active: prevLevels[key].active,
+          active: isActive,
+          levelDate: ""
         };
       });
       return updatedLevels;
@@ -1602,6 +1611,16 @@ const DynamicMatrixShort = ({ theme }) => {
     }
   }
 
+  const formatDateToString = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${year}-${month}-${day}`; // format for saving
+  };
+
+
   return (
     <>
       {dynamicKey ?
@@ -1671,9 +1690,9 @@ const DynamicMatrixShort = ({ theme }) => {
           {(msgM2.msg !== "") && <p className={`text-sm ${msgM2.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM2.msg}.</p>}
 
           <div className='rounded-md max-w-[792px] bg-background6 px-3 py-[16px] lg:p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Size'>
-            <div className='flex flex-wrap items-end min-[455px]:flex-nowrap gap-3 lg:gap-5'>
+            <div className='flex flex-wrap items-end min-[555px]:flex-nowrap gap-3 lg:gap-5'>
               <div className='w-full' ref={containerRef}>
-                <div className='flex justify-between items-end gap-2'>
+                <div className='flex flex-wrap justify-between items-end gap-2'>
                   <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Original Account Size:</label>
                   <div ref={dropdown2Ref} className="relative w-full max-w-[95px]">
                     <div className="flex items-center justify-between px-2 py-1 border border-borderColor bg-textBoxBg rounded-md cursor-pointer" onClick={toggleDropdown2} >
@@ -1694,7 +1713,7 @@ const DynamicMatrixShort = ({ theme }) => {
                 </div>
                 <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                   <span>$</span>
-                  <input type='text' maxLength={10} title='Max Length 10' value={originalSize} onChange={handleOriginalSizeChange} className='bg-transparent  w-full focus:outline-none' />
+                  <input type='text' inputMode='numeric' maxLength={10} title='Max Length 10' value={originalSize} onChange={handleOriginalSizeChange} className='bg-transparent  w-full focus:outline-none' />
                   <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                     <span className='p-2 cursor-pointer' onClick={() => setAllocationHintsVisibility(!allocationHintsVisibility)} >
                       <img className='w-3 lg:w-auto' src={DropdownIcon} alt="" />
@@ -1731,7 +1750,7 @@ const DynamicMatrixShort = ({ theme }) => {
                 <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Commission per Contract:
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                     <span>$</span>
-                    <input type="text" maxLength={5} title='Up to 2 digits before and 2 digits after the decimal point' value={commission} onChange={handleCommissionChange} className='bg-transparent w-full focus:outline-none' />
+                    <input type="text" inputMode='numeric' maxLength={5} title='Up to 2 digits before and 2 digits after the decimal point' value={commission} onChange={handleCommissionChange} className='bg-transparent w-full focus:outline-none' />
                     <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                       <button onClick={handleDecrementCommission}>
                         <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
@@ -1745,21 +1764,35 @@ const DynamicMatrixShort = ({ theme }) => {
                 </label>
               </div>
             </div>
-            <p className='text-sm lg:text-base text-Primary lg:font-medium mt-3 lg:mt-5'>Current Allocation Size: <span className='px-1'>${Number(currentAllocation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
-            {(appContext.currency === "CAD" || appContext.currency === "AUD") && (<p className='text-sm lg:text-base text-Primary lg:font-semibold mt-1'>Current Allocation Size ({appContext.currency}):
-              <span className='px-1'>
-                {appContext.currency === "CAD" &&
-                  `$${Number(currentAllocation * appContext.cadRate).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                }
-                {appContext.currency === "AUD" &&
-                  `$${Number(currentAllocation * appContext.audRate).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                }
-              </span>
-            </p>)}
+            <div className='flex flex-wrap items-end gap-1 lg:gap-5'>
+              <div>
+                <p className='text-sm lg:text-base text-Primary lg:font-medium mt-3 lg:mt-5'>Current Allocation Size: <span className='px-1'>${Number(currentAllocation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                {(appContext.currency === "CAD" || appContext.currency === "AUD") && (<p className='text-sm lg:text-base text-Primary lg:font-semibold mt-1'>Current Allocation Size ({appContext.currency}):
+                  <span className='px-1'>
+                    {appContext.currency === "CAD" &&
+                      `$${Number(currentAllocation * appContext.cadRate).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    }
+                    {appContext.currency === "AUD" &&
+                      `$${Number(currentAllocation * appContext.audRate).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    }
+                  </span>
+                </p>)}
+              </div>
+              {appContext.currency === "CAD" && (
+                <label className='flex justify-between gap-2 items-center text-sm lg:text-base text-Primary lg:font-medium sm:border-l sm:pl-3 lg:pl-5 border-borderColor4'>
+                  <span>Live Rate {appContext.cadLiveRate || 1.40}</span>
+                </label>
+              )}
+              {appContext.currency === "AUD" && (
+                <label className='flex justify-between gap-2 items-center text-sm lg:text-base text-Primary lg:font-medium sm:border-l sm:pl-3 lg:pl-5 border-borderColor4'>
+                  <span>Live Rate {appContext.audLiveRate || 1.56}</span>
+                </label>
+              )}
+            </div>
           </div>
 
-          <div className="fixed top-[30%] right-5 z-20 flex items-center gap-3 lg:gap-4 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-t-lg py-2 px-5 lg:px-7 cursor-pointer -rotate-90 origin-right" onClick={handleSaveMatrix} >
-            <img className='h-4 lg:h-[18px] rotate-90' src={SavedMatrixIcon} alt="" /> Save Matrix
+          <div className="fixed bottom-[5%] lg:bottom-auto lg:top-[30%] right-5 z-20 flex items-center gap-3 lg:gap-4 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-t-lg py-3 lg:py-2 px-4 lg:px-7 cursor-pointer -rotate-90 origin-right" onClick={handleSaveMatrix} >
+            <img className='h-4 lg:h-[18px] rotate-90' src={SavedMatrixIcon} alt="" /> <span className="hidden lg:inline">Save Matrix</span>
           </div>
 
           {showMessage && (
@@ -1771,7 +1804,7 @@ const DynamicMatrixShort = ({ theme }) => {
                     <img className="w-10" src={SubscriptionUpdateIcon} alt="Update Icon" />
                   </div>
                 </div>
-                <p className={`text-sm lg:text-lg mx-auto mt-5 text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Primary"}`}>{msgM3.msg} </p>
+                <p className={`text-sm lg:text-lg mx-auto mt-3 lg:mt-5 text-center ${msgM4.type === "error" ? "text-[#D82525]" : "text-Primary"}`}>{msgM4.msg} </p>
               </div>
             </div>
           )}
@@ -1816,14 +1849,25 @@ const DynamicMatrixShort = ({ theme }) => {
                       {/* Level Input */}
                       <div className='max-w-[466px] w-full'>
 
-                        <input
+                        {/* <input
                           type="date"
+                          placeholder="MM/DD/YYYY"
                           className="text-[11px] lg:text-xs text-Primary mt-2 px-2 py-1 lg::py-[6px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7 max-w-[120px]"
                           maxLength={10}
                           title="max length 10"
                           value={formattedDate}
                           onChange={(e) => handleLevelDateChange(levelKey, e.target.value)}
                           disabled={!levelData.active}
+                        /> */}
+
+                        <DatePicker
+                          selected={formattedDate ? new Date(formattedDate) : null}
+                          onChange={(date) => handleLevelDateChange(levelKey, formatDateToString(date))}
+                          placeholderText="MM/DD/YYYY"
+                          dateFormat="MM/dd/yyyy"
+                          disabled={!levelData.active}
+                          popperPlacement="bottom-start"
+                          className="text-[11px] lg:text-xs text-Primary mt-2 px-2 py-1 lg:py-[6px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7 max-w-[100px] w-full"
                         />
 
                         <div className='flex flex-wrap-reverse justify-between gap-2 mt-3'>
@@ -1859,7 +1903,7 @@ const DynamicMatrixShort = ({ theme }) => {
                         </div>
                         <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                           <input
-                            type='text'
+                            type='text' inputMode='numeric'
                             maxLength={5}
                             title='Max Length 5'
                             value={levelData.value > 0 ? levelData.value : 0}
@@ -1885,7 +1929,7 @@ const DynamicMatrixShort = ({ theme }) => {
                         <label className='text-sm lg:text-base text-Primary font-medium'>{`Premium ${index + 1}`}</label>
                         <div className={`Premium flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md ${errorState[levelKey] ? 'bg-red-300' : ''}`}>
                           <input
-                            type='text'
+                            type='text' inputMode='numeric'
                             maxLength={5}
                             title='Max Length 5'
                             value={levelData.premium}
@@ -2104,7 +2148,7 @@ const DynamicMatrixShort = ({ theme }) => {
                 )}
               </span>
             </h2>
-            <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' ref={filterModalRef} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+            <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]' ref={filterModalRef} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
               <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
             </p>
           </div>
@@ -2238,7 +2282,7 @@ const DynamicMatrixShort = ({ theme }) => {
             <img className='h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
           </Button>
 
-          <div className='mb-10 text-center'>
+          <div className='mb-5 text-center'>
             {(msgM4.msg !== "") && <p className={`text-sm ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}.</p>}
           </div>
 

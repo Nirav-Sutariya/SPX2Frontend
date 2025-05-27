@@ -46,8 +46,6 @@ const App = () => {
   const [activeLink, setActiveLink] = useState("/dashboard");
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(localStorage.getItem("theme") === "dark");
-  const timezone = 'America/New_York';
-
 
   // Validates the token using your API.
   useEffect(() => {
@@ -92,7 +90,7 @@ const App = () => {
           'x-access-token': token
         }
       });
-      return response.status === 200 ? response.data.isValid : false;
+      return response.status === 200 ? response.data?.isValid : false;
     } catch (error) {
       return false;
     }
@@ -127,6 +125,31 @@ const App = () => {
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
+  }
+
+  // Get Admin This Page Access For Admin Api 
+  async function getCadRate() {
+    try {
+      let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_GET_USD_TO_CAD_CURRENCY_URL), { userId: getUserId() }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 200) {
+        const rawRateCad = response.data.data?.usdToCad;
+        const rawRateAud = response.data.data?.usdToAud;
+        const formattedRateCad = parseFloat(rawRateCad).toFixed(3);
+        const formattedRateAud = parseFloat(rawRateAud).toFixed(3);
+        const rateCad = Number(formattedRateCad);
+        const rateAud = Number(formattedRateAud);
+        appContext.setAppContext((curr) => ({
+          ...curr,
+          cadLiveRate: rateCad,
+          audLiveRate: rateAud,
+        }));
+      }
+    } catch (error) {
+    }
   }
 
   // Get Admin This Page Access For Admin Api 
@@ -166,7 +189,6 @@ const App = () => {
 
       if (response.status === 200 && response.data?.data) {
         const { spx, rut, ndx, vix } = response.data.data;
-        const marketTime = DateTime.now().setZone('America/New_York').toISO();
         const formattedData = ({
           spx: formatData(spx),
           rut: formatData(rut),
@@ -178,7 +200,6 @@ const App = () => {
         appContext.setAppContext((prev) => ({
           ...prev,
           marketData: formattedData,
-          marketTime: marketTime,
         }));
       }
     } catch (error) {
@@ -234,6 +255,7 @@ const App = () => {
         await getUserData();
         await fetchMarketData();
         await getMatrixLevel();
+        await getCadRate();
       } else {
         console.warn("No valid token found.");
       }
@@ -250,21 +272,24 @@ const App = () => {
     const shouldMarketBeOpen = () => {
       const now = DateTime.now().setZone(timezone);
       const today = now.toFormat('yyyy-MM-dd');
+      const weekday = now.weekday;
+
+      if (weekday === 6 || weekday === 7) return false;
 
       const openTime = DateTime.fromFormat(`${today} ${openingHour}`, 'yyyy-MM-dd hh:mm a', { zone: timezone });
       const closeTime = DateTime.fromFormat(`${today} ${closingHour}`, 'yyyy-MM-dd hh:mm a', { zone: timezone });
 
       return now >= openTime && now <= closeTime;
-    };  
+    };
 
     const interval = setInterval(() => {
-      if (shouldMarketBeOpen()) {
+      if (!appContext.isAdmin && shouldMarketBeOpen()) {
         fetchMarketData();
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [appContext.isAdmin]);
 
   // Apply dark mode class when isDarkTheme is true else Apply light mode class when isDarkTheme is false
   useEffect(() => {

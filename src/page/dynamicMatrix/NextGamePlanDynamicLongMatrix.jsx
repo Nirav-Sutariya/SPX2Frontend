@@ -75,7 +75,6 @@ function NextGamePlanDynamicLongMatrix({
   }, [setIsFilterModalVisible2]);
 
 
-
   // Range Slider
   const MIN_CREDIT = 1;
   const MAX_CREDIT = 5;
@@ -188,7 +187,7 @@ function NextGamePlanDynamicLongMatrix({
         <table className="table-auto border-collapse w-full">
           <thead>
             <tr className="bg-background2 text-white text-sm lg:text-base font-semibold">
-              {Credit && <th className="px-2 py-2 min-w-16">Buying Power</th>}
+              {Credit && <th className="px-2 py-2 min-w-32 lg:min-w-16">Buying Power</th>}
               {Credit && <th className="border-x border-borderColor px-2 py-2 min-w-16">Credit</th>}
               {BEContract && <th className="border-x border-borderColor px-2 py-2 min-w-28">BE Contract</th>}
               {BEGain1 && <th className="border-x border-borderColor px-2 py-2 min-w-28">BE+1 Gain</th>}
@@ -222,7 +221,7 @@ function NextGamePlanDynamicLongMatrix({
         </table>
       </div>
 
-      <div className="mt-4 text-center max-w-[850px] w-full">
+      <div className="mt-2 lg:mt-4 text-center max-w-[850px] w-full">
         {filteredPremiums.length > 5 && (
           <button onClick={() => setShowAll(!showAll)} className="text-sm lg:text-base text-Secondary2 font-medium underline">
             {showAll ? 'See Less Levels' : 'See More Levels'}

@@ -10,6 +10,7 @@ import SupportUserIcon from '../assets/Images/AdminHeader/SupportUserIcon.svg';
 import SubscriptionIcon from '../assets/Images/AdminHeader/SubscriptionIcon.svg';
 import ManageCouponIcon from '../assets/Images/AdminHeader/ManageCouponIcon.svg';
 import ManageLevelsIcon from '../assets/Images/AdminHeader/ManageLevelsIcon.svg';
+import Logout from '../assets/Images/Login/Logout.svg';
 import { AppContext } from '../components/AppContext';
 import { removeTokens } from '../page/login/loginAPI';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -141,6 +142,33 @@ const AdminHeader = ({ toggleTheme, isDarkTheme, isDarkMode, activeLink, setActi
                 <p className='text-base text-Primary'>Manage Levels</p>
               </Link>
               {appContext.superUser && <button type="button" className='flex items-center text-base text-Primary text-center mx-auto mt-5' onClick={() => { setIsAdmin(!isAdmin); appContext.setAppContext({ ...appContext, isAdmin: !isAdmin }); navigate("/") }}>{isAdmin ? "Switch To User" : "Switch To Admin"}</button>}
+              <div className='flex justify-center items-end gap-5 p-7'>
+                <img className='p-[6px] border border-borderColor3 rounded-[7px] shadow-[0px_0px_4px_0px_#110D3D4D]' src={Logout} alt="" onClick={() => {
+                  setShowLogoutModal(true);
+                  setMenuVisible(false);
+                }} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showLogoutModal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
+            <div className="p-4 lg:p-[30px] bg-background6 rounded-lg shadow-[0px_0px_6px_0px_#28236633] w-[360px] lg:w-[486px]">
+              <div className="flex justify-center">
+                <div className="mx-auto p-5 lg:p-7 border border-borderColor rounded-md bg-background3">
+                  <img className="w-7 lg:w-auto" src={Logout2} alt="Reset Icon" />
+                </div>
+              </div>
+              <h2 className="text-lg lg:text-[22px] lg:leading-[33px] text-Secondary2 mx-auto max-w-[257px] mt-5 text-center">Oh no! You're leaving… Are you sure?</h2>
+              <div className="flex justify-between gap-3 mt-5 lg:mt-9">
+                <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 rounded-md w-full" onClick={() => setShowLogoutModal(false)} >
+                  Cancel
+                </button>
+                <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full" onClick={(_) => handleLogout(setIsLoggedIn)} >
+                  Log out
+                </button>
+              </div>
             </div>
           </div>
         )}

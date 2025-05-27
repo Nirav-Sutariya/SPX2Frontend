@@ -492,8 +492,8 @@ const UserData = () => {
   return (
     <div className='px-5 lg:pl-10 lg:px-6'>
       <h2 className='text-xl lg:text-[32px] lg:leading-[48px] text-Primary font-semibold'>User Data</h2>
-      <div className='flex flex-wrap justify-between gap-5 mt-3 lg:mt-5'>
-        <div className='flex justify-end gap-5'>
+      <div className='flex flex-wrap justify-between gap-3 lg:gap-5 mt-3 lg:mt-5'>
+        <div className='flex justify-end gap-3 lg:gap-5'>
           <input
             type="file"
             accept=".xls, .xlsx"
@@ -504,14 +504,14 @@ const UserData = () => {
           <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]' onClick={triggerFileInput}>Upload file</p>
           {file && <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]' onClick={handleUpload}> Import Data </p>}
         </div>
-        <div className='flex flex-wrap justify-end gap-5'>
+        <div className='flex flex-wrap justify-end gap-3 lg:gap-5'>
           <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] flex items-center gap-3' onClick={() => { setAddUser(true) }}> Add User </p>
           <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]' onClick={ExportData}> Export Data </p>
           <Link to="/user-data-ban-user" className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]'> Ban User List </Link>
         </div>
       </div>
 
-      <div className='flex flex-wrap justify-between gap-5 mt-3 lg:mt-5'>
+      <div className='flex flex-wrap justify-between gap-3 lg:gap-5 mt-3 lg:mt-5'>
         <div className="relative w-full max-w-md">
           <input
             ref={inputRef}
@@ -523,9 +523,9 @@ const UserData = () => {
           />
           <img src={SearchIcon} className="absolute left-3 top-2.5 w-5 h-5 cursor-pointer" />
         </div>
-        <div className='flex gap-5'>
+        <div className='flex flex-wrap gap-3 lg:gap-5'>
           <div className="relative" ref={dropdownRef}>
-            <span className='flex justify-between items-center gap-2 py-2 px-5 border border-borderColor rounded-md min-w-[210px] w-full cursor-pointer' onClick={toggleDropdown}>
+            <span className='flex justify-between items-center gap-2 py-2 px-3 lg:px-5 border border-borderColor rounded-md min-w-[150px] lg:min-w-[210px] w-full cursor-pointer' onClick={toggleDropdown}>
               <p className='text-sm xl:text-base text-Primary'>{selectedOption || 'Select an Plan'}</p>
               <img className='w-3' src={DropdownIcon} alt="" />
             </span>
@@ -540,8 +540,8 @@ const UserData = () => {
               </div>
             )}
           </div>
-          <div className='flex items-center gap-5 px-3 py-2 border border-borderColor rounded-md'>
-            <label className="text-sm md:text-base text-Primary">End Date:</label>
+          <div className='flex items-center gap-5 px-3 py-[7px] lg:py-2 border border-borderColor rounded-md'>
+            <label className="text-sm lg:text-base text-Primary">End Date:</label>
             <input type="date" className="text-sm text-Primary rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7" value={endDate} onChange={handleEndDateChange} min={new Date().toISOString().split("T")[0]} />
           </div>
         </div>
@@ -549,7 +549,7 @@ const UserData = () => {
 
       {message && (<p className={message.type === "success" ? "text-Secondary2 mt-2" : "text-[#D82525] mt-2"}>{message.text}</p>)}
       {(msg.msg === "") && <p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}</p>}
-      <div className='relative mt-3 lg:mt-5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
+      <div className='relative mt-3 lg:mt-5 lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
         <div className='overflow-x-auto rounded-md'>
           <table className="text-center min-w-full ">
             <thead>
@@ -624,6 +624,7 @@ const UserData = () => {
                                 activePlanView: item?.subscriptionDetails?.subscriptionName || "-"
                               }
                             })
+                            localStorage.setItem("selectedUserId", item._id);
                             navigate("/user-data-sub-page")
                           }} className="text-sm lg:text-base text-Secondary2 flex items-center gap-[10px] cursor-pointer"><img className='w-4' src={ActionIcon} alt="" /> More Detail</p>
                         </div>
@@ -649,7 +650,7 @@ const UserData = () => {
       </div>
 
       {/* Pagination Controls */}
-      <div className="flex justify-between items-center mt-5 pt-5 border-t border-borderColor">
+      <div className="flex justify-between items-center my-5 pt-5 border-t border-borderColor">
         <button className="text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} >
           Previous
         </button>
@@ -671,7 +672,7 @@ const UserData = () => {
             <img className="absolute top-2 right-2 cursor-pointer w-7 lg:w-auto" onClick={() => setAddUser(false)} src={PopupCloseIcon} alt="" />
 
             <h2 className='text-xl lg:text-[24px] lg:leading-[30px] text-Primary font-semibold'>Add User Details </h2>
-            <p className='text-base lg:text-[16px] lg:leading-[30px] text-Secondary2 font-medium mt-4 flex gap-5'>Profile Picture</p>
+            <p className='text-base lg:text-[16px] lg:leading-[30px] text-Secondary2 font-medium mt-1 lg:mt-4 flex gap-5'>Profile Picture</p>
             <div className='mt-2 px-3 lg:px-4 py-3 lg:py-5 border border-borderColor rounded-md bg-background5 max-w-[150px] lg:max-w-[173px] w-full cursor-pointer' onClick={handleDivClick}>
               <input type="file" ref={fileInputRef} accept=".png, .jpg, .jpeg" style={{ display: 'none' }} onChange={handleImageChange} />
               <div className='flex justify-center'>
@@ -707,7 +708,7 @@ const UserData = () => {
               </div>
             </div>
 
-            <h2 className='text-xl lg:text-[22px] lg:leading-[30px] text-Primary font-medium mt-3 lg:mt-5 mb-3'>Contact Information</h2>
+            <h2 className='text-xl lg:text-[22px] lg:leading-[30px] text-Primary font-medium mt-3 lg:mt-5 mb-1 lg:mb-3'>Contact Information</h2>
 
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
@@ -763,7 +764,7 @@ const UserData = () => {
 
             <h2 className='text-xl lg:text-[24px] lg:leading-[30px] text-Primary font-semibold'>Edit User Details</h2>
             {(msg.msg !== "") && <p className={`text-sm mt-2 ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}</p>}
-            <p className='text-base lg:text-[16px] lg:leading-[30px] text-Secondary2 font-medium mt-4 flex gap-5'>Profile Picture </p>
+            <p className='text-base lg:text-[16px] lg:leading-[30px] text-Secondary2 font-medium mt-1 lg:mt-4 flex gap-5'>Profile Picture </p>
 
             <div className='mt-2 px-3 lg:px-4 py-3 lg:py-5 border border-borderColor rounded-md bg-background5 max-w-[150px] lg:max-w-[173px] w-full cursor-pointer' onClick={handleDivClick}>
               <input type="file" ref={fileInputRef} accept=".png, .jpg, .jpeg" style={{ display: 'none' }} onChange={handleImageChange} />
@@ -800,7 +801,7 @@ const UserData = () => {
               </div>
             </div>
 
-            <h2 className='text-xl lg:text-[22px] lg:leading-[30px] text-Primary font-medium mt-3 lg:mt-5 mb-3'>Contact Information</h2>
+            <h2 className='text-xl lg:text-[22px] lg:leading-[30px] text-Primary font-medium mt-3 lg:mt-5 mb-1 lg:mb-3'>Contact Information</h2>
 
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
@@ -818,7 +819,7 @@ const UserData = () => {
             </div>
             <div className="grid lg:grid-cols-2 gap-4 max-w-[420px] lg:max-w-none" title='Change existing plan manually'>
               <div>
-                <h2 className='text-xl lg:text-[22px] lg:leading-[30px] text-Primary font-medium mt-5 mb-3'>Manual Subscription Plan</h2>
+                <h2 className='text-xl lg:text-[22px] lg:leading-[30px] text-Primary font-medium mt-3 lg:mt-5 mb-2 lg:mb-3'>Manual Subscription Plan</h2>
                 <div className='flex flex-wrap justify-between gap-3 px-4 lg:px-8 py-[7px] lg:py-[15px] border border-borderColor rounded-md bg-textBoxBg'>
                   {appContext.plans?.map((plan) => (
                     <label key={plan._id} className='text-sm text-Secondary2 flex items-center gap-3'>
@@ -838,7 +839,7 @@ const UserData = () => {
               </div>
             </div>
 
-            <div className="flex justify-end mt-5 lg:mt-1">
+            <div className="flex justify-end mt-1">
               <button type="button" ref={submitButtonEditRef} onClick={editExistingUser} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]" >
                 Update Changes
               </button>

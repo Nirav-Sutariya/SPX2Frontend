@@ -3,6 +3,7 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import { DateTime } from 'luxon';
 import GaugeChart from 'react-gauge-chart';
+import SPXZoneChart from "./demo";
 
 const AreaChart = ({ inputs, theme, matrixTypeValue, price }) => {
   const calculateChartData = () => {
@@ -188,13 +189,11 @@ const AreaChart = ({ inputs, theme, matrixTypeValue, price }) => {
   const getMarketStatus = (spxValue, isMarketOpen) => {
     const insideMin = shortPutInt;
     const insideMax = shortCallInt;
-
     const partiallyInsideBuffer = 2.15;
     const partiallyOutsideBuffer = 5;
 
     const partiallyInsideMin = insideMin - partiallyInsideBuffer;
     const partiallyInsideMax = insideMax + partiallyInsideBuffer;
-
     const partiallyOutsideMin = insideMin - partiallyOutsideBuffer;
     const partiallyOutsideMax = insideMax + partiallyOutsideBuffer;
 
@@ -223,7 +222,32 @@ const AreaChart = ({ inputs, theme, matrixTypeValue, price }) => {
   const maxRange = longCallInt + 5;
   const percent = Math.max(0, Math.min(1, (spxValue - minRange) / (maxRange - minRange)));
 
+  const arcConfig = [
+    { label: "Partially Inside", percent: 0.2, color: "#f1c40f" }, // Yellow
+    { label: "Inside", percent: 0.5, color: "#2ecc71" }, // Green
+    { label: "Partially Outside", percent: 0.1, color: "#e74c3c" }, // Red
+    { label: "Outside", percent: 0.2, color: "#f1c40f" }, // Yellow
+  ];
 
+  // Flattened for chart props
+  const arcsLength = arcConfig.map(arc => arc.percent);
+  const colors = arcConfig.map(arc => arc.color);
+
+  // Get pointer position based on label
+  const getPointerPercent = (status) => {
+    let current = 0;
+    for (let arc of arcConfig) {
+      const match = status.toLowerCase().includes(arc.label.toLowerCase());
+      if (match) {
+        // Point to center of the matching arc
+        return current + arc.percent / 2;
+      }
+      current += arc.percent;
+    }
+    return 1; // Default to end
+  };
+
+  const pointerPercent = getPointerPercent(statusText);
 
   return (
     <div className="lg:pr-1 xl:pr-3 lg:pl-1">
@@ -239,20 +263,19 @@ const AreaChart = ({ inputs, theme, matrixTypeValue, price }) => {
         <p className="text-sm text-Primary mt-1"><span className="font-semibold">Max Loss :</span> {matrixTypeValue} close above {longCallInt} or close below {longPutInt}</p>
       </div>
 
-      <div className="w-full p-4">
+      {/* <div className="w-full p-4">
         <GaugeChart
           id="spx-status-gauge"
-          nrOfLevels={30}
-          arcsLength={[0.222, 0.589, 0.222]} // normalized from [2.85, 2.15, 5, 2.85]
-          colors={['#f39c12', '#2ecc71', '#f39c12']}
-          percent={percent}
-          arcPadding={0.03}
-          textColor="#"
+          nrOfLevels={420}
+          arcsLength={arcsLength}
+          colors={colors}
+          percent={pointerPercent}
+          arcPadding={0.02}
+          textColor="#000"
           formatTextValue={() => statusText}
         />
-
-        <p className="text-center mt-4 font-medium text-lg">Status: {statusText}</p>
-      </div>
+        <p className="text-base lg:text-lg text-Primary text-center mt-4 font-medium">Status: {statusText}</p>
+      </div> */}
     </div>
   );
 };

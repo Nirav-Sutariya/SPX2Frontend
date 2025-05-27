@@ -134,10 +134,10 @@ const Landing = () => {
       <div id='Pricing' className='px-5 mt-10 lg:mt-[100px] mx-auto max-w-[1400px]'>
         <p className='text-base text-center'>Pricing</p>
         <h2 className='text-2xl lg:text-[32px] lg:leading-[48px] text-Primary font-semibold text-center'>Find the plan that works best for you</h2>
-        <div className="text-base text-center text-white py-2 px-4 mt-1 lg:mt-3 rounded-md bg-background8">
+        {/* <div className="text-base text-center text-white py-2 px-4 mt-1 lg:mt-3 rounded-md bg-background8">
           <span className='text-[24px] pl-2' role="img" aria-label="fire">🔥</span>
           Promotion: Use code <span className="font-semibold">SAVE10</span> for 10% off if upgrading from Trial within 7 days!
-        </div>
+        </div> */}
       </div>
 
       <div className="grid md:flex md:flex-none justify-center gap-5 xl:gap-10 mt-4 lg:mt-[30px]">
@@ -170,9 +170,20 @@ const Landing = () => {
               </div>
             </div>
 
-            <Link to="/login" className={`text-base lg:text-xl font-semibold ${index === 1 ? 'text-Primary bg-white' : 'text-white bg-ButtonBg'} py-2 lg:py-[13px] px-5 lg:px-9 text-center mt-10 w-[170px] lg:w-[229px] mx-auto rounded-md`}>
-              Choose Plan
-            </Link>
+            {index === 0 ? (
+              <Link to="/login" className={`text-base lg:text-xl font-semibold ${index === 1 ? 'text-Primary bg-white' : 'text-white bg-ButtonBg'} py-2 lg:py-[13px] px-5 lg:px-9 text-center mt-2 w-[170px] lg:w-[229px] mx-auto rounded-md`}>
+                Choose Plan
+              </Link>
+            ) : (
+              <div className="grid">
+                <p className="text-xs font-medium text-white text-center mt-7 px-5">
+                  *The subscription will be billed on a yearly basis.
+                </p>
+                <Link to="/login" className={`text-base lg:text-xl font-semibold ${index === 1 ? 'text-Primary bg-white' : 'text-white bg-ButtonBg'} py-2 lg:py-[13px] px-5 lg:px-9 text-center mt-2 w-[170px] lg:w-[229px] mx-auto rounded-md`}>
+                  Choose Plan
+                </Link>
+              </div>
+            )}
           </div>
         ))}
       </div>

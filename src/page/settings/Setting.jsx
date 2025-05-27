@@ -141,7 +141,7 @@ const Setting = ({ setIsLoggedIn }) => {
       if (shouldMarketBeOpen()) {
         getCadRate();
       }
-    }, 5 * 60 * 1000); // every 5 minutes
+    }, 30 * 60 * 1000); // every 30 minutes
 
     return () => clearInterval(interval);
   }, []);
@@ -331,7 +331,7 @@ const Setting = ({ setIsLoggedIn }) => {
                   </label>
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary font-medium mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-4 border border-borderColor bg-textBoxBg rounded-md'>
                     <span className='font-semibold'>C$</span>
-                    <input type='text' maxLength={5} title='Max Length 5' value={conversionRateAud} onChange={handleRateChangeAud} placeholder='Enter Your Rate' className='bg-transparent w-full focus:outline-none' />
+                    <input type='text' inputMode='numeric' maxLength={5} title='Max Length 5' value={conversionRateAud} onChange={handleRateChangeAud} placeholder='Enter Your Rate' className='bg-transparent w-full focus:outline-none' />
                   </div>
                 </div>
                 <button type="button" className="text-sm lg:text-base font-semibold text-white bg-ButtonBg rounded-md py-2 lg:py-3 max-w-[130px] w-full" onClick={handleApplyAudRate}>
@@ -365,7 +365,7 @@ const Setting = ({ setIsLoggedIn }) => {
                   </label>
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary font-medium mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-4 border border-borderColor bg-textBoxBg rounded-md'>
                     <span className='font-semibold'>C$</span>
-                    <input type='number' maxLength={5} title='Max Length 5' value={conversionRateCad} onChange={handleRateChangeCad} placeholder='Enter Your Rate' className='bg-transparent w-full focus:outline-none' />
+                    <input type='number' inputMode='numeric' maxLength={5} title='Max Length 5' value={conversionRateCad} onChange={handleRateChangeCad} placeholder='Enter Your Rate' className='bg-transparent w-full focus:outline-none' />
                   </div>
                 </div>
                 <button type="button" className="text-sm lg:text-base font-semibold text-white bg-ButtonBg rounded-md py-2 lg:py-3 max-w-[130px] w-full" onClick={handleApplyCadRate}>

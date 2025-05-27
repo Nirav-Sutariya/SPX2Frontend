@@ -39,7 +39,7 @@ const HelpSupport = () => {
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    const maxSize = 5 * 1024 * 1024; 
+    const maxSize = 5 * 1024 * 1024;
 
     if (selectedFile) {
       if (!validateFileType(selectedFile)) {
@@ -274,7 +274,7 @@ const HelpSupport = () => {
       {activeIndex === 0 && (
         <div className='mt-5 p-4 lg:p-[30px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
           <div onClick={() => toggleAccordionFAQ(5)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-            <img src={FAQActiveIndex === 5 ? MinimumIcon : PlusIcon} alt="" /> Mechanics of Short Iron condor
+            <img className='w-4 md:w-auto' src={FAQActiveIndex === 5 ? MinimumIcon : PlusIcon} alt="" /> Mechanics of Short Iron condor
           </div>
           {FAQActiveIndex === 5 && (
             <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>
@@ -323,7 +323,7 @@ const HelpSupport = () => {
           )}
 
           <div onClick={() => toggleAccordionFAQ(0)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] mt-3 border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-            <img className='' src={FAQActiveIndex === 0 ? MinimumIcon : PlusIcon} alt="" /> What Payment Methods Are Accepted?
+            <img className='w-4 md:w-auto' src={FAQActiveIndex === 0 ? MinimumIcon : PlusIcon} alt="" /> What Payment Methods Are Accepted?
           </div>
           {FAQActiveIndex === 0 && (
             <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>
@@ -335,7 +335,7 @@ const HelpSupport = () => {
           )}
 
           <div onClick={() => toggleAccordionFAQ(1)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] mt-3 border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-            <img src={FAQActiveIndex === 1 ? MinimumIcon : PlusIcon} alt="" /> Can I upgrade or downgrade my subscription?
+            <img className='w-4 md:w-auto' src={FAQActiveIndex === 1 ? MinimumIcon : PlusIcon} alt="" /> Can I upgrade or downgrade my subscription?
           </div>
           {FAQActiveIndex === 1 && (
             <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>
@@ -345,7 +345,7 @@ const HelpSupport = () => {
           )}
 
           <div onClick={() => toggleAccordionFAQ(2)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] mt-3 border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-            <img src={FAQActiveIndex === 2 ? MinimumIcon : PlusIcon} alt="" /> Is there a refund policy?
+            <img className='w-4 md:w-auto' src={FAQActiveIndex === 2 ? MinimumIcon : PlusIcon} alt="" /> Is there a refund policy?
           </div>
           {FAQActiveIndex === 2 && (
             <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>
@@ -356,7 +356,7 @@ const HelpSupport = () => {
           )}
 
           <div onClick={() => toggleAccordionFAQ(3)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] mt-3 border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-            <img src={FAQActiveIndex === 3 ? MinimumIcon : PlusIcon} alt="" /> 📢 Need Help? Here’s How to Reach Us!
+            <img className='w-4 md:w-auto' src={FAQActiveIndex === 3 ? MinimumIcon : PlusIcon} alt="" /> 📢 Need Help? Here’s How to Reach Us!
           </div>
           {FAQActiveIndex === 3 && (
             <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>
@@ -370,7 +370,7 @@ const HelpSupport = () => {
           )}
 
           <div onClick={() => toggleAccordionFAQ(4)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] mt-3 border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-            <img src={FAQActiveIndex === 4 ? MinimumIcon : PlusIcon} alt="" /> Matrix table column discription
+            <img className='w-4 md:w-auto' src={FAQActiveIndex === 4 ? MinimumIcon : PlusIcon} alt="" /> Matrix table column discription
           </div>
           {FAQActiveIndex === 4 && (
             <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>
@@ -391,7 +391,7 @@ const HelpSupport = () => {
           )}
 
           <div onClick={() => toggleAccordionFAQ(6)} className='flex items-center gap-3 lg:gap-6 text-base lg:text-xl font-medium text-Primary py-3 lg:py-5 px-4 lg:px-[30px] mt-3 border border-borderColor rounded-md bg-background5 shadow-[0px_0px_6px_0px_#28236633] cursor-pointer capitalize'>
-            <img src={FAQActiveIndex === 6 ? MinimumIcon : PlusIcon} alt="" />  How to Save a Matrix
+            <img className='w-4 md:w-auto' src={FAQActiveIndex === 6 ? MinimumIcon : PlusIcon} alt="" />  How to Save a Matrix
           </div>
           {FAQActiveIndex === 6 && (
             <p className='text-sm lg:text-lg text-Secondary2 py-3 lg:py-5 px-4 lg:px-[30px] mt-3 rounded-lg bg-background6 shadow-[2px_0px_4px_0px_#21212133]'>

@@ -323,10 +323,6 @@ const EditProfile = () => {
     }
   };
 
-  console.log("selectedImage", selectedImage);
-  console.log("appContext.profilePhoto", appContext.userData.first_name);
-
-
 
   return (
     <div className='px-3 lg:pl-10 lg:px-6'>
@@ -443,7 +439,7 @@ const EditProfile = () => {
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="relative block text-sm lg:text-[16px] lg:leading-[30px] text-Primary font-medium">New Password
-              <input type={showPassword ? 'text' : 'password'} title='Max Length 30' maxLength={30} placeholder='Enter your new password' name='password1' value={passwordFrom.password1} ref={newPasswordRef} onKeyDown={(e) => handleKeyDown(e, confirmPasswordRef)} onChange={handlePasswordInputChange}
+              <input type={showPassword ? 'text' : 'password'} title='Max Length 30' maxLength={30} placeholder='Enter your new password' name='password1' autoComplete="new-password" value={passwordFrom.password1} ref={newPasswordRef} onKeyDown={(e) => handleKeyDown(e, confirmPasswordRef)} onChange={handlePasswordInputChange}
                 className="text-Primary w-full mt-2 px-3 lg:px-5 py-[5px] lg:py-[9px] text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
               />
               <span className="absolute top-[50px] lg:top-[64px] right-4 transform -translate-y-1/2 cursor-pointer" onClick={() => setShowPassword(!showPassword)} >
@@ -455,7 +451,7 @@ const EditProfile = () => {
           </div>
           <div>
             <label className="relative block text-sm lg:text-[16px] lg:leading-[30px] text-Primary font-medium">Confirm Password
-              <input type={showPassword2 ? 'text' : 'password'} title='Max Length 30' maxLength={30} placeholder='Enter your confirm password' name='password2' value={passwordFrom.password2} ref={confirmPasswordRef} onKeyDown={(e) => handleKeyDown(e, submitButton2Ref)} onChange={handlePasswordInputChange}
+              <input type={showPassword2 ? 'text' : 'password'} title='Max Length 30' maxLength={30} placeholder='Enter your confirm password' name='password2' autoComplete="new-password" value={passwordFrom.password2} ref={confirmPasswordRef} onKeyDown={(e) => handleKeyDown(e, submitButton2Ref)} onChange={handlePasswordInputChange}
                 className="text-Primary w-full mt-2 px-3 lg:px-5 py-[5px] lg:py-[9px] text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
               />
               <span className="absolute top-[50px] lg:top-[64px] right-4 transform -translate-y-1/2 cursor-pointer" onClick={() => setShowPassword2(!showPassword2)} >

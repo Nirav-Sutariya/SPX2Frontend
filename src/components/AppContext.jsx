@@ -9,7 +9,6 @@ export const AppContext = createContext({
   cadLiveRate: null,
   audLiveRate: null,
   marketData: null,
-  marketTime: null,
   currencyTime: null,
   names: {},
   namesLong: {},

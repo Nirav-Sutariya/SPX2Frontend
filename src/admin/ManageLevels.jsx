@@ -143,8 +143,37 @@ const ManageLevels = ({ }) => {
   }
 
   // Update Trade Price 
-  async function updateTradePrice(e) {
-    e.preventDefault()
+  async function updateTradePrice(shortPrice) {
+    if (shortTradePrice && (shortTradePrice > 20 || shortTradePrice < 0)) {
+      setMsg({ type: "error", msg: "Short Matrix should be between 0 to 20" })
+      return
+    }
+    if (longTradePrice && (longTradePrice > 20 || longTradePrice < 0)) {
+      setMsg({ type: "error", msg: "Long Matrix should be between 0 to 20" })
+      return
+    }
+    try {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_SET_STATIC_TRADE_PRICE), { userId: getUserId(), matrixType: matrixTypeValue, spread: selectedValue, staticShortTradePrice: shortPrice, staticLongTradePrice: longTradePrice }, {
+        headers: {
+          'x-access-token': getToken()
+        }
+      })
+      if (response.status === 201) {
+        setMsg({ type: "info", msg: 'Matrix Trade Price are updated...' });
+        fetchTradePrice();
+      }
+    } catch (error) {
+      if (error.message.includes("Network Error")) {
+        setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      } else if (error.response) {
+        setMsg({ type: "error", msg: error.response.data.message || "Failed to update matrix Trade Price." });
+      } else {
+        setMsg({ type: "error", msg: "An unexpected error occurred." });
+      }
+    }
+  }
+
+  async function updateTradePrice2(longPrice) {
     if (shortTradePrice && (shortTradePrice > 5 || shortTradePrice < 0)) {
       setMsg({ type: "error", msg: "Short Matrix should be between 0 to 5" })
       return
@@ -154,7 +183,7 @@ const ManageLevels = ({ }) => {
       return
     }
     try {
-      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_SET_STATIC_TRADE_PRICE), { userId: getUserId(), matrixType: matrixTypeValue, spread: selectedValue, staticShortTradePrice: shortTradePrice, staticLongTradePrice: longTradePrice }, {
+      let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_SET_STATIC_TRADE_PRICE), { userId: getUserId(), matrixType: matrixTypeValue, spread: selectedValue, staticShortTradePrice: shortTradePrice, staticLongTradePrice: longPrice }, {
         headers: {
           'x-access-token': getToken()
         }
@@ -308,9 +337,9 @@ const ManageLevels = ({ }) => {
     if (!appContext.shortMatrixLength || !appContext.longMatrixLength) {
       fetchLevelLength();
     }
-    if (!appContext.shortTradePrice || !appContext.longTradePrice) {
-      fetchTradePrice();
-    }
+    // if (!appContext.shortTradePrice || !appContext.longTradePrice) {
+    fetchTradePrice();
+    // }
     fetchDefaultLevelValues();
     if (msg.type !== "")
       setTimeout(() => {
@@ -327,34 +356,14 @@ const ManageLevels = ({ }) => {
     const value = e.target.value;
     if (value && !/^\d*\.?\d*$/.test(value)) return;
     setShortTradePrice(value);
+    updateTradePrice(value);
   };
 
   const handleLongTradeChange = (e) => {
     const value = e.target.value;
     if (value && !/^\d*\.?\d*$/.test(value)) return;
     setLongTradePrice(value);
-  };
-
-  const incrementShortTrade = () => {
-    setShortTradePrice((prev) => (parseFloat(prev || 0) + 0.1).toFixed(2));
-  };
-
-  const decrementShortTrade = () => {
-    setShortTradePrice((prev) => {
-      const newValue = parseFloat(prev || 0) - 0.1;
-      return newValue >= 0 ? newValue.toFixed(2) : "0.00";
-    });
-  };
-
-  const incrementLongTrade = () => {
-    setLongTradePrice((prev) => (parseFloat(prev || 0) + 0.1).toFixed(2));
-  };
-
-  const decrementLongTrade = () => {
-    setLongTradePrice((prev) => {
-      const newValue = parseFloat(prev || 0) - 0.1;
-      return newValue >= 0 ? newValue.toFixed(2) : "0.00";
-    });
+    updateTradePrice2(value);
   };
 
   const handleIncrement = () => {
@@ -516,59 +525,6 @@ const ManageLevels = ({ }) => {
             </button>
           </div>
         </div>
-
-        {/* Trade Price */}
-        <div className='px-5 md:px-[30px] py-5 md:py-[34px] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] max-w-[459px] lg:max-w-[509px] w-full h-fit'>
-          {matrixTypeValue === "StaticShort" && <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Trade Price <span className='text-xs text-[#B7D1E0] font-medium'>(Static Short)</span>
-            <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-              <input
-                type='text'
-                maxLength={4}
-                title='Max Length 4'
-                placeholder='1.6'
-                value={shortTradePrice}
-                onChange={handleShortTradeChange}
-                className='bg-transparent w-full focus:outline-none'
-              />
-              <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                <button onClick={decrementShortTrade}>
-                  <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                </button>
-                <div className='border-r border-[#B7D1E0] h-[26px]'></div>
-                <button className='w-[22px]' onClick={incrementShortTrade}>
-                  <img className='w-4 lg:w-auto' src={PlusIcon} alt="" />
-                </button>
-              </div>
-            </div>
-          </label>}
-          {matrixTypeValue === "StaticLong" && <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Trade Price <span className='text-xs text-[#B7D1E0] font-medium'>(Static Long)</span>
-            <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-              <input
-                type='text'
-                maxLength={4}
-                title='Max Length 4'
-                placeholder='3'
-                value={longTradePrice}
-                onChange={handleLongTradeChange}
-                className='bg-transparent w-full focus:outline-none'
-              />
-              <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                <button onClick={decrementLongTrade}>
-                  <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                </button>
-                <div className='border-r border-[#B7D1E0] h-[26px]'></div>
-                <button className='w-[22px]' onClick={incrementLongTrade}>
-                  <img className='w-4 lg:w-auto' src={PlusIcon} alt="" />
-                </button>
-              </div>
-            </div>
-          </label>}
-          <div className="flex justify-end mt-5 md:mt-[30px]">
-            <button type="button" onClick={updateTradePrice} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]">
-              Update
-            </button>
-          </div>
-        </div>
       </div>
 
       <div className='flex flex-wrap gap-2 md:gap-5 items-center mt-6 lg:mt-[50px]'>
@@ -584,7 +540,7 @@ const ManageLevels = ({ }) => {
         <div className='flex flex-wrap gap-3 md:gap-5 w-full'>
           {/* Choose a Matrix Type */}
           <div className="relative w-full max-w-[161px] sm:max-w-[170px] lg:max-w-[200px] sm:mt-2" ref={dropdownRef}>
-            <label className="block text-sm lg:text-[16px] lg:leading-[30px] text-Primary font-medium">Choose a Matrix Type</label>
+            <label className="block text-sm lg:text-base text-Primary font-medium">Choose a Matrix Type</label>
             <div onClick={() => setIsOpen(prev => !prev)} className="flex items-center justify-between text-xs lg:text-sm text-Primary mt-1 px-3 py-[9px] sm:py-[10px] lg:py-[12px] border border-borderColor rounded-md bg-textBoxBg w-full cursor-pointer" >
               {options.find(o => o.value === matrixTypeValue)?.label || 'Select an option'}
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary ml-2" viewBox="0 0 20 20" fill="currentColor">
@@ -605,7 +561,7 @@ const ManageLevels = ({ }) => {
 
           {/* Choose a Spread */}
           <div className="relative w-full max-w-[161px] sm:max-w-[170px] lg:max-w-[200px] sm:mt-2" ref={spreadDropdownRef}>
-            <label className="block text-sm lg:text-[16px] lg:leading-[30px] text-Primary font-medium">Choose a Spread</label>
+            <label className="block text-sm lg:text-base text-Primary font-medium">Choose a Spread</label>
             <div onClick={() => setSpreadOpen(prev => !prev)} className="flex items-center justify-between text-xs lg:text-sm text-Primary mt-1 px-3 py-[9px] sm:py-[10px] lg:py-[12px] border border-borderColor rounded-md bg-textBoxBg w-full cursor-pointer" >
               {selectedValue || 'Select an option'}
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary ml-2" viewBox="0 0 20 20" fill="currentColor">
@@ -622,6 +578,36 @@ const ManageLevels = ({ }) => {
                 ))}
               </div>
             )}
+          </div>
+
+          <div className='max-w-[161px] sm:max-w-[170px] lg:max-w-[200px] sm:mt-2'>
+            {matrixTypeValue === "StaticShort" &&
+              <label className='block text-sm lg:text-base text-Primary lg:font-medium max-w-[250px]'>Trade Price
+                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 px-3 py-[9px] sm:py-[10px] lg:py-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                  <input
+                    type='text'
+                    maxLength={4}
+                    title='Max Length 4'
+                    placeholder='1.6'
+                    value={shortTradePrice}
+                    onChange={handleShortTradeChange}
+                    className='bg-transparent w-full focus:outline-none'
+                  />
+                </div>
+              </label>}
+            {matrixTypeValue === "StaticLong" && <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Trade Price
+              <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 px-3 py-[9px] sm:py-[10px] lg:py-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                <input
+                  type='text'
+                  maxLength={4}
+                  title='Max Length 4'
+                  placeholder='3'
+                  value={longTradePrice}
+                  onChange={handleLongTradeChange}
+                  className='bg-transparent w-full focus:outline-none'
+                />
+              </div>
+            </label>}
           </div>
         </div>
 
@@ -644,14 +630,14 @@ const ManageLevels = ({ }) => {
             Export file
           </p>
 
-          <p ref={filterModalRef} className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer w-full max-w-[95px] lg:max-w-[110px]' onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+          <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer w-full max-w-[95px] lg:max-w-[110px]' onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
             <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
           </p>
         </div>
       </div>
 
       {/* Filter For Table */}
-      <div className='flex justify-end'>
+      <div className='flex justify-end' ref={filterModalRef} >
         {isFilterModalVisible && (
           <div className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
             <p className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor px-12 pb-2 cursor-pointer" onClick={ResetTable}>Reset Table</p>

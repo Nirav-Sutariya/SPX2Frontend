@@ -355,15 +355,20 @@ const Subscription = () => {
                   {currentPlan && currentPlan.subscriptionName === plans[0].name ? "Activated Plan" : "Choose Plan"}
                 </button>
               ) : (
-                <button onClick={() => { setShowChoosePlanModal(true); setSelectedPlanId(plan._id); }} disabled={(currentPlan && currentPlan.subscriptionName === plans[1].name)} className={`text-base lg:text-xl font-semibold text-Primary bg-background5 py-2 mt-[10px] lg:py-[13px] px-5 lg:px-9 text-center w-[170px] lg:w-[229px] mx-auto rounded-md ${(currentPlan && currentPlan.subscriptionName === plans[1].name) ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}>
-                  {currentPlan && currentPlan.subscriptionName === plans[1].name ? "Activated Plan" : "Choose Plan"}
-                </button>
+                <div className="grid">
+                  <p className="text-xs font-medium text-white text-center mt-7 px-5">
+                    *The subscription will be billed on a yearly basis.
+                  </p>
+                  <button onClick={() => { setShowChoosePlanModal(true); setSelectedPlanId(plan._id); }} disabled={(currentPlan && currentPlan.subscriptionName === plans[1].name)} className={`text-base lg:text-xl font-semibold text-Primary bg-background5 py-2 mt-[10px] lg:py-[13px] px-5 lg:px-9 text-center w-[170px] lg:w-[229px] mx-auto rounded-md ${(currentPlan && currentPlan.subscriptionName === plans[1].name) ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}>
+                    {currentPlan && currentPlan.subscriptionName === plans[1].name ? "Activated Plan" : "Choose Plan"}
+                  </button>
+                </div>
               )}
             </div>
           ))}
 
           {/* Plan 3 */}
-          <div className="flex flex-col justify-between py-[23px] max-w-[360px] w-full border border-borderColor4 rounded-md bg-background6 shadow-[0px_0px_10px_0px_#2823664D]">
+          {/* <div className="flex flex-col justify-between py-[23px] max-w-[360px] w-full border border-borderColor4 rounded-md bg-background6 shadow-[0px_0px_10px_0px_#2823664D]">
             <div>
               <p className="text-base lg:text-xl font-semibold text-Primary p-[5px] lg:p-2 border border-borderColor3 rounded-md text-center w-[147px] mx-auto"> Premium</p>
               <p className="text-3xl lg:text-[34px] lg:leading-[70px] font-semibold text-Primary text-center mt-3">  Coming Soon </p>
@@ -406,13 +411,13 @@ const Subscription = () => {
                 Coming Q3 2025
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {msgM1.msg && (<div className={`text-sm mt-2 text-red-500`}> {msgM1.msg} </div>)}
 
         {/* Extra Matrix Limit Section */}
-        {currentPlan && currentPlan.subscriptionName === plans[1].name && <div className="mt-11 p-5 lg:p-[30px] rounded-md bg-background6 mx-auto max-w-[1160px] shadow-[0px_0px_6px_0px_#28236633]">
+        {currentPlan && currentPlan.subscriptionName === plans[1].name && <div className="mt-11 p-5 lg:p-[30px] rounded-md bg-background6 mx-auto shadow-[0px_0px_6px_0px_#28236633]">
           <p className="block text-lg lg:text-2xl text-Primary font-medium">Purchase Save Extra Limit</p>
           <p className="text-sm text-Primary mt-2">Running out of available limits? No worries! Use the <strong>Save Extra Limit</strong> feature to increase your capacity without upgrading your entire subscription. Add extra limits as needed and continue working without interruptions. This is perfect for users who need occasional flexibility beyond their standard plan.</p>
           <div className="flex justify-end">

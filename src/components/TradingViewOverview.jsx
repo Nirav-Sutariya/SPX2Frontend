@@ -25,15 +25,15 @@ const TradingViewOverview = () => {
 
 
   const renderBox = (label, color, data) => (
-    <div className={`flex items-center rounded-md p-2 bg-background6 shadow-[0px_0px_8px_0px_#28236633]  ${isMarketOpen ? 'border border-[#4D8F78]' : 'border border-[#EF4646]'} bg-background6`}>
-      <div className={`text-xs font-medium text-white w-9 h-7 ${color} rounded-full flex items-center justify-center mr-3`}>
+    <div className={`flex items-center rounded-md p-1 md:p-2 bg-background6 shadow-[0px_0px_8px_0px_#28236633] ${isMarketOpen ? 'border border-[#4D8F78]' : 'border border-[#EF4646]'} bg-background6`}>
+      <div className={`text-[11px] md:text-xs font-medium text-white w-8 h-6 lg:w-9 lg:h-7 ${color} rounded-full flex items-center justify-center mr-3`}>
         {label}
       </div>
       <div className="flex items-center gap-2">
-        <div className="text-base text-Primary font-semibold -mb-1">
+        <div className="text-xs lg:text-base text-Primary font-semibold -mb-1">
           {data.price} <span className="text-[10px] text-gray-400">USD</span>
         </div>
-        <div className={`text-sm font-semibold ${parseFloat(data.change) >= 0 ? 'text-[#4D8F78]' : 'text-[#EF4646]'}`}>
+        <div className={`text-xs lg:text-sm font-semibold ${parseFloat(data.change) >= 0 ? 'text-[#4D8F78]' : 'text-[#EF4646]'}`}>
           {parseFloat(data.change) >= 0 ? '+' : ''}
           {data.change}
         </div>

@@ -31,7 +31,7 @@ const Dashboard = ({ theme }) => {
   const dropdownRef1 = useRef(null);
   const dropdownRef2 = useRef(null);
   const DynamicMatrixRef = useRef(null);
-  const options = ["SPX", "RUT", "NDX", "VIX"];
+  const options = ["SPX", "RUT", "NDX"];
   const [names, setNames] = useState({});
   let appContext = useContext(AppContext);
   const [matrix, setMatrix] = useState(false);
@@ -716,7 +716,7 @@ const Dashboard = ({ theme }) => {
               <div className='grid sm:grid-cols-2 gap-4 mt-3 lg:mt-5 px-3 lg:px-5'>
                 <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Premium
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="premium" maxLength={4} title='Max Length 4' value={inputs.premium} ref={premiumRef} onKeyDown={(e) => handleKeyDown(e, contractsRef)} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <input type="text" inputMode='numeric' placeholder='...' name="premium" maxLength={4} title='Max Length 4' value={inputs.premium} ref={premiumRef} onKeyDown={(e) => handleKeyDown(e, contractsRef)} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
                     <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                       <button onClick={handlePremiumDecrement}>
                         <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
@@ -733,7 +733,7 @@ const Dashboard = ({ theme }) => {
                 </label>
                 <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Contract
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="contracts" value={inputs.contracts} ref={contractsRef} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <input type="text" inputMode='numeric' placeholder='...' name="contracts" value={inputs.contracts} ref={contractsRef} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
                     <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                       <button onClick={handleContractDecrement}>
                         <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
@@ -747,7 +747,7 @@ const Dashboard = ({ theme }) => {
                 </label>
                 <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Put
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="longPut" maxLength={5} title='Max Length 5' value={inputs.longPut} ref={longPutRef} onKeyDown={(e) => handleKeyDown(e, longCallRef)} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base rounded-md w-full focus:outline-none focus:border-borderColor7' />
+                    <input type="text" inputMode='numeric' placeholder='...' name="longPut" maxLength={5} title='Max Length 5' value={inputs.longPut} ref={longPutRef} onKeyDown={(e) => handleKeyDown(e, longCallRef)} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base rounded-md w-full focus:outline-none focus:border-borderColor7' />
                     <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                       <button onClick={handleLongPutDecrement}>
                         <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
@@ -761,7 +761,7 @@ const Dashboard = ({ theme }) => {
                 </label>
                 <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Call
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="shortCall" maxLength={5} title='Max Length 5' value={inputs.shortCall} ref={shortCallRef} onKeyDown={(e) => handleKeyDown(e, longPutRef)} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <input type="text" inputMode='numeric' placeholder='...' name="shortCall" maxLength={5} title='Max Length 5' value={inputs.shortCall} ref={shortCallRef} onKeyDown={(e) => handleKeyDown(e, longPutRef)} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
                     <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                       <button onClick={handleShortCallDecrement}>
                         <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
@@ -775,7 +775,7 @@ const Dashboard = ({ theme }) => {
                 </label>
                 <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Put
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="shortPut" maxLength={5} title='Max Length 5' value={inputs.shortPut} onKeyDown={(e) => handleKeyDown(e, shortCallRef)} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <input type="text" inputMode='numeric' placeholder='...' name="shortPut" maxLength={5} title='Max Length 5' value={inputs.shortPut} onKeyDown={(e) => handleKeyDown(e, shortCallRef)} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
                     <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                       <button onClick={handleShortPutDecrement}>
                         <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
@@ -789,7 +789,7 @@ const Dashboard = ({ theme }) => {
                 </label>
                 <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Call
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="longCall" maxLength={5} title='Max Length 5' value={inputs.longCall} ref={longCallRef} onKeyDown={(e) => handleKeyDown(e, premiumRef)} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <input type="text" inputMode='numeric' placeholder='...' name="longCall" maxLength={5} title='Max Length 5' value={inputs.longCall} ref={longCallRef} onKeyDown={(e) => handleKeyDown(e, premiumRef)} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
                     <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                       <button onClick={handleLongCallDecrement}>
                         <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
@@ -841,7 +841,7 @@ const Dashboard = ({ theme }) => {
               <div className='grid sm:grid-cols-2 gap-4 mt-3 lg:mt-5 px-3 lg:px-5'>
                 <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Premium
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="premium" maxLength={4} title='Max Length 4' value={inputs2.premium} ref={premiumRef} onKeyDown={(e) => handleKeyDown(e, contractsRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <input type="text" inputMode='numeric' placeholder='...' name="premium" maxLength={4} title='Max Length 4' value={inputs2.premium} ref={premiumRef} onKeyDown={(e) => handleKeyDown(e, contractsRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
                     {errors2.premium && (
                       <p className="text-red-500 text-xs mt-1">{errors2.premium}</p>
                     )}
@@ -858,7 +858,7 @@ const Dashboard = ({ theme }) => {
                 </label>
                 <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Contract
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="contracts" value={inputs2.contracts} ref={contractsRef} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <input type="text" inputMode='numeric' placeholder='...' name="contracts" value={inputs2.contracts} ref={contractsRef} onChange={handleInputChange} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
                     <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                       <button onClick={handleContractDecrement2}>
                         <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
@@ -872,7 +872,7 @@ const Dashboard = ({ theme }) => {
                 </label>
                 <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Put
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="shortPut" maxLength={5} title='Max Length 5' value={inputs2.shortPut} onKeyDown={(e) => handleKeyDown(e, shortCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <input type="text" inputMode='numeric' placeholder='...' name="shortPut" maxLength={5} title='Max Length 5' value={inputs2.shortPut} onKeyDown={(e) => handleKeyDown(e, shortCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
                     <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                       <button onClick={handleShortPutDecrement2}>
                         <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
@@ -886,7 +886,7 @@ const Dashboard = ({ theme }) => {
                 </label>
                 <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Call
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="longCall" maxLength={5} title='Max Length 5' value={inputs2.longCall} ref={longCallRef} onKeyDown={(e) => handleKeyDown(e, premiumRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <input type="text" inputMode='numeric' placeholder='...' name="longCall" maxLength={5} title='Max Length 5' value={inputs2.longCall} ref={longCallRef} onKeyDown={(e) => handleKeyDown(e, premiumRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
                     <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                       <button onClick={handleLongCallDecrement2}>
                         <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
@@ -900,7 +900,7 @@ const Dashboard = ({ theme }) => {
                 </label>
                 <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Put
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="longPut" maxLength={5} title='Max Length 5' value={inputs2.longPut} ref={longPutRef} onKeyDown={(e) => handleKeyDown(e, longCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <input type="text" inputMode='numeric' placeholder='...' name="longPut" maxLength={5} title='Max Length 5' value={inputs2.longPut} ref={longPutRef} onKeyDown={(e) => handleKeyDown(e, longCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
                     <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                       <button onClick={handleLongPutDecrement2}>
                         <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
@@ -914,7 +914,7 @@ const Dashboard = ({ theme }) => {
                 </label>
                 <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Call
                   <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                    <input type="text" placeholder='...' name="shortCall" maxLength={5} title='Max Length 5' value={inputs2.shortCall} ref={shortCallRef} onKeyDown={(e) => handleKeyDown(e, longPutRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <input type="text" inputMode='numeric' placeholder='...' name="shortCall" maxLength={5} title='Max Length 5' value={inputs2.shortCall} ref={shortCallRef} onKeyDown={(e) => handleKeyDown(e, longPutRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
                     <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                       <button onClick={handleShortCallDecrement2}>
                         <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />

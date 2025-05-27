@@ -1,4 +1,5 @@
-import React, { useContext, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import Man from '../assets/Images/Man.png';
 import DropdownIcon from '../assets/svg/DropdownIcon.svg';
 import BanIcon from '../assets/Images/UserData/BanIcon.svg';
 import EditIcon from '../assets/Images/UserData/EditIcon.svg';
@@ -31,22 +32,23 @@ const UserDataSubPage = () => {
   const firstNameEditRef = useRef(null);
   let appContext = useContext(AppContext);
   const submitButtonEditRef = useRef(null);
-  if (!appContext.selectedUser) { navigate('/') }
+  // if (!appContext.selectedUser) { navigate('/') }
   const [formData, setFormData] = useState({
-    first_name: appContext.selectedUser.first_name,
-    last_name: appContext.selectedUser.last_name,
-    slackID: appContext.selectedUser.slackID,
-    phone: appContext.selectedUser.phone,
-    email: appContext.selectedUser.email,
-    profilePicture: appContext.selectedUser.profilePicture,
+    first_name: "",
+    last_name: "",
+    slackID: "",
+    phone: "",
+    email: "",
+    profilePicture: "",
     plan: ""
   });
+  const [loading, setLoading] = useState(true);
   const [banUser, setBanUser] = useState(false);
   const [editUser, setEditUser] = useState(false);
   const [deleteUser, setDeleteUser] = useState(false);
   const [msg, setMsg] = useState({ type: "", msg: "", });
   const [plansData, setPlanData] = useState(appContext.subscriptionHistory);
-  const [selectedImage, setSelectedImage] = useState(appContext.selectedUser.selectedImage ? appContext.selectedUser.selectedImage : null);
+  const [selectedImage, setSelectedImage] = useState(Man);
   const [showModal, setShowModal] = useState(false);
   const [isActiveSub, setIsActiveSub] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
@@ -55,8 +57,9 @@ const UserDataSubPage = () => {
 
   // Get User Subscription History Api
   async function fetchSubscriptionHistory() {
+    const idFromStorage = localStorage.getItem("selectedUserId");
     try {
-      let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_GET_SUBSCRIPTION_HISTORY_BY_ADMIN, { userId: getUserId(), appUserId: appContext.selectedUser.id }, {
+      let response = await axios.post(process.env.REACT_APP_SUBSCRIPTION_URL + process.env.REACT_APP_GET_SUBSCRIPTION_HISTORY_BY_ADMIN, { userId: getUserId(), appUserId: idFromStorage }, {
         headers: {
           'x-access-token': getToken()
         }
@@ -67,6 +70,68 @@ const UserDataSubPage = () => {
     } catch (error) {
       const errorMsg = error.response?.data?.message || "Failed to fetch subscription history. Please try again.";
       setMsg({ type: "error", msg: errorMsg });
+    }
+  }
+
+  // Get User Data By Admin Api
+  async function getUserData() {
+    if (!appContext.selectedUser?.first_name) {
+      const idFromStorage = localStorage.getItem("selectedUserId");
+      try {
+        let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_GET_USER_DATA_URL, { userId: getUserId(), appUserId: idFromStorage }, {
+          headers: {
+            "x-access-token": getToken()
+          }
+        })
+        if (response.status === 200) {
+          const user = response.data.data;
+
+          setFormData({
+            first_name: user?.firstName || "",
+            last_name: user?.lastName || "",
+            slackID: user?.slackId || "",
+            phone: user?.phoneNo || "",
+            email: user?.email || "",
+            profilePicture: user?.profilePicture || "",
+            plan: user?.subscriptionDetails?.subscriptionName || ""
+          });
+
+          setSelectedImage(user.profilePicture || Man);
+
+          appContext.setAppContext({
+            ...appContext, selectedUser: {
+              id: user._id,
+              first_name: user.firstName,
+              last_name: user.lastName,
+              email: user.email,
+              phone: user.phoneNo,
+              slackID: user.slackId,
+              selectedImage: (user.profilePicture ? user.profilePicture : Man),
+              activePlanView: user?.subscriptionDetails?.subscriptionName || "-"
+            }
+          })
+          setLoading(false);
+        }
+      } catch (error) {
+        setBanUser(false);
+        if (error.message.includes('Network Error')) {
+          setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
+        } else {
+          const errorMsg = error.response?.data?.msg || "An unexpected error occurred.";
+          setMsg({ type: "error", msg: errorMsg });
+        }
+      }
+    } else {
+      setFormData({
+        first_name: appContext.selectedUser?.first_name,
+        last_name: appContext.selectedUser?.last_name,
+        slackID: appContext.selectedUser?.slackID,
+        phone: appContext.selectedUser?.phone,
+        email: appContext.selectedUser?.email,
+        profilePicture: appContext.selectedUser?.profilePicture,
+        plan: ""
+      })
+      setLoading(false);
     }
   }
 
@@ -168,7 +233,8 @@ const UserDataSubPage = () => {
   }
 
   useMemo(() => {
-    fetchSubscriptionHistory()
+    getUserData();
+    fetchSubscriptionHistory();
   }, [])
 
   const handleChange = (e) => {
@@ -246,227 +312,237 @@ const UserDataSubPage = () => {
 
 
   return (
-    <div className='px-5 lg:pl-10 lg:px-6'>
-      <h2 className='text-xl lg:text-[32px] lg:leading-[48px] text-Primary font-semibold flex items-center gap-2'><Link to="/user-data">User Data</Link><img className='-rotate-90 h-[5px] lg:h-auto' src={DropdownIcon} alt="" /> <h4 className='text-base lg:text-[22px] lg:leading-[33px] font-normal'>{appContext.selectedUser.first_name}</h4></h2>
-      <div className='flex flex-wrap sm:flex-nowrap gap-3 sm:gap-[60px] mt-3 sm:mt-10'>
-        <div className='flex gap-10 items-center sm:block'>
-          <img className='w-28 h-28 sm:w-auto' src={appContext.selectedUser.selectedImage} alt="" />
+    <> {!loading ?
+      <div className='px-5 lg:pl-10 lg:px-6'>
+        <h2 className='text-xl lg:text-[32px] lg:leading-[48px] text-Primary font-semibold flex items-center gap-2'><Link to="/user-data">User Data</Link><img className='-rotate-90 h-[5px] lg:h-auto' src={DropdownIcon} alt="" /> <h4 className='text-base lg:text-[22px] lg:leading-[33px] font-normal'>{appContext.selectedUser.first_name}</h4></h2>
+        <div className='flex flex-wrap sm:flex-nowrap gap-3 sm:gap-[60px] mt-3 sm:mt-10'>
+          <div className='flex gap-10 items-center sm:block'>
+            <img className='w-28 h-28 sm:w-auto' src={appContext.selectedUser.selectedImage} alt="" />
+          </div>
+          <div className='w-full'>
+            <span className='flex justify-between items-center w-full'>
+              <p className='text-base lg:text-[20px] lg:leading-[30px] text-Primary flex items-center gap-3 lg:gap-[18px]'><img className='w-5 lg:w-auto' src={GmailIcon} alt="" />{appContext.selectedUser.email}</p>
+              <p className='text-sm lg:text-base text-Secondary2 font-medium border border-borderColor7 rounded bg-background7 py-1 px-3 flex items-center gap-3 cursor-pointer' onClick={() => setEditUser(true)}><img src={EditIcon} alt="" /> Edit </p>
+            </span>
+            <span className='flex justify-between items-center w-full mt-3 lg:mt-4'>
+              <p className='text-base lg:text-[20px] lg:leading-[30px] text-Primary flex items-center gap-3 lg:gap-[18px]'><img className='w-5 lg:w-auto' src={PhoneIcon} alt="" /> {appContext.selectedUser.phone ? appContext.selectedUser.phone : "-"}</p>
+              <p className='text-sm lg:text-base text-Secondary2 font-medium border border-borderColor7 rounded bg-background7 py-1 px-3 flex items-center gap-3 cursor-pointer' onClick={() => setDeleteUser(true)}><img src={DeleteIcon} alt="" /> Delete </p>
+            </span>
+            <span className='flex justify-between items-center w-full mt-3 lg:mt-4'>
+              <p className='text-base lg:text-[20px] lg:leading-[30px] text-Primary flex items-center gap-3 lg:gap-[18px]'><img className='w-5 lg:w-auto' src={WebsiteIcon} alt="" /> {appContext.selectedUser.slackID ? appContext.selectedUser.slackID : "-"}</p>
+              <p className='text-sm lg:text-base text-Secondary2 font-medium border border-borderColor7 rounded bg-background7 py-1 px-3 flex items-center gap-3 cursor-pointer' onClick={() => setBanUser(true)}><img src={BanIcon} alt="" /> Ban </p>
+            </span>
+          </div>
         </div>
-        <div className='w-full'>
-          <span className='flex justify-between items-center w-full'>
-            <p className='text-base lg:text-[20px] lg:leading-[30px] text-Primary flex items-center gap-3 lg:gap-[18px]'><img className='w-5 lg:w-auto' src={GmailIcon} alt="" />{appContext.selectedUser.email}</p>
-            <p className='text-sm lg:text-base text-Secondary2 font-medium border border-borderColor7 rounded bg-background7 py-1 px-3 flex items-center gap-3 cursor-pointer' onClick={() => setEditUser(true)}><img src={EditIcon} alt="" /> Edit </p>
-          </span>
-          <span className='flex justify-between items-center w-full mt-3 lg:mt-4'>
-            <p className='text-base lg:text-[20px] lg:leading-[30px] text-Primary flex items-center gap-3 lg:gap-[18px]'><img className='w-5 lg:w-auto' src={PhoneIcon} alt="" /> {appContext.selectedUser.phone ? appContext.selectedUser.phone : "-"}</p>
-            <p className='text-sm lg:text-base text-Secondary2 font-medium border border-borderColor7 rounded bg-background7 py-1 px-3 flex items-center gap-3 cursor-pointer' onClick={() => setDeleteUser(true)}><img src={DeleteIcon} alt="" /> Delete </p>
-          </span>
-          <span className='flex justify-between items-center w-full mt-3 lg:mt-4'>
-            <p className='text-base lg:text-[20px] lg:leading-[30px] text-Primary flex items-center gap-3 lg:gap-[18px]'><img className='w-5 lg:w-auto' src={WebsiteIcon} alt="" /> {appContext.selectedUser.slackID ? appContext.selectedUser.slackID : "-"}</p>
-            <p className='text-sm lg:text-base text-Secondary2 font-medium border border-borderColor7 rounded bg-background7 py-1 px-3 flex items-center gap-3 cursor-pointer' onClick={() => setBanUser(true)}><img src={BanIcon} alt="" /> Ban </p>
-          </span>
+
+        <div className='flex justify-end gap-5 mb-3 pt-5 lg:pt-10 sm:mt-5 lg:mt-2'>
+          {isActiveSub ? <li className='text-base lg:text-lg text-[#6FBA47]'>Active</li> :
+            <li className='text-base lg:text-lg text-[#EF4646]'>Cancelled</li>}
         </div>
-      </div>
 
-      <div className='flex justify-end gap-5 mb-3 pt-5 lg:pt-10 sm:mt-5 lg:mt-2'>
-        {isActiveSub ? <li className='text-base lg:text-lg text-[#6FBA47]'>Active</li> :
-          <li className='text-base lg:text-lg text-[#EF4646]'>Cancelled</li>}
-      </div>
-
-      <div className=" overflow-x-auto text-center rounded-md pb-10">
-        <table className="min-w-full rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
-          <thead>
-            <tr>
-              <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-3 lg:p-4 min-w-[170px] lg:min-w-0 border-r border-borderColor rounded-ss-md bg-background2">Plan</th>
-              <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-3 lg:p-4 min-w-[170px] lg:min-w-0 border-r border-borderColor bg-background2">Start Date</th>
-              <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-3 lg:p-4 min-w-[170px] lg:min-w-0 border-r border-borderColor bg-background2">Expiry Date</th>
-              <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-3 lg:p-4 min-w-[170px] lg:min-w-0 border-r border-borderColor bg-background2">Amount</th>
-              <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-3 lg:p-4 min-w-[170px] lg:min-w-0 border-r border-borderColor bg-background2">Payment Date</th>
-              <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-3 lg:p-4 min-w-[180px] lg:min-w-0 rounded-tr-md bg-background2">Invoice</th>
-            </tr>
-          </thead>
-          <tbody>
-            {plansData.length === 0 ? (
+        <div className=" overflow-x-auto text-center rounded-md pb-10">
+          <table className="min-w-full rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
+            <thead>
               <tr>
-                <td colSpan="6" className="text-center text-base lg:text-lg text-Primary px-3 py-4">
-                  No Subscriptions Found.
-                </td>
+                <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-3 lg:p-4 min-w-[170px] lg:min-w-0 border-r border-borderColor rounded-ss-md bg-background2">Plan</th>
+                <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-3 lg:p-4 min-w-[170px] lg:min-w-0 border-r border-borderColor bg-background2">Start Date</th>
+                <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-3 lg:p-4 min-w-[170px] lg:min-w-0 border-r border-borderColor bg-background2">Expiry Date</th>
+                <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-3 lg:p-4 min-w-[170px] lg:min-w-0 border-r border-borderColor bg-background2">Amount</th>
+                <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-3 lg:p-4 min-w-[170px] lg:min-w-0 border-r border-borderColor bg-background2">Payment Date</th>
+                <th className="text-base lg:text-[20px] lg:leading-[30px] font-semibold text-white p-3 lg:p-4 min-w-[180px] lg:min-w-0 rounded-tr-md bg-background2">Invoice</th>
               </tr>
-            ) : (plansData.map((item, index) => (
-              <tr key={index} className={(item.subscriptionStatus && 'bg-green-400')}>
-                <td className="text-sm lg:text-base text-Secondary p-3 lg:p-4 border-t border-borderColor" onLoad={(!isActiveSub & item.subscriptionStatus && setActivePlanName(item.subscriptionName))}>{item.subscriptionName[0].toUpperCase() + item.subscriptionName.slice(1)}</td>
-                <td className="text-sm lg:text-base text-Secondary p-3 lg:p-4 border-t border-x border-borderColor">{formattedDate(item.subscriptionStartDate)}</td>
-                <td className="text-sm lg:text-base text-Secondary p-3 lg:p-4 border-t border-x border-borderColor">{formattedDate(item.subscriptionEndDate)}</td>
-                <td className="text-sm lg:text-base text-Secondary p-3 lg:p-4 border-t border-x border-borderColor">{item.totalPrice}</td>
-                <td className="text-sm lg:text-base text-Secondary p-3 lg:p-4 border-t border-x border-borderColor">{formattedDate(item.subscriptionStartDate)}</td>
-                <td className="text-sm lg:text-base text-Secondary p-3 lg:p-4 border-t border-borderColor" onLoad={(!isActiveSub & item.subscriptionStatus && setIsActiveSub(true))}>
-                  <a className="text-sm lg:text-base font-medium text-Secondary underline cursor-pointer" onClick={() => { generatePDF(item, appContext.selectedUser.first_name, appContext.selectedUser.email) }}>Download Invoice</a>
-                </td>
-              </tr>
-            )))}
-          </tbody>
-        </table>
-        {isActiveSub && <p className='text-xs lg:text-base text-Primary font-medium text-end underline mt-[6px] cursor-pointer' onClick={() => { setShowModal(true); }}> Cancel Plan</p>}
+            </thead>
+            <tbody>
+              {plansData.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="text-center text-base lg:text-lg text-Primary px-3 py-4">
+                    No Subscriptions Found.
+                  </td>
+                </tr>
+              ) : (plansData.map((item, index) => (
+                <tr key={index} className={(item.subscriptionStatus && 'bg-green-400')}>
+                  <td className="text-sm lg:text-base text-Secondary p-3 lg:p-4 border-t border-borderColor" onLoad={(!isActiveSub & item.subscriptionStatus && setActivePlanName(item.subscriptionName))}>{item.subscriptionName[0].toUpperCase() + item.subscriptionName.slice(1)}</td>
+                  <td className="text-sm lg:text-base text-Secondary p-3 lg:p-4 border-t border-x border-borderColor">{formattedDate(item.subscriptionStartDate)}</td>
+                  <td className="text-sm lg:text-base text-Secondary p-3 lg:p-4 border-t border-x border-borderColor">{formattedDate(item.subscriptionEndDate)}</td>
+                  <td className="text-sm lg:text-base text-Secondary p-3 lg:p-4 border-t border-x border-borderColor">{item.totalPrice}</td>
+                  <td className="text-sm lg:text-base text-Secondary p-3 lg:p-4 border-t border-x border-borderColor">{formattedDate(item.subscriptionStartDate)}</td>
+                  <td className="text-sm lg:text-base text-Secondary p-3 lg:p-4 border-t border-borderColor" onLoad={(!isActiveSub & item.subscriptionStatus && setIsActiveSub(true))}>
+                    <a className="text-sm lg:text-base font-medium text-Secondary underline cursor-pointer" onClick={() => { generatePDF(item, appContext.selectedUser.first_name, appContext.selectedUser.email) }}>Download Invoice</a>
+                  </td>
+                </tr>
+              )))}
+            </tbody>
+          </table>
+          {isActiveSub && <p className='text-xs lg:text-base text-Primary font-medium text-end underline mt-[6px] cursor-pointer' onClick={() => { setShowModal(true); }}> Cancel Plan</p>}
 
-        {showModal && <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
-          <div className="p-4 lg:p-[30px] border border-borderColor5 rounded-lg bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-[360px] lg:w-[486px]">
-            <div className="flex justify-center">
-              <div className="mx-auto p-5 lg:p-7 border border-borderColor rounded-md bg-background3">
-                <img className="w-7 lg:w-auto" src={CancelPlanIcon} alt="Reset Icon" />
-              </div>
-            </div>
-            <h2 className="text-lg lg:text-[28px] lg:leading-[33px] font-semibold text-Secondary2 mx-auto max-w-[600px] mt-5 text-center">Cancel Subscription Plan</h2>
-            <h2 className="text-base lg:text-[18px] lg:leading-[33px] text-Secondary2 mx-auto max-w-[400px] lg:mt-2 text-center">Are you sure you want to cancel your subscription?</h2>
-            <div className="flex justify-between gap-3 mt-5 lg:mt-9">
-              <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 bg-background5 rounded-md w-full" onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full" onClick={async () => {
-                await CancelUserSubscription(appContext.selectedUser.id)
-                setShowModal(false);
-              }}>Confirm</button>
-            </div>
-          </div>
-        </div>}
-      </div>
-
-      {editUser && (
-        <div className="m-5 fixed inset-0 flex items-center justify-center z-50">
-          <div className="fixed inset-0 bg-black opacity-50"></div>
-          <div className='h-full 2xl:h-auto overflow-y-auto relative p-5 md:p-[30px] border border-[#F8FCFF]  rounded-[22px] bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-[1100px]'>
-            <img className="absolute top-2 right-2 cursor-pointer w-7 lg:w-auto" onClick={() => setEditUser(false)} src={PopupCloseIcon} alt="" />
-
-            <h2 className='text-xl lg:text-[24px] lg:leading-[30px] text-Primary font-semibold'>Edit User Details</h2>
-            {(msg.msg !== "") && <p className={`text-sm mt-2 ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}</p>}
-            <p className='text-base lg:text-[16px] lg:leading-[30px] text-Secondary2 font-medium mt-4 flex gap-5'>Profile Picture </p>
-
-            <div className='mt-2 px-3 lg:px-4 py-3 lg:py-5 border border-borderColor rounded-md bg-background5 max-w-[150px] lg:max-w-[173px] w-full cursor-pointer' onClick={handleDivClick}>
-              <input type="file" ref={fileInputRef} accept=".png, .jpg, .jpeg" style={{ display: 'none' }} onChange={handleImageChange} />
-              <div className='flex justify-center'>
-                {selectedImage ? (
-                  <>
-                    <img src={selectedImage} className="rounded-full w-[70px] lg:w-[100px] h-[70px] lg:h-[100px] object-cover" alt="Selected" />
-                  </>
-                ) : (
-                  <img src={profilePicture} className='w-[70px] lg:w-[90px] h-[70px] lg:h-[90px]' alt="Placeholder" /> // Replace with a default placeholder image
-                )}
-              </div>
-              <p className='text-sm lg:text-base text-Primary text-center mt-[14px]'>Choose A Photo</p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-4 mt-2 lg:mt-5">
-              <div>
-                <label className="block text-sm lg:text-[16px] lg:leading-[30px] text-Secondary2 font-medium">First Name</label>
-                <input type="text" name="first_name" placeholder='Enter you first name' value={formData.first_name} onChange={handleChange} ref={firstNameEditRef} onKeyDown={(e) => handleKeyDown(e, lastNameEditRef)}
-                  className="text-Primary w-full mt-2 px-3 lg:px-5 py-[5px] lg:py-2 text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
-                />
-              </div>
-              <div>
-                <label className="block text-sm lg:text-[16px] lg:leading-[30px] text-Secondary2 font-medium">Last Name</label>
-                <input type="text" name="last_name" placeholder='Enter your last name' value={formData.last_name} onChange={handleChange} ref={lastNameEditRef} onKeyDown={(e) => handleKeyDown(e, slackIDEditRef)}
-                  className="text-Primary w-full mt-2 px-3 lg:px-5 py-[5px] lg:py-2 text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
-                />
-              </div>
-              <div>
-                <label className="block text-sm lg:text-[16px] lg:leading-[30px] text-Secondary2 font-medium">Slack ID</label>
-                <input type="text" name="slackID" placeholder='Enter your slack id' value={formData.slackID} onChange={handleChange} ref={slackIDEditRef} onKeyDown={(e) => handleKeyDown(e, phoneEditRef)}
-                  className="text-Primary w-full mt-2 px-3 lg:px-5 py-[5px] lg:py-2 text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
-                />
-              </div>
-            </div>
-
-            <h2 className='text-xl lg:text-[22px] lg:leading-[30px] text-Primary font-medium mt-3 lg:mt-5 mb-3'>Contact Information</h2>
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm lg:text-base text-Secondary2 font-medium">Phone No. (Optional)</label>
-                <input type="text" name="phone" placeholder='Enter your phone no' value={formData.phone} onChange={handleChange} ref={phoneEditRef} onKeyDown={(e) => handleKeyDown(e, emailEditRef)}
-                  className="text-Primary w-full mt-2 px-3 lg:px-5 py-[5px] lg:py-2 text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
-                />
-              </div>
-              <div>
-                <label className="lock text-sm lg:text-base text-Secondary2 font-medium">Email</label>
-                <input type="text" name="email" placeholder='Enter your Email' value={formData.email} onChange={handleChange} ref={emailEditRef} onKeyDown={(e) => handleKeyDown(e, submitButtonEditRef)}
-                  className="text-Primary w-full mt-1 lg:mt-2 px-3 lg:px-5 py-[5px] lg:py-2 text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
-                />
-              </div>
-            </div>
-            <div className="grid lg:grid-cols-2 gap-4 max-w-[420px] lg:max-w-none">
-              <div>
-                <h2 className='text-xl lg:text-[22px] lg:leading-[30px] text-Primary font-medium mt-5 mb-3'>Subscription Plan</h2>
-                <div className='flex flex-wrap justify-between gap-3 px-4 lg:px-8 py-[7px] lg:py-[15px] border border-borderColor rounded-md bg-textBoxBg'>
-                  {appContext.plans?.map((plan) => (
-                    <label key={plan._id} className='text-sm text-Secondary2 flex items-center gap-3'>
-                      <input
-                        className='accent-accentColor'
-                        type="checkbox"
-                        name="plan"
-                        value={plan._id}
-                        checked={formData.plan === String(plan._id)}
-                        onChange={handleChange}
-                      />
-                      {plan.name}
-                    </label>
-                  ))}
+          {showModal && <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
+            <div className="p-4 lg:p-[30px] border border-borderColor5 rounded-lg bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-[360px] lg:w-[486px]">
+              <div className="flex justify-center">
+                <div className="mx-auto p-5 lg:p-7 border border-borderColor rounded-md bg-background3">
+                  <img className="w-7 lg:w-auto" src={CancelPlanIcon} alt="Reset Icon" />
                 </div>
-                {activePlanName && <p className='text-Secondary2 m-1'>User has {activePlanName} Activated...</p>}
+              </div>
+              <h2 className="text-lg lg:text-[28px] lg:leading-[33px] font-semibold text-Secondary2 mx-auto max-w-[600px] mt-5 text-center">Cancel Subscription Plan</h2>
+              <h2 className="text-base lg:text-[18px] lg:leading-[33px] text-Secondary2 mx-auto max-w-[400px] lg:mt-2 text-center">Are you sure you want to cancel your subscription?</h2>
+              <div className="flex justify-between gap-3 mt-5 lg:mt-9">
+                <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 bg-background5 rounded-md w-full" onClick={() => setShowModal(false)}>Cancel</button>
+                <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full" onClick={async () => {
+                  await CancelUserSubscription(appContext.selectedUser.id)
+                  setShowModal(false);
+                }}>Confirm</button>
               </div>
             </div>
+          </div>}
+        </div>
 
-            <div className="flex justify-end mt-5 lg:mt-1">
-              <button type="button" ref={submitButtonEditRef} onClick={editExistingUser} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]" >
-                Update Changes
-              </button>
+        {editUser && (
+          <div className="m-5 fixed inset-0 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black opacity-50"></div>
+            <div className='h-full 2xl:h-auto overflow-y-auto relative p-5 md:p-[30px] border border-[#F8FCFF]  rounded-[22px] bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-[1100px]'>
+              <img className="absolute top-2 right-2 cursor-pointer w-7 lg:w-auto" onClick={() => setEditUser(false)} src={PopupCloseIcon} alt="" />
+
+              <h2 className='text-xl lg:text-[24px] lg:leading-[30px] text-Primary font-semibold'>Edit User Details</h2>
+              {(msg.msg !== "") && <p className={`text-sm mt-2 ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}</p>}
+              <p className='text-base lg:text-[16px] lg:leading-[30px] text-Secondary2 font-medium mt-1 lg:mt-4 flex gap-5'>Profile Picture </p>
+
+              <div className='mt-2 px-3 lg:px-4 py-3 lg:py-5 border border-borderColor rounded-md bg-background5 max-w-[150px] lg:max-w-[173px] w-full cursor-pointer' onClick={handleDivClick}>
+                <input type="file" ref={fileInputRef} accept=".png, .jpg, .jpeg" style={{ display: 'none' }} onChange={handleImageChange} />
+                <div className='flex justify-center'>
+                  {selectedImage ? (
+                    <>
+                      <img src={selectedImage} className="rounded-full w-[70px] lg:w-[100px] h-[70px] lg:h-[100px] object-cover" alt="Selected" />
+                    </>
+                  ) : (
+                    <img src={profilePicture} className='w-[70px] lg:w-[90px] h-[70px] lg:h-[90px]' alt="Placeholder" />
+                  )}
+                </div>
+                <p className='text-sm lg:text-base text-Primary text-center mt-[14px]'>Choose A Photo</p>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4 mt-2 lg:mt-5">
+                <div>
+                  <label className="block text-sm lg:text-[16px] lg:leading-[30px] text-Secondary2 font-medium">First Name</label>
+                  <input type="text" name="first_name" placeholder='Enter you first name' value={formData.first_name} onChange={handleChange} ref={firstNameEditRef} onKeyDown={(e) => handleKeyDown(e, lastNameEditRef)}
+                    className="text-Primary w-full mt-2 px-3 lg:px-5 py-[5px] lg:py-2 text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm lg:text-[16px] lg:leading-[30px] text-Secondary2 font-medium">Last Name</label>
+                  <input type="text" name="last_name" placeholder='Enter your last name' value={formData.last_name} onChange={handleChange} ref={lastNameEditRef} onKeyDown={(e) => handleKeyDown(e, slackIDEditRef)}
+                    className="text-Primary w-full mt-2 px-3 lg:px-5 py-[5px] lg:py-2 text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm lg:text-[16px] lg:leading-[30px] text-Secondary2 font-medium">Slack ID</label>
+                  <input type="text" name="slackID" placeholder='Enter your slack id' value={formData.slackID} onChange={handleChange} ref={slackIDEditRef} onKeyDown={(e) => handleKeyDown(e, phoneEditRef)}
+                    className="text-Primary w-full mt-2 px-3 lg:px-5 py-[5px] lg:py-2 text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
+                  />
+                </div>
+              </div>
+
+              <h2 className='text-xl lg:text-[22px] lg:leading-[30px] text-Primary font-medium mt-3 lg:mt-5 mb-1 lg:mb-3'>Contact Information</h2>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm lg:text-base text-Secondary2 font-medium">Phone No. (Optional)</label>
+                  <input type="text" name="phone" placeholder='Enter your phone no' value={formData.phone} onChange={handleChange} ref={phoneEditRef} onKeyDown={(e) => handleKeyDown(e, emailEditRef)}
+                    className="text-Primary w-full mt-2 px-3 lg:px-5 py-[5px] lg:py-2 text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
+                  />
+                </div>
+                <div>
+                  <label className="lock text-sm lg:text-base text-Secondary2 font-medium">Email</label>
+                  <input type="text" name="email" placeholder='Enter your Email' value={formData.email} onChange={handleChange} ref={emailEditRef} onKeyDown={(e) => handleKeyDown(e, submitButtonEditRef)}
+                    className="text-Primary w-full mt-1 lg:mt-2 px-3 lg:px-5 py-[5px] lg:py-2 text-[14px] leading-[32px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7"
+                  />
+                </div>
+              </div>
+              <div className="grid lg:grid-cols-2 gap-4 max-w-[420px] lg:max-w-none">
+                <div>
+                  <h2 className='text-xl lg:text-[22px] lg:leading-[30px] text-Primary font-medium mt-3 lg:mt-5 mb-2 lg:mb-3'>Subscription Plan</h2>
+                  <div className='flex flex-wrap justify-between gap-3 px-4 lg:px-8 py-[7px] lg:py-[15px] border border-borderColor rounded-md bg-textBoxBg'>
+                    {appContext.plans?.map((plan) => (
+                      <label key={plan._id} className='text-sm text-Secondary2 flex items-center gap-3'>
+                        <input
+                          className='accent-accentColor'
+                          type="checkbox"
+                          name="plan"
+                          value={plan._id}
+                          checked={formData.plan === String(plan._id)}
+                          onChange={handleChange}
+                        />
+                        {plan.name}
+                      </label>
+                    ))}
+                  </div>
+                  {activePlanName && <p className='text-Secondary2 m-1'>User has {activePlanName} Activated...</p>}
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-1">
+                <button type="button" ref={submitButtonEditRef} onClick={editExistingUser} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]" >
+                  Update Changes
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {deleteUser && (
-        <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
-          <div className="relative mx-1 p-4 lg:p-[30px] bg-background6 border border-[#F8FCFF] rounded-[22px] shadow-[0px_0px_6px_0px_#28236633] w-[350px] md:w-[400px] lg:w-[668px]">
-            <img className="absolute top-2 right-2 cursor-pointer w-7 lg:w-auto" onClick={() => setDeleteUser(false)} src={PopupCloseIcon} alt="" />
-            <div className='flex justify-center'>
-              <img className='w-9 sm:w-11 lg:w-16' src={DeletePopupIcon} alt="Logout Icon" />
-            </div>
-            <h3 className="text-lg lg:text-[28px] lg:leading-[42px] text-Primary font-semibold mx-auto mt-3 lg:mt-[26px] text-center">Are you sure you want to delete “{formData.first_name}”?</h3>
-            <p className='text-sm lg:text-base text-Secondary2 text-center mt-1 lg:mt-3 lg:mx-[58px]'>This action is permanent and will remove all user data, including their account, activity history, and settings. This cannot be undone.</p>
-            <div className="flex justify-center gap-5 mt-5 lg:mt-9">
-              <button onClick={() => deleteUserWithId()} className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-5 py-2 lg:py-3 border border-borderColor3 rounded-md w-full max-w-[150px] lg:max-w-[185px]">
-                Delete User
-              </button>
-              <button
-                className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-5 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full max-w-[150px] lg:max-w-[185px]"
-                onClick={() => setDeleteUser(false)}>
-                Cancel
-              </button>
+        {deleteUser && (
+          <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
+            <div className="relative mx-1 p-4 lg:p-[30px] bg-background6 border border-[#F8FCFF] rounded-[22px] shadow-[0px_0px_6px_0px_#28236633] w-[350px] md:w-[400px] lg:w-[668px]">
+              <img className="absolute top-2 right-2 cursor-pointer w-7 lg:w-auto" onClick={() => setDeleteUser(false)} src={PopupCloseIcon} alt="" />
+              <div className='flex justify-center'>
+                <img className='w-9 sm:w-11 lg:w-16' src={DeletePopupIcon} alt="Logout Icon" />
+              </div>
+              <h3 className="text-lg lg:text-[28px] lg:leading-[42px] text-Primary font-semibold mx-auto mt-3 lg:mt-[26px] text-center">Are you sure you want to delete “{formData.first_name}”?</h3>
+              <p className='text-sm lg:text-base text-Secondary2 text-center mt-1 lg:mt-3 lg:mx-[58px]'>This action is permanent and will remove all user data, including their account, activity history, and settings. This cannot be undone.</p>
+              <div className="flex justify-center gap-5 mt-5 lg:mt-9">
+                <button onClick={() => deleteUserWithId()} className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-5 py-2 lg:py-3 border border-borderColor3 rounded-md w-full max-w-[150px] lg:max-w-[185px]">
+                  Delete User
+                </button>
+                <button
+                  className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-5 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full max-w-[150px] lg:max-w-[185px]"
+                  onClick={() => setDeleteUser(false)}>
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {banUser && (
-        <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
-          <div className="relative mx-1 p-4 lg:p-[30px] bg-background6 border border-[#F8FCFF] rounded-[22px] shadow-[0px_0px_6px_0px_#28236633] w-[350px] md:w-[400px] lg:w-[648px]">
-            <img className="absolute top-2 right-2 cursor-pointer w-7 lg:w-auto" onClick={() => setBanUser(false)} src={PopupCloseIcon} alt="" />
-            <div className='flex justify-center'>
-              <img className='w-9 sm:w-11 lg:w-16' src={BanPopupIcon} alt="Logout Icon" />
-            </div>
-            <h3 className="text-lg lg:text-[28px] lg:leading-[42px] text-Primary font-semibold mx-auto mt-4 lg:mt-[26px] text-center">Are you sure you want to ban “{formData.first_name}”?</h3>
-            <p className='text-sm lg:text-base text-Secondary2 text-center mt-1 md:mt-3 mx-2 lg:mx-5'>Banning will restrict their access to the platform, and they will no longer be able to log in or use their account.</p>
-            <div className="flex justify-center gap-5 mt-5 lg:mt-9">
-              <button onClick={BanUser}
-                className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-5 py-2 lg:py-3 border border-borderColor3 rounded-md w-full max-w-[185px]">
-                Ban User
-              </button>
-              <button
-                className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-5 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full max-w-[150px] lg:max-w-[185px]"
-                onClick={() => setBanUser(false)}>
-                Cancel
-              </button>
+        {banUser && (
+          <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
+            <div className="relative mx-1 p-4 lg:p-[30px] bg-background6 border border-[#F8FCFF] rounded-[22px] shadow-[0px_0px_6px_0px_#28236633] w-[350px] md:w-[400px] lg:w-[648px]">
+              <img className="absolute top-2 right-2 cursor-pointer w-7 lg:w-auto" onClick={() => setBanUser(false)} src={PopupCloseIcon} alt="" />
+              <div className='flex justify-center'>
+                <img className='w-9 sm:w-11 lg:w-16' src={BanPopupIcon} alt="Logout Icon" />
+              </div>
+              <h3 className="text-lg lg:text-[28px] lg:leading-[42px] text-Primary font-semibold mx-auto mt-4 lg:mt-[26px] text-center">Are you sure you want to ban “{formData.first_name}”?</h3>
+              <p className='text-sm lg:text-base text-Secondary2 text-center mt-1 md:mt-3 mx-2 lg:mx-5'>Banning will restrict their access to the platform, and they will no longer be able to log in or use their account.</p>
+              <div className="flex justify-center gap-5 mt-5 lg:mt-9">
+                <button onClick={BanUser}
+                  className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-5 py-2 lg:py-3 border border-borderColor3 rounded-md w-full max-w-[185px]">
+                  Ban User
+                </button>
+                <button
+                  className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-5 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full max-w-[150px] lg:max-w-[185px]"
+                  onClick={() => setBanUser(false)}>
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
+        )}
+      </div> : <div className="flex justify-center items-center h-[100vh]">
+        <div role="status">
+          <svg aria-hidden="true" className="w-14 h-14 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
+          </svg>
+          <span className="sr-only">Loading...</span>
         </div>
-      )}
-    </div>
+      </div>}
+    </>
   );
 }
 

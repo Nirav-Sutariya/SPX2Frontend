@@ -22,7 +22,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import TradingViewOverview from '../components/TradingViewOverview';
 import axios from 'axios';
 
-
 const handleLogout = async (setIsLoggedIn) => {
   removeTokens();
   setIsLoggedIn(false);
@@ -56,7 +55,6 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
     '/dynamic-matrix-short',
     '/dynamic-matrix-long'
   ].includes(location.pathname);
-
 
   // Function to handle when a link is clicked
   const handleLinkClick = (link) => {
@@ -114,26 +112,6 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
   }, [location, setActiveLink]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuVisible(false);
-      }
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    const shouldDisableScroll = showLogoutModal || isMenuVisible;
-    document.body.classList.toggle('no-scroll', shouldDisableScroll);
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.body.classList.remove('no-scroll');
-    };
-  }, [showLogoutModal, isMenuVisible]);
-
-  useEffect(() => {
     if (appContext?.currency) {
       setCurrency(appContext.currency);
     }
@@ -141,16 +119,27 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (ref.current && !ref.current.contains(event.target)) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuVisible(false);
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+      if (ref?.current && !ref.current.contains(event.target)) {
         setOpen(false);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
-  console.log("appContext.marketTime", appContext.marketTime);
+    const shouldDisableScroll = showLogoutModal || isMenuVisible;
+    document.body.classList.toggle('no-scroll', shouldDisableScroll);
 
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.body.classList.remove('no-scroll');
+    };
+  }, [showLogoutModal, isMenuVisible]);
 
   return (
     <>
@@ -159,9 +148,9 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
         <img onClick={() => setMenuVisible(prev => !prev)} className='bg-userBg px-[6px] py-[9px] rounded-md shadow-[0px_0px_6px_0px_#28236633]' src={MenuIcon} alt="MenuIcon" />
 
         {isMenuVisible && (
-          <div className="fixed inset-0 z-10 bg-black bg-opacity-50 ">
+          <div className="fixed inset-0 z-20 bg-black bg-opacity-50 ">
             <div ref={menuRef} className={`absolute z-10 w-full max-w-[318px] h-full bg-background5 top-0 right-0 p-3 ${isMenuVisible ? 'slide-in' : 'slide-out'}`}>
-              <div className='flex justify-between items-center gap-[30px] FilterModalVisibleMenu border-b border-[#B7D1E0] pt-5 pb-3'>
+              <div className='flex justify-between items-center gap-4 FilterModalVisibleMenu border-b border-[#B7D1E0] pt-5 pb-3'>
                 <div className='flex items-center gap-5 cursor-pointer'>
                   <img className='w-[52px] rounded-full' src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} alt="" />
                   <div>
@@ -169,11 +158,42 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
                     <Link to="/edit-profile" className='text-xs text-Primary font-medium' onClick={() => handleLinkClick('edit-profile')} >Edit Profile</Link>
                   </div>
                 </div>
-                <div className={`flex items-center gap-[30px] FilterModalVisible`}>
-                  <label className="switch">
-                    <input type="checkbox" onClick={toggleTheme} checked={isDarkTheme} />
-                    <span className={`slider ${isDarkMode ? 'dark' : 'light'}`}></span>
-                  </label>
+                <div className='block'>
+                  <div className={`flex items-center justify-end gap-[30px] FilterModalVisible`}>
+                    <label className="switch">
+                      <input type="checkbox" onClick={toggleTheme} checked={isDarkTheme} />
+                      <span className={`slider ${isDarkMode ? 'dark' : 'light'}`}></span>
+                    </label>
+                  </div>
+
+                  <div ref={ref} className="relative inline-block text-left mt-2 w-[80px]">
+                    <div onClick={() => setOpen(!open)} className="cursor-pointer bg-userBg text-white text-xs px-2 py-[3px] rounded-md flex gap-2 justify-between items-center">
+                      <img className='w-3' src={optionImages[currency]} alt={currency} />
+                      {currency}
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary" viewBox="0 0 20 20" fill="#fff">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+
+                    {open && (
+                      <div className="absolute mt-1 w-full rounded-md shadow-lg bg-userBg z-10">
+                        {options.map((option) => (
+                          <div key={option}
+                            onClick={() => {
+                              setCurrency(option);
+                              setOpen(false);
+                              currencyUser(option);
+                            }}
+                            className={`flex items-center ju gap-3 px-2 py-[6px] text-xs text-white cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${currency === option ? 'bg-borderColor4' : ''
+                              }`}
+                          >
+                            <img className='w-3' src={optionImages[option]} alt={option} />
+                            {option}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -247,35 +267,16 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
       )}
 
       {showTradingView && (
-        <div className=' lg:fixed top-0 z-10 w-[95%] sm:w-[98%] flex flex-wrap sm:flex-nowrap justify-between items-start gap-2 pb-2 pt-4 mx-[14px] lg:ml-10 lg:mr-6 bg-background6'>
-          <div className='w-full max-w-[950px]'>
-            <TradingViewOverview />
-          </div>
-
-          {/* <div className="flex items-center rounded-md p-2 min-w-[220px] bg-background6 shadow-[0px_0px_8px_0px_#28236633]">
-            <div className="text-base text-Primary font-semibold">
-              <p className='text-sm text-Primary'>Last updated at: {new Date(appContext?.marketTime).toLocaleString('en-US', {
-                  timeZone: 'America/New_York',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit',
-                  hour12: true,
-                })}</p>
-            </div>
-          </div> */}
+        <div className='lg:fixed top-0 z-10 w-[95%] sm:w-[98%] flex flex-wrap sm:flex-nowrap justify-between items-start gap-2 pb-2 pt-4 mx-[14px] lg:ml-10 lg:mr-6 lg:bg-background6'>
+          <TradingViewOverview />
         </div>
       )}
 
       <div className={`relative flex flex-wrap gap-5 justify-between w-full ${showTradingView ? "pt-5 lg:pt-16" : "pt-6 lg:pt-11"} px-[14px] lg:px-10`}>
         <div className='absolute right-6 hidden lg:flex items-center gap-[30px] FilterModalVisible order-1 lg:order-2'>
           <div ref={ref} className="relative inline-block text-left w-[110px]">
-            <div
-              onClick={() => setOpen(!open)}
-              className="cursor-pointer bg-userBg text-white text-base px-3 py-1 rounded-md flex gap-2 justify-between items-center"
-            > <img
-                src={optionImages[currency]}
-                alt={currency}
-              />
+            <div onClick={() => setOpen(!open)} className="cursor-pointer bg-userBg text-white text-base px-3 py-1 rounded-md flex gap-2 justify-between items-center">
+              <img src={optionImages[currency]} alt={currency} />
               {currency}
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary" viewBox="0 0 20 20" fill="#fff">
                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -285,8 +286,7 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
             {open && (
               <div className="absolute mt-1 w-full rounded-md shadow-lg bg-userBg z-10">
                 {options.map((option) => (
-                  <div
-                    key={option}
+                  <div key={option}
                     onClick={() => {
                       setCurrency(option);
                       setOpen(false);
@@ -295,10 +295,7 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
                     className={`flex items-center gap-3 px-4 py-2 text-xs lg:text-sm text-white cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${currency === option ? 'bg-borderColor4' : ''
                       }`}
                   >
-                    <img
-                      src={optionImages[option]}
-                      alt={option}
-                    />
+                    <img src={optionImages[option]} alt={option} />
                     {option}
                   </div>
                 ))}

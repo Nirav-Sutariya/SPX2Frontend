@@ -13,7 +13,6 @@ export default function ContextProvider() {
     cadLiveRate: null,
     audLiveRate: null,
     marketData: null,
-    marketTime: null,
     currencyTime: null,
     names: {},
     namesLong: {},

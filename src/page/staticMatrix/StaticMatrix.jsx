@@ -991,8 +991,8 @@ const StaticMatrix = () => {
       setMsgM4({ type: "error", msg: "Only positive numbers are allowed" });
       return;
     }
-    if (Number(inputValue) > 5) {
-      setMsgM4({ type: "error", msg: "Maximum value allowed is 5" });
+    if (Number(inputValue) > 20) {
+      setMsgM4({ type: "error", msg: "Maximum value allowed is 20" });
       return;
     }
     handleNumberInput(setTradePrice, e);
@@ -1111,10 +1111,10 @@ const StaticMatrix = () => {
         <CapitalAllocationRangSlider allocation={allocation} setAllocation={setAllocation} />
 
         <div className='rounded-md max-w-[792px] bg-background6 p-3 lg:p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Size'>
-          <div className='flex flex-wrap min-[430px]:flex-nowrap items-end gap-3 lg:gap-5'>
+          <div className='flex flex-wrap min-[530px]:flex-nowrap items-end gap-3 lg:gap-5'>
             <div className='w-full'>
               <div ref={containerRef}>
-                <div className='flex justify-between items-end gap-2'>
+                <div className='flex flex-wrap justify-between items-end gap-2'>
                   <label className='block text-sm lg:text-base text-Primary lg:font-medium'>Original Account Size:</label>
                   <div ref={dropdown2Ref} className="relative w-full max-w-[110px]">
                     <div className="flex items-center justify-between px-2 py-1 border border-borderColor bg-textBoxBg rounded-md cursor-pointer" onClick={toggleDropdown2} >
@@ -1135,7 +1135,7 @@ const StaticMatrix = () => {
                 </div>
                 <div className={`flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md ${currentPlan ? 'opacity-70 pointer-events-none' : ''}`}>
                   <span>$</span>
-                  <input type='text' maxLength={10} title="Please upgrade your plan" value={originalSize} onChange={handleOriginalSizeChange} className={`bg-transparent w-full focus:outline-none`} />
+                  <input type='text' inputMode='numeric' maxLength={10} title="Please upgrade your plan" value={originalSize} onChange={handleOriginalSizeChange} className={`bg-transparent w-full focus:outline-none`} />
                   <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                     <span className='p-2 cursor-pointer' onClick={() => setAllocationHintsVisibility(!allocationHintsVisibility)} >
                       <img className={`w-3 lg:w-auto`} src={DropdownIcon} alt="" />
@@ -1160,10 +1160,10 @@ const StaticMatrix = () => {
                   )}
                 </div>
               </div>
-              <label className='block text-sm lg:text-base text-Primary lg:font-medium mt-3 min-[430px]:mt-5'>Trade Price:</label>
+              <label className='block text-sm lg:text-base text-Primary lg:font-medium mt-3 min-[530px]:mt-5'>Trade Price:</label>
               <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                 <span>$</span>
-                <input type='text' maxLength={4} title='Max Length 4' value={tradePrice || appContext.shortTradePrice} onChange={handleTradePriceChange} className='bg-transparent w-full focus:outline-none' />
+                <input type='text' inputMode='numeric' maxLength={4} title='Max Length 4' value={tradePrice || appContext.shortTradePrice} onChange={handleTradePriceChange} className='bg-transparent w-full focus:outline-none' />
                 <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                   <button onClick={decrementTradePrice} > <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" /></button>
                   <div className='border-r border-borderColor6 h-[26px]'></div>
@@ -1175,7 +1175,7 @@ const StaticMatrix = () => {
               <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Commission per Contract:
                 <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                   <span>$</span>
-                  <input type="text" maxLength={5} title='Up to 2 digits before and 2 digits after the decimal point' value={commission} onChange={(e) => { const value = e.target.value; if (/^\d{0,2}(\.\d{0,2})?$/.test(value)) { setCommission(value); } }} className='bg-transparent w-full focus:outline-none' />
+                  <input type="text" inputMode='numeric' maxLength={5} title='Up to 2 digits before and 2 digits after the decimal point' value={commission} onChange={(e) => { const value = e.target.value; if (/^\d{0,2}(\.\d{0,2})?$/.test(value)) { setCommission(value); } }} className='bg-transparent w-full focus:outline-none' />
                   <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
                     <button onClick={() => setCommission((prev) => (parseFloat(prev) > MINIMUM_VALUE ? (parseFloat(prev) - 0.5).toFixed(2) : MINIMUM_VALUE.toFixed(2)))}>
                       <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
@@ -1187,27 +1187,41 @@ const StaticMatrix = () => {
                   </div>
                 </div>
               </label>
-              <label className='block text-sm lg:text-base text-Primary lg:font-medium mt-3 min-[430px]:mt-5'> Loss:
-                <input type="text" value={loss ? `$${Number(loss).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''} readOnly onChange={(e) => setLoss(e.target.value)} className='focus:outline-none bg-textBoxBg2 text-sm lg:text-base py-2 lg:py-3 px-2 lg:px-4 rounded-md w-full mt-1 lg:mt-2 text-red-500' />
+              <label className='block text-sm lg:text-base text-Primary lg:font-medium mt-3 min-[530px]:mt-5'> Loss:
+                <input type="text" inputMode='numeric' value={loss ? `$${Number(loss).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''} readOnly onChange={(e) => setLoss(e.target.value)} className='focus:outline-none bg-textBoxBg2 text-sm lg:text-base py-2 lg:py-3 px-2 lg:px-4 rounded-md w-full mt-1 lg:mt-2 text-red-500' />
               </label>
             </div>
           </div>
-          <p className='text-sm lg:text-base text-Primary lg:font-medium mt-4'>Current Allocation Size: <span className='px-1'>${Number(currentAllocation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
-          {(appContext.currency === "CAD" || appContext.currency === "AUD") && (<p className='text-sm lg:text-base text-Primary lg:font-semibold mt-1'>Current Allocation Size ({appContext.currency}):
-            <span className='px-1'>
-              {appContext.currency === "CAD" &&
-                `$${Number(currentAllocation * appContext.cadRate).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-              }
-              {appContext.currency === "AUD" &&
-                `$${Number(currentAllocation * appContext.audRate).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-              }
-            </span>
-          </p>)}
+          <div className='flex flex-wrap items-end gap-1 lg:gap-5'>
+            <div>
+              <p className='text-sm lg:text-base text-Primary lg:font-medium mt-4'>Current Allocation Size: <span className='px-1'>${Number(currentAllocation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+              {(appContext.currency === "CAD" || appContext.currency === "AUD") && (<p className='text-sm lg:text-base text-Primary lg:font-semibold mt-1'>Current Allocation Size ({appContext.currency}):
+                <span className='px-1'>
+                  {appContext.currency === "CAD" &&
+                    `$${Number(currentAllocation * appContext.cadRate).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  }
+                  {appContext.currency === "AUD" &&
+                    `$${Number(currentAllocation * appContext.audRate).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  }
+                </span>
+              </p>)}
+            </div>
+            {appContext.currency === "CAD" && (
+              <label className='flex justify-between gap-2 items-center text-sm lg:text-base text-Primary lg:font-medium sm:border-l sm:pl-3 lg:pl-5 border-borderColor4'>
+                <span>Live Rate {appContext.cadLiveRate || 1.40}</span>
+              </label>
+            )}
+            {appContext.currency === "AUD" && (
+              <label className='flex justify-between gap-2 items-center text-sm lg:text-base text-Primary lg:font-medium sm:border-l sm:pl-3 lg:pl-5 border-borderColor4'>
+                <span>Live Rate {appContext.audLiveRate || 1.56}</span>
+              </label>
+            )}
+          </div>
         </div>
         {(msgM4.msg !== "") && <p className={`text-sm ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}.</p>}
 
-        <div className="fixed top-[30%] right-5 z-20 flex items-center gap-3 lg:gap-4 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-t-lg py-2 px-5 lg:px-7 cursor-pointer -rotate-90 origin-right" onClick={handleSaveMatrix} >
-          <img className='h-4 lg:h-[18px] rotate-90' src={SavedMatrixIcon} alt="" /> Save Matrix
+        <div className="fixed bottom-[5%] lg:bottom-auto lg:top-[30%] right-5 flex items-center gap-3 lg:gap-4 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-t-lg py-3 lg:py-2 px-4 lg:px-7 cursor-pointer -rotate-90 origin-right" onClick={handleSaveMatrix} >
+          <img className='h-4 lg:h-[18px] rotate-90' src={SavedMatrixIcon} alt="" /> <span className="hidden lg:inline">Save Matrix</span>
         </div>
 
         {showMessage && (
@@ -1267,6 +1281,7 @@ const StaticMatrix = () => {
                     <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-2 p-[6px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
                       <input
                         type='text'
+                        inputMode='numeric'
                         maxLength={5}
                         title='Max Length 5'
                         value={levelValue > 0 ? levelValue : 0}
@@ -1291,7 +1306,7 @@ const StaticMatrix = () => {
             )}
           </div>
           {(appContext.shortMatrixLength) > 6 && <div className="mt-4 text-center">
-            <button onClick={toggleShowMore2} className="text-base text-Secondary2 font-medium underline">
+            <button onClick={toggleShowMore2} className="text-sm lg:text-base text-Secondary2 font-medium underline">
               {showAllRows2 ? 'See Less Levels' : 'See More Levels'}
             </button>
           </div>}
@@ -1402,7 +1417,7 @@ const StaticMatrix = () => {
           <img className='h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
         </Button>
 
-        <div className='mb-5 lg:mb-10 '>
+        <div className='mb-5'>
           {(msgM3.msg !== "") && <p className={`text-sm text-center ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}, <Link to="/subscription"></Link> </p>}
         </div>
       </div>

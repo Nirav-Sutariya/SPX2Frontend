@@ -42,7 +42,7 @@ const SavedMatrix = () => {
         }
       })
       if (response.status === 200) {
-        setRecordLimit(response.data.data.recordLimit)
+        setRecordLimit(response.data.data.recordLimit);
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
@@ -149,8 +149,6 @@ const SavedMatrix = () => {
   }, [MatrixRef, StaticMatrixRef, DynamicMatrixRef]);
 
 
-
-
   return (
     <div className='px-3 lg:pl-10 lg:px-6 h-screen sm:h-auto mb-10'>
       <div className='sm:flex'>
@@ -209,15 +207,14 @@ const SavedMatrix = () => {
           )}
         </div>
         <div className='text-start sm:text-end'>
-          <p className='text-base lg:text-base font-medium text-Primary'>Short IC Saved - {savedSMSCount} Table</p>
-          <p className='text-base lg:text-base font-medium text-Primary'>Long IC Saved - {savedSMLCount} Table</p>
-          <p className='text-base lg:text-base font-medium text-Primary'>DY Short Saved - {savedDSMCount} Table</p>
-          <p className='text-base lg:text-base font-medium text-Primary'>DY Long Saved - {savedDMLCount} Table</p>
-          <p className='text-sm lg:text-base text-[#B7D1E0]'>Saved Limit - {recordLimit || 0} Table</p>
+          <p className='text-sm lg:text-base font-medium text-Primary'>ST Short Save - {savedSMSCount}/{recordLimit || 0} Table</p>
+          <p className='text-sm lg:text-base font-medium text-Primary'>ST Long Save - {savedSMLCount}/{recordLimit || 0} Table</p>
+          <p className='text-sm lg:text-base font-medium text-Primary'>DY Short Save - {savedDSMCount}/{recordLimit || 0} Table</p>
+          <p className='text-sm lg:text-base font-medium text-Primary'>DY Long Save - {savedDMLCount}/{recordLimit || 0} Table</p>
         </div>
       </div>
 
-      <div className='mt-5 lg:mt-[30px] mb-7 lg:mb-10 py-2 lg:py-[13px] px-4 lg:px-[22px] rounded-md bg-background6 shadow-[0px_0px_4px_0px_#28236633]'>
+      <div className='mt-4 mb-7 lg:mb-10 py-2 lg:py-[13px] px-4 lg:px-[22px] rounded-md bg-background6 shadow-[0px_0px_4px_0px_#28236633]'>
         <p className='flex flex-wrap items-center gap-2 text-xs lg:text-base font-medium text-Secondary2'>
           {selectedMatrix === "static" ? "Static" : "Dynamic"} Matrix
           <img className='-rotate-90 h-[5px] lg:h-auto' src={DropdownIcon} alt="" />

@@ -485,7 +485,7 @@ const AdminSubscription = () => {
         <h2 className='text-base lg:text-[20px] leading-[30px] text-Primary font-medium'>Create Feature</h2>
         {/* Features List */}
         {features.map((feature, index) => (
-          <div key={feature._id} className="flex justify-between items-center gap-5 mb-4 mt-2 lg:mt-3 w-full max-w-[870px]">
+          <div key={feature._id} className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-5 mb-4 mt-2 lg:mt-3 w-full max-w-[870px]">
             <div className='w-full'>
               <input
                 type="text"
@@ -498,7 +498,7 @@ const AdminSubscription = () => {
               />
             </div>
 
-            <div className="relative w-full max-w-[220px] sm:max-w-[250px] lg:max-w-[300px]">
+            <div className="relative w-full max-w-[320px] md:max-w-[250px] lg:max-w-[300px]">
               <div ref={dropdownRef} className="flex items-center justify-between text-xs lg:text-sm text-Primary px-3 md:px-5 py-2 md:py-3 border border-borderColor rounded-md bg-textBoxBg cursor-pointer" onClick={() => toggleDropdown(index)} >
                 {feature.apiKey || "Select an API/Key"}
                 <img className='w-3' src={DropdownIcon} alt="" />
