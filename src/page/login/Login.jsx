@@ -59,8 +59,9 @@ const Login = ({ setIsLoggedIn }) => {
       } catch (error) {
         if (error.message.includes("Network Error")) {
           setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection.", });
-        } else {
-          setMsg({ type: "error", msg: "An unexpected error occurred.", });
+        } else if (error.response?.status === 400) {
+          const message = error.response?.data?.message || "Something went wrong";
+          setMsg({ type: "error", msg: message });
         }
       }
     }

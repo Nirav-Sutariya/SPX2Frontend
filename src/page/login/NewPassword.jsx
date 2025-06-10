@@ -34,7 +34,7 @@ const NewPassword = () => {
       setMsg({ type: "error", msg: "Password should be at least 1 upper, 1 lower, 1 special character, 1 digit, length min 8 - max 30" })
       return false
     }
-    
+
     try {
       let response = await axios.post((process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_RESET_PASSWORD_URL), { email: appContext.email, password: password1, confirmPassword: password2, otp: appContext.otp })
       if (response.status === 201) {
@@ -44,6 +44,9 @@ const NewPassword = () => {
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
+      } else if (error.response?.status === 400) {
+        const message = error.response?.data?.message || "Something went wrong";
+        setMsg({ type: "error", msg: message });
       }
     }
   }

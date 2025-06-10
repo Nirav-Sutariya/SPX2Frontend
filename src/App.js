@@ -34,6 +34,7 @@ import EmailVerification from "./page/login/EmailVerification";
 import StaticMatrixLong from "./page/staticMatrix/StaticMatrixLong";
 import DynamicMatrixLong from "./page/dynamicMatrix/DynamicMatrixLong";
 import DynamicMatrixShort from "./page/dynamicMatrix/DynamicMatrixShort";
+import CursorTrail from "./components/CursorTrail";
 
 const App = () => {
 
@@ -55,6 +56,11 @@ const App = () => {
     const checkAuth = async () => {
       const token = getToken();
       const tokenValid = await validateToken(token);
+
+      if (!token) {
+        navigate("/", { replace: true }); // ⛔ No token → send to Landing
+        return;
+      }
 
       if (!tokenValid) {
         removeTokens();
@@ -338,7 +344,7 @@ const App = () => {
       navigate("/static-matrix-short", { replace: true });
     }, [navigate]);
 
-    return null; // Or a loading spinner if you want
+    return null;
   };
 
 
@@ -382,6 +388,7 @@ const App = () => {
                     <Route path="/user-data-ban-user" element={<UserDataBanUser />} />
                   </Routes>
                 </div>
+                <CursorTrail />
               </>}
             </div>
           ) : (

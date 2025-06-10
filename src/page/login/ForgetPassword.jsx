@@ -58,10 +58,14 @@ const ForgetPassword = () => {
             } catch (error) {
                 if (error.message.includes('Network Error')) {
                     setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
+                } else if (error.response?.status === 400) {
+                    const message = error.response?.data?.message || "Something went wrong";
+                    setMsg({ type: "error", msg: message });
                 }
             }
         }
     }
+    
     function isNumber(val) {
         return !isNaN(val) && val.length === 1;
     }
@@ -102,6 +106,9 @@ const ForgetPassword = () => {
             } catch (error) {
                 if (error.message.includes('Network Error')) {
                     setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
+                } else if (error.response?.status === 400) {
+                    const message = error.response?.data?.message || "Something went wrong";
+                    setMsg({ type: "error", msg: message });
                 }
             }
         }

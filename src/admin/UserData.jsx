@@ -303,7 +303,7 @@ const UserData = () => {
         setBanUser(false);
       }
     } catch (error) {
-      setBanUser(false)
+      setBanUser(false);
       if (error.message.includes('Network Error')) {
         setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
       }
@@ -609,7 +609,7 @@ const UserData = () => {
                             <img src={EditIcon} alt="" /> Edit User
                           </p>
 
-                          <p className="text-sm lg:text-base text-Secondary2 mb-2 flex items-center gap-[10px] cursor-pointer" onClick={() => { setDeleteUser(true); setDeleteUserId(item._id); }}><img src={DeleteIcon} alt="" />Delete User</p>
+                          <p className="text-sm lg:text-base text-Secondary2 mb-2 flex items-center gap-[10px] cursor-pointer" onClick={() => { setDeleteUser(true); setDeleteUserId(item._id); setDeleteUserName(item.firstName); }}><img src={DeleteIcon} alt="" />Delete User</p>
                           <p className="text-sm lg:text-base text-Secondary2 mb-2 flex items-center gap-[10px] cursor-pointer" onClick={() => { setBanUser(true); setBenUserID(item._id); }}><img src={BanIcon} alt="" />{item.isUserBanned ? "UnBen User" : "Ban User"}</p>
                           <p onClick={() => {
                             appContext.setAppContext({

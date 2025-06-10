@@ -19,8 +19,9 @@ import DynamicMatrixIcon from '../assets/Images/DynamicMatrix/DynamicMatrixIcon.
 import { AppContext } from '../components/AppContext';
 import { getToken, getUserId, removeTokens } from '../page/login/loginAPI';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import TradingViewOverview from '../components/TradingViewOverview';
+// import TradingViewOverview from '../components/TradingViewOverview';
 import axios from 'axios';
+import { motion, AnimatePresence } from "framer-motion";
 
 const handleLogout = async (setIsLoggedIn) => {
   removeTokens();
@@ -131,7 +132,6 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-
     const shouldDisableScroll = showLogoutModal || isMenuVisible;
     document.body.classList.toggle('no-scroll', shouldDisableScroll);
 
@@ -141,8 +141,17 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
     };
   }, [showLogoutModal, isMenuVisible]);
 
+  const handleCurrencyClick = (option) => {
+    setCurrency(option);
+    setOpen(false);
+    currencyUser(option);
+  };
+
+
+
   return (
     <>
+      {/* Responive Menu */}
       <div className='lg:hidden bg-background2 w-full flex justify-between items-center px-3 py-[19px] rounded-b-xl'>
         <a href='/' className='text-lg font-bold text-white'><img className='w-[200px]' src={LogoIcon} alt="" /></a>
         <img onClick={() => setMenuVisible(prev => !prev)} className='bg-userBg px-[6px] py-[9px] rounded-md shadow-[0px_0px_6px_0px_#28236633]' src={MenuIcon} alt="MenuIcon" />
@@ -178,15 +187,7 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
                     {open && (
                       <div className="absolute mt-1 w-full rounded-md shadow-lg bg-userBg z-10">
                         {options.map((option) => (
-                          <div key={option}
-                            onClick={() => {
-                              setCurrency(option);
-                              setOpen(false);
-                              currencyUser(option);
-                            }}
-                            className={`flex items-center ju gap-3 px-2 py-[6px] text-xs text-white cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${currency === option ? 'bg-borderColor4' : ''
-                              }`}
-                          >
+                          <div key={option} onClick={() => handleCurrencyClick(option)} className={`flex items-center ju gap-3 px-2 py-[6px] text-xs text-white cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${currency === option ? 'bg-borderColor4' : ''}`} >
                             <img className='w-3' src={optionImages[option]} alt={option} />
                             {option}
                           </div>
@@ -266,16 +267,16 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
         </div>
       )}
 
-      {showTradingView && (
+      {/* {showTradingView && (
         <div className='lg:fixed top-0 z-10 w-[95%] sm:w-[98%] flex flex-wrap sm:flex-nowrap justify-between items-start gap-2 pb-2 pt-4 mx-[14px] lg:ml-10 lg:mr-6 lg:bg-background6'>
           <TradingViewOverview />
         </div>
-      )}
+      )} */}
 
       <div className={`relative flex flex-wrap gap-5 justify-between w-full ${showTradingView ? "pt-5 lg:pt-16" : "pt-6 lg:pt-11"} px-[14px] lg:px-10`}>
         <div className='absolute right-6 hidden lg:flex items-center gap-[30px] FilterModalVisible order-1 lg:order-2'>
-          <div ref={ref} className="relative inline-block text-left w-[110px]">
-            <div onClick={() => setOpen(!open)} className="cursor-pointer bg-userBg text-white text-base px-3 py-1 rounded-md flex gap-2 justify-between items-center">
+          <div ref={ref} className="relative inline-block text-left w-[110px] ">
+            <div onClick={() => setOpen(!open)} className={`cursor-pointer bg-userBg text-white text-base px-3 py-1 rounded-md flex gap-2 justify-between items-center ${open ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`}>
               <img src={optionImages[currency]} alt={currency} />
               {currency}
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary" viewBox="0 0 20 20" fill="#fff">
@@ -283,43 +284,53 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
               </svg>
             </div>
 
-            {open && (
-              <div className="absolute mt-1 w-full rounded-md shadow-lg bg-userBg z-10">
-                {options.map((option) => (
-                  <div key={option}
-                    onClick={() => {
-                      setCurrency(option);
-                      setOpen(false);
-                      currencyUser(option);
-                    }}
-                    className={`flex items-center gap-3 px-4 py-2 text-xs lg:text-sm text-white cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${currency === option ? 'bg-borderColor4' : ''
-                      }`}
-                  >
-                    <img src={optionImages[option]} alt={option} />
-                    {option}
-                  </div>
-                ))}
-              </div>
-            )}
+            <AnimatePresence>
+              {open && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.50, ease: "easeInOut" }}
+                  className="absolute mt-1 w-full rounded-md shadow-lg bg-userBg z-10">
+                  {options.map((option) => (
+                    <div key={option} onClick={() => handleCurrencyClick(option)} className={`flex items-center gap-3 px-4 py-2 text-xs lg:text-sm text-white cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${currency === option ? 'bg-borderColor4' : ''}`} >
+                      <img src={optionImages[option]} alt={option} />
+                      {option}
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
+
           <div className={`flex items-center gap-[30px] FilterModalVisible`}>
             <label className="switch">
               <input type="checkbox" onClick={toggleTheme} checked={isDarkTheme} />
               <span className={`slider ${isDarkMode ? 'dark' : 'light'}`}></span>
             </label>
           </div>
-          <div className='flex items-center gap-3 py-1 px-[14px] bg-userBg rounded-md cursor-pointer' onClick={() => setIsOpen(prev => !prev)}>
-            <p className='text-[16px] leading-[28px] text-white font-medium'>{appContext.userData.first_name || "Loading..."}</p>
-            <img src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} className='w-8 h-8 rounded-full object-cover' alt="" />
-          </div>
-          {isOpen && (
-            <div ref={dropdownRef} className='absolute top-10 right-0 mt-2 bg-background5 shadow-[0px_0px_6px_0px_#28236633] rounded-md z-10 w-[158px]'>
-              <div className='py-2'>
-                <Link to="/edit-profile" ><div className='flex gap-[14px] text-sm text-Primary px-4 py-2 cursor-pointer' onClick={() => setIsOpen(false)}><img src={EditProfileIcon} alt="" /> Edit Profile</div></Link>
-                <div className='flex gap-[14px] text-sm text-Primary px-4 py-2 cursor-pointer' onClick={() => setShowLogoutModal(true)}><img src={LogoutIcon} alt="" /> Log out</div>
-              </div>
+
+          <div ref={dropdownRef}>
+            <div className={`flex items-center gap-3 py-1 px-[14px] bg-userBg rounded-md cursor-pointer ${isOpen ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"} `} onClick={() => setIsOpen(prev => !prev)}>
+              <p className='text-base text-white font-medium'>{appContext.userData.first_name || "Loading..."}</p>
+              <img src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} className='w-8 h-8 rounded-full object-cover' alt="" />
             </div>
-          )}
+            <AnimatePresence>
+              {isOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                  className='absolute top-10 right-0 mt-2 bg-background5 shadow-[0px_0px_6px_0px_#28236633] rounded-md z-10 w-[158px]'>
+                  <div className='p-2'>
+                    <Link to="/edit-profile" ><div className='flex gap-[14px] text-sm text-Primary p-2 rounded-md cursor-pointer hover:bg-background4' onClick={() => setIsOpen(false)}><img src={EditProfileIcon} alt="" /> Edit Profile</div></Link>
+                    <div className='flex gap-[14px] text-sm text-Primary p-2 rounded-md cursor-pointer hover:bg-background4' onClick={() => setShowLogoutModal(true)}><img src={LogoutIcon} alt="" /> Log out</div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {showLogoutModal && (
             <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">

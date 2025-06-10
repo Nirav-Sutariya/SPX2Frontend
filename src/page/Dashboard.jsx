@@ -16,6 +16,7 @@ import am4themes_animated from '@amcharts/amcharts4/themes/animated';
 import DynamicLongCalculations from './savedMatrix/DynamicLongCalculations';
 import { Link } from 'react-router-dom';
 import { AppContext } from '../components/AppContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Apply animated theme
 am4core.useTheme(am4themes_animated);
@@ -107,10 +108,15 @@ const Dashboard = ({ theme }) => {
       if (response.status === 200) {
         let data = response.data.data;
         if (Array.isArray(data)) {
-          fetchedData = data;
-          data.forEach(item => {
+          fetchedData = data.filter(item => item.levels && item.levels.length > 0);
+          fetchedData.forEach(item => {
             temp[item._id] = item.matrixName;
           });
+
+          // fetchedData = data;
+          // data.forEach(item => {
+          //   temp[item._id] = item.matrixName;
+          // });
         }
         setNames(temp);
         setSavedData(fetchedData);
@@ -456,6 +462,15 @@ const Dashboard = ({ theme }) => {
     setTypeIC(type);
     await getMatrixFromAPI(type);
     setDynamicMatrixToggle(false);
+
+    // Find the first item with matching type
+    if (!Array.isArray(savedData)) return;
+    const filteredItems = savedData.filter(item => item.type === type);
+    if (filteredItems.length > 0) {
+      setSelectedName(filteredItems[0]._id);
+    } else {
+      setSelectedName(null);
+    }
   };
 
   // Handle Matrix Type Dropdown
@@ -486,6 +501,14 @@ const Dashboard = ({ theme }) => {
     getCurrentIcPosition("SPX");
     getCurrentIcPosition2("SPX");
   }, []);
+
+  useEffect(() => {
+    if (savedData && savedData.length > 0 && !selectedName) {
+      const firstShort = savedData.find(item => item.type === "short");
+      if (firstShort) setSelectedName(firstShort._id);
+      else setSelectedName(savedData[0]._id);
+    }
+  }, [savedData, selectedName]);
 
   // Get User Data Fined
   async function currentIcPosition() {
@@ -598,12 +621,19 @@ const Dashboard = ({ theme }) => {
               <p className='text-sm lg:text-base text-Primary'>Dynamic Matrix {typeIC[0].toUpperCase() + typeIC.slice(1)}</p>
               <img src={DropdownIcon} alt="" />
             </div>
-            {dynamicMatrixToggle && (
-              <div className='absolute z-10 lg:left-5 max-w-[260px] mt-3 py-[14px] px-[30px] border border-[#F8FCFF] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
-                <p onClick={() => handleDynamicMatrixSelection("short")} className='text-sm lg:text-base font-medium text-Secondary2 pb-1 cursor-pointer border-b border-border-Color'>Dynamic Short IC Matrix</p>
-                <p onClick={() => handleDynamicMatrixSelection("long")} className='text-sm lg:text-base font-medium text-Secondary2 pt-1 cursor-pointer'>Dynamic Long IC Matrix</p>
-              </div>
-            )}
+            <AnimatePresence>
+              {dynamicMatrixToggle && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.50, ease: "easeInOut" }}
+                  className='absolute z-10 lg:left-5 max-w-[260px] mt-3 py-[14px] px-[30px] border border-[#F8FCFF] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]'>
+                  <p onClick={() => handleDynamicMatrixSelection("short")} className='text-sm lg:text-base font-medium text-Secondary2 pb-1 cursor-pointer border-b border-border-Color'>Dynamic Short IC Matrix</p>
+                  <p onClick={() => handleDynamicMatrixSelection("long")} className='text-sm lg:text-base font-medium text-Secondary2 pt-1 cursor-pointer'>Dynamic Long IC Matrix</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           <div className='relative max-w-[350px]' ref={MatrixRef}>
             <div className='flex justify-between items-center gap-2 md:gap-3 px-5 py-[9px] rounded-md bg-background6 w-fit max-w-[350px] shadow-[0px_0px_6px_0px_#28236633] cursor-pointer' onClick={() => setMatrix((prev) => !prev)}>
@@ -613,21 +643,26 @@ const Dashboard = ({ theme }) => {
               </span>
               <img src={DropdownIcon} alt="" />
             </div>
-            {matrix && (
-              <div className='absolute z-10 mt-2 py-1 lg:py-2 px-2 md:px-4 border border-[#F8FCFF] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]' >
-                {Array.isArray(savedData) && savedData.filter(item => item.levels && item.levels.length > 0).length === 0 ? (
-                  <p className='text-sm lg:text-base font-medium text-Secondary2 py-[3px] cursor-pointer text-nowrap'>
-                    No items found.
-                  </p>
-                ) : (
-                  savedData.filter(item => item.levels && item.levels.length > 0).map(item => (
-                    <p key={item._id} className='text-sm lg:text-base font-medium text-Secondary2 py-[3px] cursor-pointer text-nowrap' onClick={() => { setSelectedName(item._id); setMatrix(false); }} >
-                      {item.matrixName}
-                    </p>
-                  ))
-                )}
-              </div>
-            )}
+            <AnimatePresence>
+              {matrix && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.50, ease: "easeInOut" }}
+                  className='absolute z-10 mt-2 py-1 lg:py-2 px-2 md:px-4 border border-[#F8FCFF] rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]' >
+                  {Array.isArray(savedData) && savedData.filter(item => item.levels && item.levels.length > 0).length === 0 ? (
+                    <p className='text-sm lg:text-base font-medium text-Secondary2 py-[3px] cursor-pointer text-nowrap'> No items found. </p>
+                  ) : (
+                    savedData.filter(item => item.levels && item.levels.length > 0).map(item => (
+                      <p key={item._id} className='text-sm lg:text-base font-medium text-Secondary2 py-[3px] cursor-pointer text-nowrap' onClick={() => { setSelectedName(item._id); setMatrix(false); }} >
+                        {item.matrixName}
+                      </p>
+                    ))
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
@@ -649,14 +684,14 @@ const Dashboard = ({ theme }) => {
                   return selectedMatrixData ? (
                     <DynamicCalculations savedData={selectedMatrixData} nextGamePlan={true} DynamicShowHandel={DynamicShowHandel} />
                   ) : (
-                    <div className="flex justify-center items-center h-[10vh]">
-                      <p className='text-Secondary2 text-lg'>No Record found...</p>
+                    <div className="text-base lg:text-lg text-Secondary2 mt-5 lg:mt-10 p-3 lg:p-4 xl:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633] cursor-pointer flex items-center gap-5">
+                      No selection made...
                     </div>
                   );
                 })()
               ) : (
-                <div className="flex justify-center items-center h-[10vh]">
-                  <p className='text-Secondary2 text-lg'>No selection made...</p>
+                <div className="text-base lg:text-lg text-Secondary2 mt-5 lg:mt-10 p-3 lg:p-4 xl:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633] cursor-pointer flex items-center gap-5">
+                  No selection made...
                 </div>
               )
             ) : typeIC === "long" ? (
@@ -666,14 +701,14 @@ const Dashboard = ({ theme }) => {
                   return selectedMatrixData ? (
                     <DynamicLongCalculations savedData={selectedMatrixData} nextGamePlan={true} DynamicShowHandel={DynamicShowHandel} />
                   ) : (
-                    <div className="flex justify-center items-center h-[10vh]">
-                      <p className='text-Secondary2 text-lg'>No Record found...</p>
+                    <div className="text-base lg:text-lg text-Secondary2 mt-5 lg:mt-10 p-3 lg:p-4 xl:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633] cursor-pointer flex items-center gap-5">
+                      No selection made...
                     </div>
                   );
                 })()
               ) : (
-                <div className="flex justify-center items-center h-[10vh]">
-                  <p className='text-Secondary2 text-lg'>No selection made...</p>
+                <div className="text-base lg:text-lg text-Secondary2 mt-5 lg:mt-10 p-3 lg:p-4 xl:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633] cursor-pointer flex items-center gap-5">
+                  No selection made...
                 </div>
               )
             ) : null}

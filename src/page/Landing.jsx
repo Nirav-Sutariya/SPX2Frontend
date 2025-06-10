@@ -100,32 +100,32 @@ const Landing = () => {
         <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-[1400px] mx-auto mt-5 lg:mt-10'>
           <div className='p-5 border rounded-xl'>
             <img className='w-7 lg:w-auto' src={Icon1} alt="" />
-            <h3 className='text-xl text-Primary font-medium mt-3 lg:mt-5'>Real-Time Execution Edge</h3>
+            <h3 className='text-base lg:text-xl text-Primary font-medium mt-3 lg:mt-5'>Real-Time Execution Edge</h3>
             <p className='text-sm lg:text-base text-Secondary3 mt-1'>No more manual recalculations. See real-time adjustments instantly.</p>
           </div>
           <div className='p-5 border rounded-xl'>
             <img className='w-7 lg:w-auto' src={Icon2} alt="" />
-            <h3 className='text-xl text-Primary font-medium mt-3 lg:mt-5'>Next Level Game Plan</h3>
+            <h3 className='text-base lg:text-xl text-Primary font-medium mt-3 lg:mt-5'>Next Level Game Plan</h3>
             <p className='text-sm lg:text-base text-Secondary3 mt-1'>Get a clear roadmap with dynamic updates for trade adjustments and breakeven insights.</p>
           </div>
           <div className='p-5 border rounded-xl'>
             <img className='w-7 lg:w-auto' src={Icon3} alt="" />
-            <h3 className='text-xl text-Primary font-medium mt-3 lg:mt-5'>Hidden Risk Revealed</h3>
+            <h3 className='text-base lg:text-xl text-Primary font-medium mt-3 lg:mt-5'>Hidden Risk Revealed</h3>
             <p className='text-sm lg:text-base text-Secondary3 mt-1'>Brokers often don’t show the full picture of your P/L—we consolidate all variables for complete transparency.</p>
           </div>
           <div className='p-5 border rounded-xl'>
             <img className='w-7 lg:w-auto' src={Icon4} alt="" />
-            <h3 className='text-xl text-Primary font-medium mt-3 lg:mt-5'>Live Optimization</h3>
+            <h3 className='text-base lg:text-xl text-Primary font-medium mt-3 lg:mt-5'>Live Optimization</h3>
             <p className='text-sm lg:text-base text-Secondary3 mt-1'>Adjust trades on the fly and optimize your execution in real-time.</p>
           </div>
           <div className='p-5 border rounded-xl'>
             <img className='w-7 lg:w-auto' src={Icon5} alt="" />
-            <h3 className='text-xl text-Primary font-medium mt-3 lg:mt-5'>Supports SPX & RUT</h3>
+            <h3 className='text-base lg:text-xl text-Primary font-medium mt-3 lg:mt-5'>Supports SPX & RUT</h3>
             <p className='text-sm lg:text-base text-Secondary3 mt-1'>Efficiently manage Short & Long Iron Condors across SPX & RUT strategies with full control.</p>
           </div>
           <div className='p-5 border rounded-xl'>
             <img className='w-7 lg:w-auto' src={Icon6} alt="" />
-            <h3 className='text-xl text-Primary font-medium mt-3 lg:mt-5'>Save Matrix Option</h3>
+            <h3 className='text-base lg:text-xl text-Primary font-medium mt-3 lg:mt-5'>Save Matrix Option</h3>
             <p className='text-sm lg:text-base text-Secondary3 mt-1'>Track multiple Iron Condor strategies efficiently by saving and revisiting different trading scenarios.</p>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import Filter from '../../assets/svg/FilterIcon.svg';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function NextGamePalnDynamicICLongMatrix({
   CumulativeLossTable, commission, Credit, setCredit, BEGain1, setBEGain1, BEGain2, setBEGain2,
@@ -127,7 +128,7 @@ function NextGamePalnDynamicICLongMatrix({
             />
           </div>
         </div>
-        <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' onClick={() => setIsFilterModalVisible2(!isFilterModalVisible2)}>
+        <p className={`text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer ${isFilterModalVisible2 ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`} onClick={() => setIsFilterModalVisible2(!isFilterModalVisible2)}>
           <img className='w-4 lg:w-auto' src={Filter} alt="Filter icon" /> Filter
         </p>
       </div>
@@ -152,32 +153,39 @@ function NextGamePalnDynamicICLongMatrix({
       </div>
 
       <div className='flex justify-end max-w-[850px] w-full'>
-        {isFilterModalVisible2 && (
-          <div ref={dropdownRef} className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
-            <p className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor px-12 pb-2 cursor-pointer" onClick={NextResetTable}>Reset Table</p>
-            <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-              <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={Credit} onChange={() => handleToggle(setCredit)} /> Debit
-            </label>
-            <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-              <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={BEContract} onChange={() => handleToggle(setBEContract)} /> BE Contract
-            </label>
-            <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-              <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={BEGain1} onChange={() => handleToggle(setBEGain1)} /> BE+1 Gain
-            </label>
-            <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-              <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={BEGain2} onChange={() => handleToggle(setBEGain2)} /> BE+2 Gain
-            </label>
-            <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-              <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={BEGain3} onChange={() => handleToggle(setBEGain3)} /> BE+3 Gain
-            </label>
-            <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-              <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={BEGain4} onChange={() => handleToggle(setBEGain4)} /> BE+4 Gain
-            </label>
-            <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-              <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={BEGain5} onChange={() => handleToggle(setBEGain5)} /> BE+5 Gain
-            </label>
-          </div>
-        )}
+        <AnimatePresence>
+          {isFilterModalVisible2 && (
+            <motion.div ref={dropdownRef}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.50, ease: "easeInOut" }}
+              className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
+              <p className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor px-12 pb-2 cursor-pointer" onClick={NextResetTable}>Reset Table</p>
+              <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={Credit} onChange={() => handleToggle(setCredit)} /> Debit
+              </label>
+              <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={BEContract} onChange={() => handleToggle(setBEContract)} /> BE Contract
+              </label>
+              <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={BEGain1} onChange={() => handleToggle(setBEGain1)} /> BE+1 Gain
+              </label>
+              <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={BEGain2} onChange={() => handleToggle(setBEGain2)} /> BE+2 Gain
+              </label>
+              <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={BEGain3} onChange={() => handleToggle(setBEGain3)} /> BE+3 Gain
+              </label>
+              <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={BEGain4} onChange={() => handleToggle(setBEGain4)} /> BE+4 Gain
+              </label>
+              <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={BEGain5} onChange={() => handleToggle(setBEGain5)} /> BE+5 Gain
+              </label>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="overflow-auto max-w-[850px] w-full mt-4 rounded-md shadow-[0px_0px_6px_0px_#28236633]">

@@ -43,7 +43,12 @@ const ManageCoupon = () => {
           fetchCouponList2();
         }
       } catch (error) {
-        setMsg({ type: "error", msg: "Something went wrong. Please try again." });
+        if (error.message.includes("Network Error")) {
+          setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection.", });
+        } else if (error.response?.status === 400) {
+          const message = error.response?.data?.message || "Something went wrong";
+          setMsg({ type: "error", msg: message });
+        }
       }
     }
   }
@@ -63,6 +68,9 @@ const ManageCoupon = () => {
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      } else if (error.response?.status === 400) {
+        const message = error.response?.data?.message || "Something went wrong";
+        setMsgM1({ type: "error", msg: message });
       }
     }
   }
@@ -85,6 +93,9 @@ const ManageCoupon = () => {
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      } else if (error.response?.status === 400) {
+        const message = error.response?.data?.message || "Something went wrong";
+        setMsgM1({ type: "error", msg: message });
       }
     }
   }
@@ -107,6 +118,9 @@ const ManageCoupon = () => {
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      } else if (error.response?.status === 400) {
+        const message = error.response?.data?.message || "Something went wrong";
+        setMsgM1({ type: "error", msg: message });
       }
     }
   }

@@ -6,6 +6,7 @@ import SubscriptionUpdateIcon from '../assets/Images/Subscription/SubscriptionUp
 import axios from 'axios';
 import { AppContext } from '../components/AppContext';
 import { getToken, getUserId } from '../page/login/loginAPI';
+import { ConfirmationModal2 } from '../components/utils';
 
 function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
 
@@ -40,6 +41,9 @@ function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
+      } else if (error.response?.status === 400) {
+        const message = error.response?.data?.message || "Something went wrong";
+        setMsg({ type: "error", msg: message });
       }
     }
     setShowLogoutModal(false)
@@ -62,6 +66,7 @@ function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
       nextRef.current.focus();
     }
   };
+
   const [openIndex, setOpenIndex] = useState(null);
   const dropdownRef = useRef(null);
 
@@ -201,28 +206,15 @@ function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
         {(msg.msg !== "") && <p className={`text-sm mt-2 text-end ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}.</p>}
       </div>
 
-      {showLogoutModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
-          <div className="p-4 lg:p-[30px] border border-borderColor5 rounded-[22px] bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-[360px] lg:w-[486px]">
-            <div className="flex justify-center">
-              <div className="mx-auto p-5 lg:p-7 border border-borderColor rounded-md bg-background3">
-                <img className="w-9 lg:w-auto" src={SubscriptionUpdateIcon} alt="Subscription Update Icon" />
-              </div>
-            </div>
-            <h3 className="text-xl lg:text-[28px] lg:leading-[42px] text-Primary font-semibold mx-auto mt-5 text-center">Update Plan Details</h3>
-            <p className='text-base text-Secondary2 text-center mt-2 mx-auto max-w-[270px] '>Are you sure you want to update your subscription plan Details?</p>
-
-            <div className="flex justify-between gap-5 mt-5 lg:mt-9">
-              <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 rounded-md w-full" onClick={() => setShowLogoutModal(false)}>
-                Cancel
-              </button>
-              <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full" onClick={(_) => updatePlan(plan, plainId)}>
-                Update
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal2
+        show={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={() => updatePlan(plan, plainId)}
+        title="Update Plan Details"
+        message="Are you sure you want to update your subscription plan Details?"
+        icon={SubscriptionUpdateIcon}
+        confirmText="Update"
+      />
     </>)
 }
 
@@ -266,6 +258,9 @@ const AdminSubscription = () => {
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      } else if (error.response?.status === 400) {
+        const message = error.response?.data?.message || "Something went wrong";
+        setMsg({ type: "error", msg: message });
       }
     }
   }
@@ -286,6 +281,9 @@ const AdminSubscription = () => {
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      } else if (error.response?.status === 400) {
+        const message = error.response?.data?.message || "Something went wrong";
+        setMsg({ type: "error", msg: message });
       }
     }
   }
@@ -314,6 +312,9 @@ const AdminSubscription = () => {
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsg({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      } else if (error.response?.status === 400) {
+        const message = error.response?.data?.message || "Something went wrong";
+        setMsg({ type: "error", msg: message });
       }
     }
   }
@@ -622,28 +623,15 @@ const AdminSubscription = () => {
       </div>
       {(msg.msg !== "") && <p className={`text-sm mt-2 text-end ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}.</p>}
 
-      {showLogoutModal2 && (
-        <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
-          <div className="p-4 lg:p-[30px] bg-background6 rounded-[22px] border border-borderColor5 shadow-[0px_0px_6px_0px_#28236633] w-[360px] lg:w-[486px]">
-            <div className="flex justify-center">
-              <div className="mx-auto p-5 lg:p-7 border border-borderColor rounded-md bg-background3">
-                <img className="w-9 lg:w-auto" src={SubscriptionUpdateIcon} alt="Subscription Update Icon" />
-              </div>
-            </div>
-            <h3 className="text-xl lg:text-[28px] lg:leading-[42px] text-Primary font-semibold mx-auto mt-5 text-center">Update Plan Details</h3>
-            <p className='text-base text-Secondary2 text-center mt-2 mx-auto max-w-[270px] '>Are you sure you want to update your subscription plan Details?</p>
-
-            <div className="flex justify-between gap-5 mt-5 lg:mt-9">
-              <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 rounded-md w-full" onClick={() => setShowLogoutModal2(false)}>
-                Cancel
-              </button>
-              <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full" onClick={updateComparisonFeatures}>
-                Update
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal2
+        show={showLogoutModal2}
+        onClose={() => setShowLogoutModal2(false)}
+        onConfirm={updateComparisonFeatures}
+        title="Update Plan Details"
+        message="Are you sure you want to update your subscription plan Details?"
+        icon={SubscriptionUpdateIcon}
+        confirmText="Update"
+      />
     </div>
   );
 };

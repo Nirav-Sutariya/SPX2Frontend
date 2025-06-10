@@ -51,6 +51,9 @@ const EmailVerification = () => {
             } catch (error) {
                 if (error.message.includes('Network Error')) {
                     setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
+                } else if (error.response?.status === 400) {
+                    const message = error.response?.data?.message || "Something went wrong";
+                    setMsg({ type: "error", msg: message });
                 }
             }
         }
@@ -79,8 +82,9 @@ const EmailVerification = () => {
         } catch (error) {
             if (error.message.includes('Network Error')) {
                 setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
-            } else {
-                setMsg({ type: "error", msg: 'A user with that username already exists." ? "A user with that email already exists.' });
+            } else if (error.response?.status === 400) {
+                const message = error.response?.data?.message || "Something went wrong";
+                setMsg({ type: "error", msg: message });
             }
         }
     }
@@ -96,6 +100,9 @@ const EmailVerification = () => {
             } catch (error) {
                 if (error.message.includes('Network Error')) {
                     setMsg({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
+                } else if (error.response?.status === 400) {
+                    const message = error.response?.data?.message || "Something went wrong";
+                    setMsg({ type: "error", msg: message });
                 }
             }
         }

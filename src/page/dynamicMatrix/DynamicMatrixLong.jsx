@@ -24,6 +24,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import NextGamePalnDynamicICLongMatrix from './NextGamePalnDynamicICLongMatrix';
 import { defaultDynamicTradePrice, defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModalLong } from '../../components/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+
 
 const DynamicMatrixLong = ({ theme }) => {
 
@@ -86,9 +88,10 @@ const DynamicMatrixLong = ({ theme }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showStop, setShowStop] = useState(true);
   const [showLoss, setShowLoss] = useState(true);
+  const [isClicked, setIsClicked] = useState(false);
   const [showCredit, setShowCredit] = useState(true);
   const [showProfit, setShowProfit] = useState(true);
-  const [regularFlag, setRegularFlag] = useState(true)
+  const [regularFlag, setRegularFlag] = useState(true);
   const [showAfterWin, setShowAfterWin] = useState(true);
   const [showContracts, setShowContracts] = useState(true);
   const [showAfterLoss, setShowAfterLoss] = useState(true);
@@ -244,6 +247,9 @@ const DynamicMatrixLong = ({ theme }) => {
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      } else if (error.response?.status === 400) {
+        const message = error.response?.data?.message || "You can not delete last matrix";
+        setMsgM1({ type: "error", msg: message });
       }
     }
   }
@@ -556,6 +562,7 @@ const DynamicMatrixLong = ({ theme }) => {
 
   // Matrix Save Data Api
   const handleSaveMatrix = async () => {
+    setIsClicked(true);
     if (!selectedName) {
       setMsgM4({ type: "error", msg: "Please select one of matrix from dropdown" });
       return;
@@ -609,7 +616,10 @@ const DynamicMatrixLong = ({ theme }) => {
       }
     } catch (error) {
       if (error.message.includes("Network Error")) {
-        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+        setMsgM4({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+      } else if (error.response?.status === 400) {
+        const message = error.response?.data?.message || "Something went wrong";
+        setMsgM4({ type: "error", msg: message });
       }
     }
   };
@@ -637,21 +647,6 @@ const DynamicMatrixLong = ({ theme }) => {
   }
 
   // Stack matrix calculation
-  // function StackMatrix(_) {
-  //   let temp = { ...levels }
-  //   let preVal = 0
-  //   for (const [key, value] of Object.entries(temp)) {
-  //     if (preVal !== 0) {
-  //       value.value += preVal;
-  //       break;
-  //     } else {
-  //       preVal = value.value;
-  //       value.value = 0;
-  //     }
-  //   }
-  //   setStackOrShiftFlag("stack")
-  //   setLevels(temp)
-  // }
   function StackMatrix() {
     let temp = { ...levels };
     const levelKeys = Object.keys(temp);
@@ -1065,26 +1060,6 @@ const DynamicMatrixLong = ({ theme }) => {
     initValueSetup();
   }, [levels, commission, selectedValue]);
 
-  // useEffect(() => {
-  //   const areArraysEqual = (arr1, arr2) => {
-  //     if (arr1.length !== arr2.length) return false;
-  //     return arr1.every((value, index) => value === arr2[index]);
-  //   };
-
-  //   const shouldRunSetup =
-  //     CumulativeLossTable?.length === 0 ||
-  //     !areArraysEqual(cumulativeLossRef.current, CumulativeLossTable);
-
-  //   if (shouldRunSetup) {
-  //     // Avoid calling setup on every render by checking the ref first
-  //     cumulativeLossRef.current = [...CumulativeLossTable];
-  //     // Only trigger once to break the cycle
-  //     setTimeout(() => {
-  //       initValueSetup();
-  //     }, 0); 
-  //   }
-  // }, [CumulativeLossTable]);
-
   useEffect(() => {
     const areArraysEqual = (arr1, arr2) => {
       if (arr1.length !== arr2.length) return false;
@@ -1122,6 +1097,7 @@ const DynamicMatrixLong = ({ theme }) => {
       setTimeout(() => {
         setMsgM4({ type: "", msg: "" })
         setShowMessage(false);
+        setIsClicked(false);
       }, 20 * 100);
   }, [msgM1, msgM2, msgM3, msgM4])
 
@@ -1340,7 +1316,6 @@ const DynamicMatrixLong = ({ theme }) => {
   const handlePremiumIncrement2 = () => {
     setInputs2((prev) => {
       const newValue = (parseFloat(prev.premium || 0) + 0.05).toFixed(2);
-      localStorage.setItem('inputs2', JSON.stringify({ ...prev, premium: newValue }));
       return { ...prev, premium: newValue.length <= 4 ? newValue : prev.premium };
     });
   };
@@ -1348,7 +1323,6 @@ const DynamicMatrixLong = ({ theme }) => {
   const handlePremiumDecrement2 = () => {
     setInputs2((prev) => {
       const newValue = Math.max(0, parseFloat(prev.premium || 0) - 0.05).toFixed(2);
-      localStorage.setItem('inputs2', JSON.stringify({ ...prev, premium: newValue }));
       return { ...prev, premium: newValue.length <= 4 ? newValue : prev.premium };
     });
   };
@@ -1356,7 +1330,6 @@ const DynamicMatrixLong = ({ theme }) => {
   const handleContractIncrement2 = () => {
     setInputs2((prevInputs) => {
       const newContracts = prevInputs.contracts + 1;
-      localStorage.setItem('inputs2', JSON.stringify({ ...prevInputs, contracts: newContracts }));
       return { ...prevInputs, contracts: newContracts };
     });
   };
@@ -1364,7 +1337,6 @@ const DynamicMatrixLong = ({ theme }) => {
   const handleContractDecrement2 = () => {
     setInputs2((prevInputs) => {
       const newContracts = prevInputs.contracts - 1;
-      localStorage.setItem('inputs2', JSON.stringify({ ...prevInputs, contracts: newContracts }));
       return { ...prevInputs, contracts: newContracts };
     });
   };
@@ -1374,7 +1346,6 @@ const DynamicMatrixLong = ({ theme }) => {
       ...prevInputs,
       shortCall: String(Math.min(Number(prevInputs.shortCall || 0) + 5, 99999)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, shortCall: String(Number(inputs2.shortCall || 0) + 5) }));
   };
 
   const handleShortCallDecrement2 = () => {
@@ -1382,7 +1353,6 @@ const DynamicMatrixLong = ({ theme }) => {
       ...prevInputs,
       shortCall: String(Math.max(Number(prevInputs.shortCall || 0) - 5, 0)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, shortCall: String(Number(inputs2.shortCall || 0) - 5) }));
   };
 
   const handleShortPutIncrement2 = () => {
@@ -1390,7 +1360,6 @@ const DynamicMatrixLong = ({ theme }) => {
       ...prevInputs,
       shortPut: String(Math.min(Number(prevInputs.shortPut || 0) + 5, 99999)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, shortPut: String(Number(inputs2.shortPut || 0) + 5) }));
   };
 
   const handleShortPutDecrement2 = () => {
@@ -1398,7 +1367,6 @@ const DynamicMatrixLong = ({ theme }) => {
       ...prevInputs,
       shortPut: String(Math.max(Number(prevInputs.shortPut || 0) - 5, 0)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, shortPut: String(Number(inputs2.shortPut || 0) - 5) }));
   };
 
   const handleLongCallIncrement2 = () => {
@@ -1406,7 +1374,6 @@ const DynamicMatrixLong = ({ theme }) => {
       ...prevInputs,
       longCall: String(Math.min(Number(prevInputs.longCall || 0) + 5, 99999)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, longCall: String(Number(inputs2.longCall || 0) + 5) }));
   };
 
   const handleLongCallDecrement2 = () => {
@@ -1414,7 +1381,6 @@ const DynamicMatrixLong = ({ theme }) => {
       ...prevInputs,
       longCall: String(Math.max(Number(prevInputs.longCall || 0) - 5, 0)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, longCall: String(Number(inputs2.longCall || 0) - 5) }));
   };
 
   const handleLongPutIncrement2 = () => {
@@ -1422,7 +1388,6 @@ const DynamicMatrixLong = ({ theme }) => {
       ...prevInputs,
       longPut: String(Math.min(Number(prevInputs.longPut || 0) + 5, 99999)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, longPut: String(Number(inputs2.longPut || 0) + 5) }));
   };
 
   const handleLongPutDecrement2 = () => {
@@ -1430,7 +1395,6 @@ const DynamicMatrixLong = ({ theme }) => {
       ...prevInputs,
       longPut: String(Math.max(Number(prevInputs.longPut || 0) - 5, 0)),
     }));
-    localStorage.setItem('inputs2', JSON.stringify({ ...inputs2, longPut: String(Number(inputs2.longPut || 0) - 5) }));
   };
 
   const handleKeyDown = (e, nextInputRef) => {
@@ -1455,10 +1419,6 @@ const DynamicMatrixLong = ({ theme }) => {
             ...inputs2,
             [name]: value,
           });
-          localStorage.setItem('inputs2', JSON.stringify({
-            ...inputs2,
-            [name]: value,
-          }));
         }
       }
     } else {
@@ -1467,10 +1427,6 @@ const DynamicMatrixLong = ({ theme }) => {
           ...inputs2,
           [name]: value,
         });
-        localStorage.setItem('inputs2', JSON.stringify({
-          ...inputs2,
-          [name]: value,
-        }));
       }
     }
   };
@@ -1568,6 +1524,13 @@ const DynamicMatrixLong = ({ theme }) => {
     return `${year}-${month}-${day}`; // format for saving
   };
 
+  const handleClick = async (key) => {
+    setOriginalSize(key.buyingPower);
+    setAllocationHintsVisibility(false);
+    await getSingleLevelAPI(key._id);
+    localStorage.setItem('originalSizeIdDyLong', key._id);
+  };
+
 
   return (<>
     {dynamicKey ?
@@ -1576,15 +1539,16 @@ const DynamicMatrixLong = ({ theme }) => {
         <div className='grid min-[450px]:flex flex-wrap items-center gap-5 order-2 lg:order-1'>
           <div className='flex items-center gap-5'>
             <h2 className='text-xl lg:text-[32px] lg:leading-[48px] text-Primary font-semibold'> Dynamic Matrix Long </h2>
-            <Button onClick={() => {
-              setModalData({
-                icon: ResetIcon,
-                title: "Reset Details Confirmation",
-                message: "Are you sure you want to reset your details?",
-                onConfirm: resetAllParams,
-              });
-              setShowModal(true);
-            }}> Reset </Button>
+            <Button className={`${showModal ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`}
+              onClick={() => {
+                setModalData({
+                  icon: ResetIcon,
+                  title: "Reset Details Confirmation",
+                  message: "Are you sure you want to reset your details?",
+                  onConfirm: resetAllParams,
+                });
+                setShowModal(true);
+              }}> Reset </Button>
           </div>
           <div className='flex flex-wrap gap-3 items-center'>
             <ConfirmationModal show={showModal} onClose={() => setShowModal(false)} onConfirm={modalData.onConfirm} title={modalData.title} icon={modalData.icon} message={modalData.message} />
@@ -1593,42 +1557,49 @@ const DynamicMatrixLong = ({ theme }) => {
               <p onClick={toggleDropdown} className='flex items-center gap-[10px] text-sm lg:text-base bg-background6 font-medium text-Primary shadow-[0px_0px_6px_0px_#28236633] rounded-md px-4 py-2 cursor-pointer' >
                 <img src={MatrixIcon} className='h-5 w-5' alt="" /> {names[selectedName]} <img className='w-3' src={DropdownIcon} alt="" />
               </p>
-              {isDropdownVisible && (
-                <div className='absolute z-10 left-0 min-[470px]:left-auto right-0 top-full mt-2 border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-max'>
-                  <div className='px-3 py-1 pb-[14px]'>
-                    {editIndex === null ? (
-                      <>
-                        {Object.keys(names).map((key, index) => (
-                          <div key={index} className='flex justify-between items-center gap-2 cursor-pointer border-b border-borderColor py-2 lg:py-[10px]' onClick={() => handleNameClick(key)}>
-                            <span className='text-xs lg:text-sm text-white font-medium flex items-center justify-center text-Primary bg-userBg rounded-full w-5 lg:w-6 h-5 lg:h-6'>
-                              {index + 1}
-                            </span>
-                            <span className='text-sm lg:text-base font-medium text-Primary text-wrap flex-1 ' title={names[key]}> {names[key].length > 23 ? `${names[key].slice(0, 23)}..` : names[key]}</span>
-                            <button onClick={(e) => { e.stopPropagation(); handleEditClick(key); }}>
-                              <img className='w-4 lg:w-auto' src={MatrixEditIcon} alt="" />
-                            </button>
-                            <img className="w-4 h-[14px] lg:h-4 cursor-pointer DeleteIcon2" src={DeleteIcon} alt="Delete" onClick={() => handleDeleteClick(key)} />
+              <AnimatePresence>
+                {isDropdownVisible && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.50, ease: "easeInOut" }}
+                    className='absolute z-10 left-0 min-[470px]:left-auto right-0 top-full mt-2 border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-max'>
+                    <div className='p-1 pb-[14px]'>
+                      {editIndex === null ? (
+                        <>
+                          {Object.keys(names).map((key, index) => (
+                            <div key={index} className={`flex justify-between items-center gap-2 cursor-pointer border-b border-borderColor p-2 lg:py-[10px] mb-1 hover:rounded-md hover:bg-background4 ${key === selectedName ? "rounded-md bg-background4" : ""}`} onClick={() => handleNameClick(key)}>
+                              <span className='text-xs lg:text-sm text-white font-medium flex items-center justify-center text-Primary bg-userBg rounded-full w-5 lg:w-6 h-5 lg:h-6'>
+                                {index + 1}
+                              </span>
+                              <span className='text-sm lg:text-base font-medium text-Primary text-wrap flex-1 ' title={names[key]}> {names[key].length > 23 ? `${names[key].slice(0, 23)}..` : names[key]}</span>
+                              <button onClick={(e) => { e.stopPropagation(); handleEditClick(key); }}>
+                                <img className='w-4 lg:w-auto' src={MatrixEditIcon} alt="" />
+                              </button>
+                              <img className="w-4 h-[14px] lg:h-4 cursor-pointer DeleteIcon2" src={DeleteIcon} alt="Delete" onClick={() => handleDeleteClick(key)} />
+                            </div>
+                          ))}
+                          <input type='text' value={newName} onChange={handleNewNameChange} className='text-sm lg:text-base text-Primary text-center w-full p-1 lg:p-2 rounded-md my-2 bg-textBoxBg focus:outline-none' placeholder='Enter Matrix Name' />
+                          <div className='flex justify-center gap-2 cursor-pointer text-Primary' onClick={handleAddClick} >
+                            <img className='w-[18px] lg:w-auto' src={PluseIcon} alt="" />
+                            <span className='text-sm lg:text-base text-Primary'>{(newName.length > 0 ? "Save" : "Matrix")}</span>
                           </div>
-                        ))}
-                        <input type='text' value={newName} onChange={handleNewNameChange} className='text-sm lg:text-base text-Primary text-center w-full p-1 lg:p-2 rounded-md my-2 bg-textBoxBg focus:outline-none' placeholder='Enter Matrix Name' />
-                        <div className='flex justify-center gap-2 cursor-pointer text-Primary' onClick={handleAddClick} >
-                          <img className='w-[18px] lg:w-auto' src={PluseIcon} alt="" />
-                          <span className='text-sm lg:text-base text-Primary'>{(newName.length > 0 ? "Save" : "Matrix")}</span>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <input type='text' value={editName} onChange={handleEditNameChange} className='text-sm lg:text-base text-Primary w-full p-2 border-none rounded-md bg-textBoxBg focus:outline-none mb-2' placeholder='Enter matrix Name' />
-                        <div className='flex justify-between gap-7 lg:gap-8 items-center'>
-                          <img src={BackIcon} title='Back' className='w-3 h-[14px] lg:h-4 cursor-pointer' onClick={() => setEditIndex(null)} alt="" />
-                          <button onClick={handleUpdateName} className='text-sm lg:text-base text-Primary py-1 rounded'> Update </button>
-                          <img className='w-4 h-[14px] lg:h-4 cursor-pointer' src={DeleteIcon} onClick={() => handleDeleteClick(editKey)} alt="" />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
+                        </>
+                      ) : (
+                        <>
+                          <input type='text' value={editName} onChange={handleEditNameChange} className='text-sm lg:text-base text-Primary w-full p-2 border-none rounded-md bg-textBoxBg focus:outline-none mb-2' placeholder='Enter matrix Name' />
+                          <div className='flex justify-between gap-7 lg:gap-8 items-center'>
+                            <img src={BackIcon} title='Back' className='w-3 h-[14px] lg:h-4 cursor-pointer' onClick={() => setEditIndex(null)} alt="" />
+                            <button onClick={handleUpdateName} className='text-sm lg:text-base text-Primary py-1 rounded'> Update </button>
+                            <img className='w-4 h-[14px] lg:h-4 cursor-pointer' src={DeleteIcon} onClick={() => handleDeleteClick(editKey)} alt="" />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
           {(msgM1.msg !== "") && <p className={`text-sm ${msgM1.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM1.msg}.</p>}
@@ -1663,36 +1634,34 @@ const DynamicMatrixLong = ({ theme }) => {
                 <span>$</span>
                 <input type='text' inputMode='numeric' maxLength={10} title='Max Length 10' value={originalSize} onChange={handleOriginalSizeChange} className='bg-transparent w-full focus:outline-none' />
                 <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                  <span className='p-2' onClick={() => setAllocationHintsVisibility(!allocationHintsVisibility)} >
+                  <span className='p-2 cursor-pointer' onClick={() => setAllocationHintsVisibility(!allocationHintsVisibility)} >
                     <img className='w-3 lg:w-auto' src={DropdownIcon} alt="" />
                   </span>
                 </div>
               </div>
-              <div className='relative'>
-                {allocationHintsVisibility && (
-                  <div ref={allocationDropdownRef} className='absolute top-full z-10 mt-2 bg-background6 rounded-md shadow-[0px_0px_6px_0px_#28236633] w-[259px]'>
-                    <div className='px-3 lg:px-[18px] py-1 pb-[14px] overscroll-auto'>
-                      {staticLevelDefaultValue.length > 0 ? (
-                        staticLevelDefaultValue.map((key, index) => (
-                          <div key={index}
-                            className={`flex justify-between items-center cursor-pointer border-b border-borderColor py-2 lg:py-[10px] ${originalSize === key.buyingPower ? "underline decoration-sky-500" : ""}`}
-                            onClick={async () => {
-                              setOriginalSize(key.buyingPower);
-                              setAllocationHintsVisibility(false);
-                              await getSingleLevelAPI(key._id);
-                              localStorage.setItem('originalSizeIdDyLong', key._id);
-                            }}>
-                            <span className="text-sm lg:text-base text-Primary font-medium text-wrap flex-1 ml-2">
+              <div className="relative">
+                <AnimatePresence>
+                  {allocationHintsVisibility && (
+                    <motion.div ref={allocationDropdownRef}
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.50, ease: "easeInOut" }}
+                      className='absolute top-full z-10 mt-2 bg-background6 rounded-md shadow-[0px_0px_6px_0px_#28236633] w-[259px]'>
+                      <div className='px-3 lg:px-[18px] py-1 pb-[14px] overscroll-auto'>
+                        {staticLevelDefaultValue.length > 0 ? (staticLevelDefaultValue.map((key, index) => (
+                          <div key={index} className="flex justify-between items-center cursor-pointer border-b border-borderColor py-1 lg:py-[6px]" onClick={() => handleClick(key)}>
+                            <span className={`text-sm lg:text-base text-Primary font-medium text-wrap flex-1 px-2 py-[4px] rounded-md hover:text-white hover:bg-borderColor4 ${originalSize === key.buyingPower ? "text-white bg-borderColor4" : ""}`}>
                               $ {Number(key.buyingPower).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </div>
-                        ))
-                      ) : (
-                        <p className='text-sm lg:text-base text-Secondary2 font-medium mt-2'>No data available</p>
-                      )}
-                    </div>
-                  </div>
-                )}
+                        ))) : (
+                          <p className='text-sm lg:text-base text-Secondary2 font-medium mt-2'>No data available</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
             <div className='Levels w-full'>
@@ -1740,7 +1709,7 @@ const DynamicMatrixLong = ({ theme }) => {
           </div>
         </div>
 
-        <div className="fixed bottom-[5%] lg:bottom-auto lg:top-[30%] right-5 z-20 flex items-center gap-3 lg:gap-4 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-t-lg py-3 lg:py-2 px-4 lg:px-7 cursor-pointer -rotate-90 origin-right" onClick={handleSaveMatrix} >
+        <div className={`fixed bottom-[5%] lg:bottom-auto lg:top-[30%] right-5 z-20 flex items-center gap-3 lg:gap-4 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-t-lg py-3 lg:py-2 px-4 lg:px-7 cursor-pointer -rotate-90 origin-right ${isClicked ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`} onClick={handleSaveMatrix} >
           <img className='h-4 lg:h-[18px] rotate-90' src={SavedMatrixIcon} alt="" /> <span className="hidden lg:inline">Save Matrix</span>
         </div>
 
@@ -1760,10 +1729,10 @@ const DynamicMatrixLong = ({ theme }) => {
 
         <div className='rounded-md p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
           <div className='flex flex-wrap gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
-            <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md`} onClick={Regular}>Regular</button>
-            <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
-            <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
-            <button type="button" className="focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md" onClick={handleClearLevels}>Clear</button>
+            <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md hover:text-white hover:bg-Primary active:shadow-[inset_4px_4px_6px_0_#104566]`} onClick={Regular}>Regular</button>
+            <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF] shadow-[inset_4px_4px_6px_0_#104566]" : ""}`} onClick={StackMatrix}>Stack</button>
+            <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF] shadow-[inset_4px_4px_6px_0_#104566]" : ""}`} onClick={ShiftMatrix}>Shift</button>
+            <button type="button" className="focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md hover:text-white hover:bg-Primary active:shadow-[inset_4px_4px_6px_0_#104566]" onClick={handleClearLevels}>Clear</button>
           </div>
           {(msgM3.msg !== "") && <p className={`text-sm ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}.</p>}
           <h3 className='text-xl lg:text-[22px] xl:text-2xl font-semibold text-Primary mb-3'>Levels</h3>
@@ -2094,13 +2063,13 @@ const DynamicMatrixLong = ({ theme }) => {
               )}
             </span>
           </h2>
-          <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' ref={filterModalRef} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+          <p className={`text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer ${isFilterModalVisible ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
             <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
           </p>
         </div>
 
         {/* Column filter checkboxes */}
-        <div className="flex justify-end">
+        <div ref={filterModalRef} className="flex justify-end">
           <FilterModalLong
             isVisible={isFilterModalVisible}
             filters={{
@@ -2225,14 +2194,13 @@ const DynamicMatrixLong = ({ theme }) => {
           </Link>
         )}
 
-        <Button className="flex items-center gap-2 lg:gap-[17px] h-[38px] lg:h-[55px] mt-5 lg:mt-10 mx-auto" onClick={handleSaveMatrix}>
+        <Button className={`flex items-center gap-2 lg:gap-[17px] h-[38px] lg:h-[55px] mt-5 lg:mt-10 mx-auto ${isClicked ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`} onClick={handleSaveMatrix}>
           <img className='h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
         </Button>
 
         <div className='mb-5 text-center'>
           {(msgM4.msg !== "") && <p className={`text-sm ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}.</p>}
         </div>
-
       </div>
       :
       <>

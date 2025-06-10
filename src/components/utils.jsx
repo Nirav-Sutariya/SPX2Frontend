@@ -1,6 +1,7 @@
 import React, { useEffect } from "react"
 import axios from "axios";
 import { getToken, getUserId } from '../page/login/loginAPI';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 const defaultCommission = 5
@@ -57,8 +58,41 @@ const ConfirmationModal = ({ show, onClose, onConfirm, title, icon, message, ext
                 <h2 className="text-lg lg:text-[28px] lg:leading-[33px] font-semibold text-Secondary2 mx-auto max-w-[600px] mt-5 text-center">{title}</h2>
                 <h2 className="text-base lg:text-[18px] lg:leading-[33px] text-Secondary2 mx-auto max-w-[400px] lg:mt-2 text-center">{message}</h2>
                 <div className="flex justify-between gap-3 mt-5 lg:mt-9">
+                    <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 bg-background5 hover:text-white hover:bg-ButtonBg rounded-md w-full active:shadow-[inset_3px_4px_6px_0_#104566]" onClick={onClose}>Cancel</button>
+                    <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 bg-background5 hover:text-white hover:bg-ButtonBg  rounded-md w-full active:shadow-[inset_3px_4px_6px_0_#104566]" onClick={() => { onConfirm(extraParam); onClose(); }}>Confirm</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// Common Modal Component
+const ConfirmationModal2 = ({ show, onClose, onConfirm, title, icon, message, confirmText, extraParam }) => {
+    useEffect(() => {
+        if (show) {
+            document.body.classList.add('no-scroll');
+        } else {
+            document.body.classList.remove('no-scroll');
+        }
+        return () => document.body.classList.remove('no-scroll');
+    }, [show]);
+
+    if (!show) return null;
+
+    return (
+        <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">
+            <div className="p-4 lg:p-[30px] border border-borderColor5 rounded-lg bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-[360px] lg:w-[486px]">
+                <div className="flex justify-center">
+                    <div className="mx-auto p-5 lg:p-7 border border-borderColor rounded-md bg-background3">
+                        <img className="w-7 lg:w-auto" src={icon} alt="Reset Icon" />
+                    </div>
+                </div>
+                <h2 className="text-lg lg:text-[28px] lg:leading-[33px] font-semibold text-Secondary2 mx-auto max-w-[600px] mt-5 text-center">{title}</h2>
+                <h2 className="text-base lg:text-[18px] lg:leading-[33px] text-Secondary2 mx-auto max-w-[400px] lg:mt-2 text-center">{message}</h2>
+                <div className="flex justify-between gap-3 mt-5 lg:mt-9">
                     <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 bg-background5 rounded-md w-full" onClick={onClose}>Cancel</button>
-                    <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full" onClick={() => { onConfirm(extraParam); onClose(); }}>Confirm</button>
+                    <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full" onClick={() => { onConfirm(extraParam); onClose(); }}>{confirmText}</button>
                 </div>
             </div>
         </div>
@@ -122,17 +156,22 @@ const FilterModalShort = ({ isVisible, filters, handleToggle, ResetTable }) => {
     ];
 
     return (
-        <div className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
-            <p className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor px-12 pb-2 cursor-pointer" onClick={ResetTable}>
-                Reset Table
-            </p>
-            {filterOptions.map((option, index) => (
-                <label key={index} className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-                    <input type="checkbox" className="accent-accentColor w-[15px] h-[15px]" checked={option.state} onChange={() => handleToggle(option.setter)} />
-                    {option.label}
-                </label>
-            ))}
-        </div>
+        <AnimatePresence>
+            <motion.div initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.50, ease: "easeInOut" }} className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
+                <p className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor px-12 pb-2 cursor-pointer" onClick={ResetTable}>
+                    Reset Table
+                </p>
+                {filterOptions.map((option, index) => (
+                    <label key={index} className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                        <input type="checkbox" className="accent-accentColor w-[15px] h-[15px]" checked={option.state} onChange={() => handleToggle(option.setter)} />
+                        {option.label}
+                    </label>
+                ))}
+            </motion.div>
+        </AnimatePresence>
     );
 };
 
@@ -155,18 +194,23 @@ const FilterModalLong = ({ isVisible, filters, handleToggle, ResetTable }) => {
     ];
 
     return (
-        <div className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
-            <p className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor px-12 pb-2 cursor-pointer" onClick={ResetTable}>
-                Reset Table
-            </p>
-            {filterOptions.map((option, index) => (
-                <label key={index} className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-                    <input type="checkbox" className="accent-accentColor w-[15px] h-[15px]" checked={option.state} onChange={() => handleToggle(option.setter)} />
-                    {option.label}
-                </label>
-            ))}
-        </div>
+        <AnimatePresence>
+            <motion.div initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.50, ease: "easeInOut" }} className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
+                <p className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor px-12 pb-2 cursor-pointer" onClick={ResetTable}>
+                    Reset Table
+                </p>
+                {filterOptions.map((option, index) => (
+                    <label key={index} className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                        <input type="checkbox" className="accent-accentColor w-[15px] h-[15px]" checked={option.state} onChange={() => handleToggle(option.setter)} />
+                        {option.label}
+                    </label>
+                ))}
+            </motion.div>
+        </AnimatePresence>
     );
 };
 
-export { FilterModalShort, FilterModalLong, defaultCommission, defaultAllocation, defaultDynamicTradePrice, DefaultInDeCrement, findClosestIndex, defaultValue, validateEmail, ConfirmationModal, formattedDate, formattedDate1, CancelUserSubscription }
+export { FilterModalShort, FilterModalLong, defaultCommission, defaultAllocation, defaultDynamicTradePrice, DefaultInDeCrement, findClosestIndex, defaultValue, validateEmail, ConfirmationModal, ConfirmationModal2, formattedDate, formattedDate1, CancelUserSubscription }

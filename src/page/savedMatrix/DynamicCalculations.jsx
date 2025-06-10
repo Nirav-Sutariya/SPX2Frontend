@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Filter from '../../assets/svg/FilterIcon.svg';
 import DownArrowIcon from '../../assets/svg/DownArrowIcon.svg';
-import { defaultCommission, FilterModalShort } from "../../components/utils";
+import DeleteIcon from '../../assets/Images/StaticMatrix/DeleteIcon.svg';
+import DeleteIcon2 from '../../assets/Images/StaticMatrix/DeleteIcon2.svg';
+import { ConfirmationModal, defaultCommission, FilterModalShort } from "../../components/utils";
 import NextGamePlanDynamicLongMatrix from "../../page/dynamicMatrix/NextGamePlanDynamicLongMatrix";
+import { getToken, getUserId } from "../login/loginAPI";
+import axios from "axios";
 
 function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
 
@@ -54,7 +58,9 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
     const [BEContract, setBEContract] = useState(true);
     const visibleRows = showAllRows ? LevelTable.length : 5;
     const [isFilterModalVisible2, setIsFilterModalVisible2] = useState(false);
-
+    const [modalData, setModalData] = useState({});
+    const [showModal, setShowModal] = useState(false);
+    const [msgM1, setMsgM1] = useState({ type: "", msg: "", });
 
     useMemo(async () => {
         if (savedData) {
@@ -364,18 +370,66 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
         setIsFilterModalVisible(false);
     }
 
+    const handleDeleteClick = async (key) => {
+        setModalData({
+            icon: DeleteIcon2,
+            title: "Delete Confirmation",
+            message: "Are you sure you want to delete this Matrix?",
+            onConfirm: async () => {
+                try {
+                    let response = await axios.post((process.env.REACT_APP_MATRIX_URL + process.env.REACT_APP_DELETE_DYNAMIC_MATRIX_URL), { userId: getUserId(), dynamicMatrixId: key }, {
+                        headers: {
+                            'x-access-token': getToken()
+                        }
+                    })
+
+                    if (response.status === 200) {
+                        window.location.reload();
+                        setMsgM1({ type: "info", msg: 'Matrix was deleted...' });
+                    }
+                } catch (error) {
+                    if (error.message.includes('Network Error')) {
+                        setMsgM1({ type: "error", msg: "Could not connect to the server. Please check your connection." });
+                    } else if (error.response?.status === 400) {
+                        const message = error.response?.data?.message || "You can not delete last matrix";
+                        setMsgM1({ type: "error", msg: message });
+                    }
+                }
+            },
+        });
+        setShowModal(true);
+    };
+
+    useMemo(() => {
+        if (msgM1.type !== "")
+            setTimeout(() => {
+                setMsgM1({ type: "", msg: "" })
+            }, 40 * 100);
+    }, [msgM1])
+
 
     return (
         <>
+            {(msgM1.msg !== "") && <p className={`text-xs lg:text-sm max-w-[350px] ${msgM1.type === "error" ? "text-[#D82525]" : "text-Secondary2"} my-2`}>{msgM1.msg}.</p>}
+
             <div className='flex justify-between items-center gap-5 mt-5 lg:mt-10 lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full'>
                 <h2 className='text-xl lg:text-[22px] xl:text-2xl font-semibold text-Primary cursor-pointer flex items-center gap-5 capitalize' onClick={(e) => { DynamicShowHandel && DynamicShowHandel(false) }} >Dynamic Matrix : {savedData.matrixName} {DynamicShowHandel && <img className="rotate-180 w-4 lg:w-5" src={DownArrowIcon} alt="" />}</h2>
-                <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' ref={filterModalRef} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
-                    <img className='w-4 lg:w-auto' src={Filter} alt="Filter icon" /> Filter
-                </p>
+                <div className='flex items-center gap-5'>
+                    <div className="flex justify-center ">
+                        <div className="px-[10px] p-[9px] border border-borderColor rounded-md bg-background3 cursor-pointer" onClick={() => handleDeleteClick(savedData._id)}>
+                            <img className='w-4 h-[14px] lg:h-5 lg:w-5' src={DeleteIcon} alt="Delete Icon" />
+                        </div>
+                    </div>
+                    <p className={`text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] ${isFilterModalVisible ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+                        <img className='w-4 lg:w-auto' src={Filter} alt="Filter icon" />Filter
+                    </p>
+                </div>
             </div>
 
+            <ConfirmationModal show={showModal} onClose={() => setShowModal(false)} onConfirm={modalData.onConfirm} title={modalData.title} icon={modalData.icon} message={modalData.message} />
+
             {/* Column filter checkboxes */}
-            <div className="flex justify-end">
+            <div ref={filterModalRef} className="flex justify-end">
                 <FilterModalShort
                     isVisible={isFilterModalVisible}
                     filters={{
@@ -396,7 +450,6 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
                     ResetTable={ResetTable}
                 />
             </div>
-
 
             <div className="overflow-auto lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full mt-4 rounded-md shadow-[0px_0px_6px_0px_#28236633]">
                 <table className="table-auto border-collapse w-full">

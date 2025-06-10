@@ -19,6 +19,7 @@ import { Link } from 'react-router-dom';
 import { getToken, getUserId } from '../login/loginAPI';
 import { AppContext } from '../../components/AppContext';
 import { defaultCommission, defaultAllocation, DefaultInDeCrement, ConfirmationModal, FilterModalLong } from '../../components/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 const StaticMatrixLong = () => {
@@ -70,6 +71,7 @@ const StaticMatrixLong = () => {
   const [showLoss, setShowLoss] = useState(true);
   const [editIndex, setEditIndex] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [isClicked, setIsClicked] = useState(false);
   const [showProfit, setShowProfit] = useState(true);
   const [showCredit, setShowCredit] = useState(true);
   const [loss, setLoss] = useState(tradePrice * 100);
@@ -212,6 +214,9 @@ const StaticMatrixLong = () => {
     } catch (error) {
       if (error.message.includes('Network Error')) {
         setMsgM1({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
+      } else if (error.response?.status === 400) {
+        const message = error.response?.data?.message || "You can not delete last matrix";
+        setMsgM1({ type: "error", msg: message });
       }
     }
   }
@@ -476,6 +481,7 @@ const StaticMatrixLong = () => {
 
   // Matrix Save Data Api
   const handleSaveMatrix = async () => {
+    setIsClicked(true);
     if (!selectedName) {
       setMsgM3({ type: "error", msg: "Please select one of matrix from dropdown" });
       return;
@@ -521,8 +527,11 @@ const StaticMatrixLong = () => {
       }
     } catch (error) {
       if (error.message.includes('Network Error')) {
-        setMsgM1({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
+        setMsgM3({ type: "error", msg: 'Could not connect to the server. Please check your connection.' });
         setShowMessage(true);
+      } else if (error.response?.status === 400) {
+        const message = error.response?.data?.message || "Something went wrong";
+        setMsgM3({ type: "error", msg: message });
       }
     }
   };
@@ -891,6 +900,7 @@ const StaticMatrixLong = () => {
       setTimeout(() => {
         setMsgM3({ type: "", msg: "" })
         setShowMessage(false);
+        setIsClicked(false);
       }, 20 * 100);
     if (msgM4.type !== "")
       setTimeout(() => {
@@ -983,6 +993,13 @@ const StaticMatrixLong = () => {
     if (newValue <= 5) setTradePrice(newValue);
   };
 
+  const handleClick = async (key) => {
+    setOriginalSize(key.buyingPower);
+    setAllocationHintsVisibility(false);
+    await getSingleLevelAPI(key._id);
+    localStorage.setItem('originalSizeIdLong', key._id);
+  };
+
 
   return (<>
     {staticKey ?
@@ -990,15 +1007,16 @@ const StaticMatrixLong = () => {
         <div className='grid min-[470px]:flex flex-wrap items-center gap-5 order-2 lg:order-1'>
           <div className='flex items-center gap-5'>
             <h2 className='text-xl lg:text-[32px] lg:leading-[48px] text-Primary font-semibold'> Static Matrix Long </h2>
-            <Button onClick={() => {
-              setModalData({
-                icon: ResetIcon,
-                title: "Reset Details Confirmation",
-                message: "Are you sure you want to reset your details?",
-                onConfirm: resetAllParams,
-              });
-              setShowModal(true);
-            }}> Reset </Button>
+            <Button className={`${showModal ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`}
+              onClick={() => {
+                setModalData({
+                  icon: ResetIcon,
+                  title: "Reset Details Confirmation",
+                  message: "Are you sure you want to reset your details?",
+                  onConfirm: resetAllParams,
+                });
+                setShowModal(true);
+              }}> Reset </Button>
           </div>
           <div className='flex flex-wrap gap-3 items-center'>
             {/* ResetIcon popup section  */}
@@ -1008,42 +1026,49 @@ const StaticMatrixLong = () => {
               <p onClick={toggleDropdown} className='flex items-center gap-[10px] text-sm lg:text-base bg-background6 font-medium text-Primary shadow-[0px_0px_6px_0px_#28236633] rounded-md px-4 py-2 cursor-pointer' >
                 <img src={MatrixIcon} className='h-5 w-5' alt="" /> {names[selectedName]} <img className='w-3' src={DropdownIcon} alt="" />
               </p>
-              {isDropdownVisible && (
-                <div className='absolute z-10 left-0 min-[470px]:left-auto right-0 top-full mt-2 border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-max'>
-                  <div className='px-3 py-1 pb-[14px]'>
-                    {editIndex === null ? (
-                      <>
-                        {Object.keys(names).map((key, index) => (
-                          <div key={index} className='flex justify-between items-center gap-2 cursor-pointer border-b border-borderColor py-2 lg:py-[10px]' onClick={() => handleNameClick(key)}>
-                            <span className='text-xs lg:text-sm text-white font-medium flex items-center justify-center text-Primary bg-userBg rounded-full w-5 lg:w-6 h-5 lg:h-6'>
-                              {index + 1}
-                            </span>
-                            <span className='text-sm lg:text-base font-medium text-Primary text-wrap flex-1 ' title={names[key]}> {names[key].length > 23 ? `${names[key].slice(0, 23)}..` : names[key]}</span>
-                            <button onClick={(e) => { e.stopPropagation(); handleEditClick(key); }}>
-                              <img className='w-4 lg:w-auto' src={MatrixEditIcon} alt="" />
-                            </button>
-                            <img className="w-4 h-[14px] lg:h-4 cursor-pointer DeleteIcon2" src={DeleteIcon} alt="Delete" onClick={() => handleDeleteClick(key)} />
+              <AnimatePresence>
+                {isDropdownVisible && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.50, ease: "easeInOut" }}
+                    className='absolute z-10 left-0 min-[470px]:left-auto right-0 top-full mt-2 border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633] w-max'>
+                    <div className='p-1 pb-[14px]'>
+                      {editIndex === null ? (
+                        <>
+                          {Object.keys(names).map((key, index) => (
+                            <div key={index} className={`flex justify-between items-center gap-2 cursor-pointer border-b border-borderColor p-2 lg:py-[10px] mb-1 hover:rounded-md hover:bg-background4 ${key === selectedName ? "rounded-md bg-background4" : ""}`} onClick={() => handleNameClick(key)}>
+                              <span className='text-xs lg:text-sm text-white font-medium flex items-center justify-center text-Primary bg-userBg rounded-full w-5 lg:w-6 h-5 lg:h-6'>
+                                {index + 1}
+                              </span>
+                              <span className='text-sm lg:text-base font-medium text-Primary text-wrap flex-1 ' title={names[key]}> {names[key].length > 23 ? `${names[key].slice(0, 23)}..` : names[key]}</span>
+                              <button onClick={(e) => { e.stopPropagation(); handleEditClick(key); }}>
+                                <img className='w-4 lg:w-auto' src={MatrixEditIcon} alt="" />
+                              </button>
+                              <img className="w-4 h-[14px] lg:h-4 cursor-pointer DeleteIcon2" src={DeleteIcon} alt="Delete" onClick={() => handleDeleteClick(key)} />
+                            </div>
+                          ))}
+                          <input type='text' value={newName} onChange={handleNewNameChange} className='text-sm lg:text-base text-Primary text-center w-full p-1 lg:p-2 rounded-md my-2 bg-textBoxBg focus:outline-none' placeholder='Enter Matrix Name' />
+                          <div className='flex justify-center gap-2 cursor-pointer text-Primary' onClick={handleAddClick} >
+                            <img className='w-[18px] lg:w-auto' src={PluseIcon} alt="" />
+                            <span className='text-sm lg:text-base text-Primary'>{(newName.length > 0 ? "Save" : "Matrix")}</span>
                           </div>
-                        ))}
-                        <input type='text' value={newName} onChange={handleNewNameChange} className='text-sm lg:text-base text-Primary text-center w-full p-1 lg:p-2 rounded-md my-2 bg-textBoxBg focus:outline-none' placeholder='Enter Matrix Name' />
-                        <div className='flex justify-center gap-2 cursor-pointer text-Primary' onClick={handleAddClick} >
-                          <img className='w-[18px] lg:w-auto' src={PluseIcon} alt="" />
-                          <span className='text-sm lg:text-base text-Primary'>{(newName.length > 0 ? "Save" : "Matrix")}</span>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <input type='text' value={editName} onChange={handleEditNameChange} className='text-sm lg:text-base text-Primary w-full p-2 border-none rounded-md bg-textBoxBg focus:outline-none mb-2' placeholder='Enter matrix Name' />
-                        <div className='flex justify-between gap-7 lg:gap-8 items-center'>
-                          <img src={BackIcon} title='Back' className='w-3 h-[14px] lg:h-4 cursor-pointer' onClick={() => setEditIndex(null)} alt="" />
-                          <button onClick={handleUpdateName} className='text-sm lg:text-base text-Primary py-1 rounded'> Update </button>
-                          <img className='w-4 h-[14px] lg:h-4 cursor-pointer' src={DeleteIcon} onClick={() => handleDeleteClick(editKey)} alt="" />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
+                        </>
+                      ) : (
+                        <>
+                          <input type='text' value={editName} onChange={handleEditNameChange} className='text-sm lg:text-base text-Primary w-full p-2 border-none rounded-md bg-textBoxBg focus:outline-none mb-2' placeholder='Enter matrix Name' />
+                          <div className='flex justify-between gap-7 lg:gap-8 items-center'>
+                            <img src={BackIcon} title='Back' className='w-3 h-[14px] lg:h-4 cursor-pointer' onClick={() => setEditIndex(null)} alt="" />
+                            <button onClick={handleUpdateName} className='text-sm lg:text-base text-Primary py-1 rounded'> Update </button>
+                            <img className='w-4 h-[14px] lg:h-4 cursor-pointer' src={DeleteIcon} onClick={() => handleDeleteClick(editKey)} alt="" />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
           {(msgM1.msg !== "") && <p className={`text-sm ${msgM1.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM1.msg}.</p>}
@@ -1083,31 +1108,29 @@ const StaticMatrixLong = () => {
                     </span>
                   </div>
                 </div>
-                <div className='relative'>
-                  {allocationHintsVisibility && (
-                    <div ref={allocationDropdownRef} className='absolute top-full z-10 mt-2 bg-background6 rounded-md shadow-[0px_0px_6px_0px_#28236633] w-[259px]'>
-                      <div className='px-3 lg:px-[18px] py-1 pb-[14px] overscroll-auto'>
-                        {staticLevelDefaultValue.length > 0 ? (
-                          staticLevelDefaultValue.map((key, index) => (
-                            <div key={index}
-                              className={`flex justify-between items-center cursor-pointer border-b border-borderColor py-2 lg:py-[10px] ${originalSize === key.buyingPower ? "underline decoration-sky-500" : ""}`}
-                              onClick={async () => {
-                                setOriginalSize(key.buyingPower);
-                                setAllocationHintsVisibility(false);
-                                await getSingleLevelAPI(key._id);
-                                localStorage.setItem('originalSizeIdLong', key._id);
-                              }}>
-                              <span className="text-sm lg:text-base text-Primary font-medium text-wrap flex-1 ml-2">
+                <div className="relative">
+                  <AnimatePresence>
+                    {allocationHintsVisibility && (
+                      <motion.div ref={allocationDropdownRef}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.50, ease: "easeInOut" }}
+                        className='absolute top-full z-10 mt-2 bg-background6 rounded-md shadow-[0px_0px_6px_0px_#28236633] w-[259px]'>
+                        <div className='px-3 lg:px-[18px] py-1 pb-[14px] overscroll-auto'>
+                          {staticLevelDefaultValue.length > 0 ? (staticLevelDefaultValue.map((key, index) => (
+                            <div key={index} className="flex justify-between items-center cursor-pointer border-b border-borderColor py-1 lg:py-[6px]" onClick={() => handleClick(key)}>
+                              <span className={`text-sm lg:text-base text-Primary font-medium text-wrap flex-1 px-2 py-[4px] rounded-md hover:text-white hover:bg-borderColor4 ${originalSize === key.buyingPower ? "text-white bg-borderColor4" : ""}`}>
                                 $ {Number(key.buyingPower).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </span>
                             </div>
-                          ))
-                        ) : (
-                          <p className='text-sm lg:text-base text-Secondary2 font-medium'>No data available</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                          ))) : (
+                            <p className='text-sm lg:text-base text-Secondary2 font-medium mt-2'>No data available</p>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
 
@@ -1116,11 +1139,11 @@ const StaticMatrixLong = () => {
                 <span>$</span>
                 <input type='text' inputMode='numeric' maxLength={4} title='Max Length 4' value={tradePrice || appContext.shortTradePrice} onChange={handleTradePriceChange} className='bg-transparent w-full focus:outline-none' />
                 <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                  <button onClick={decreaseTradePrice} >
+                  <button className='active:scale-90 transition-transform duration-250' onClick={decreaseTradePrice} >
                     <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
                   </button>
                   <div className='border-r border-borderColor6 h-[26px]'></div>
-                  <button onClick={increaseTradePrice} className='w-[22px]'>
+                  <button onClick={increaseTradePrice} className='w-[22px] active:scale-90 transition-transform duration-250'>
                     <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
                   </button>
                 </div>
@@ -1132,11 +1155,11 @@ const StaticMatrixLong = () => {
                   <span>$</span>
                   <input type="text" inputMode='numeric' maxLength={5} title='Up to 2 digits before and 2 digits after the decimal point' value={commission} onChange={(e) => { const value = e.target.value; if (/^\d{0,2}(\.\d{0,2})?$/.test(value)) { setCommission(value); } }} className='bg-transparent w-full focus:outline-none' />
                   <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                    <button onClick={() => setCommission((prev) => (parseFloat(prev) > MINIMUM_VALUE ? (parseFloat(prev) - 0.5).toFixed(2) : MINIMUM_VALUE.toFixed(2)))}>
+                    <button className='active:scale-90 transition-transform duration-250' onClick={() => setCommission((prev) => (parseFloat(prev) > MINIMUM_VALUE ? (parseFloat(prev) - 0.5).toFixed(2) : MINIMUM_VALUE.toFixed(2)))}>
                       <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
                     </button>
                     <div className='border-r border-borderColor6 h-[26px]'></div>
-                    <button className='w-[22px]' onClick={() => setCommission((prev) => (parseFloat(prev) < MAXIMUM_VALUE ? (parseFloat(prev) + 0.5).toFixed(2) : MAXIMUM_VALUE.toFixed(2)))}>
+                    <button className='w-[22px] active:scale-90 transition-transform duration-250' onClick={() => setCommission((prev) => (parseFloat(prev) < MAXIMUM_VALUE ? (parseFloat(prev) + 0.5).toFixed(2) : MAXIMUM_VALUE.toFixed(2)))}>
                       <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
                     </button>
                   </div>
@@ -1176,7 +1199,7 @@ const StaticMatrixLong = () => {
         </div>
         {(msgM4.msg !== "") && <p className={`text-sm ${msgM4.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM4.msg}.</p>}
 
-        <div className="fixed bottom-[5%] lg:bottom-auto lg:top-[30%] right-5 z-20 flex items-center gap-3 lg:gap-4 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-t-lg py-3 lg:py-2 px-4 lg:px-7 cursor-pointer -rotate-90 origin-right" onClick={handleSaveMatrix} >
+        <div className={`fixed bottom-[5%] lg:bottom-auto lg:top-[30%] right-5 z-20 flex items-center gap-3 lg:gap-4 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-t-lg py-3 lg:py-2 px-4 lg:px-7 cursor-pointer -rotate-90 origin-right ${isClicked ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`} onClick={handleSaveMatrix} >
           <img className='h-4 lg:h-[18px] rotate-90' src={SavedMatrixIcon} alt="" /> <span className="hidden lg:inline">Save Matrix</span>
         </div>
 
@@ -1196,9 +1219,9 @@ const StaticMatrixLong = () => {
 
         <div className='rounded-md p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
           <div className='flex gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
-            <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md`} onClick={Regular} >Regular</button>
-            <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={StackMatrix}>Stack</button>
-            <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF]" : ""}`} onClick={ShiftMatrix}>Shift</button>
+            <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md hover:text-white hover:bg-ButtonBg active:shadow-[inset_4px_4px_6px_0_#104566]`} onClick={Regular} >Regular</button>
+            <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF] shadow-[inset_4px_4px_6px_0_#104566]" : ""}`} onClick={StackMatrix}>Stack</button>
+            <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF] shadow-[inset_4px_4px_6px_0_#104566]" : ""}`} onClick={ShiftMatrix}>Shift</button>
           </div>
           {(msgM2.msg !== "") && <p className={`text-sm ${msgM2.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM2.msg}.</p>}
           {errorMessage && (<p className="text-[#D82525] text-sm mb-2">{errorMessage}</p>)}
@@ -1243,12 +1266,12 @@ const StaticMatrixLong = () => {
                         className='bg-transparent max-w-[230px] w-full focus:outline-none'
                       />
                       <div className='flex gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                        <button onClick={() => handleDecrement(levelKey)} disabled={!isChecked} >
+                        <button className='active:scale-90 transition-transform duration-250' onClick={() => handleDecrement(levelKey)} disabled={!isChecked} >
                           <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
                         </button>
                         <div className='border-r border-borderColor6 h-[26px]'></div>
                         <button onClick={() => handleIncrement(levelKey)} disabled={!isChecked}
-                          className='w-[22px]' >
+                          className='w-[22px] active:scale-90 transition-transform duration-250' >
                           <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
                         </button>
                       </div>
@@ -1268,12 +1291,12 @@ const StaticMatrixLong = () => {
 
         <div className='flex justify-between items-center mt-5 lg:mt-10 lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full'>
           <h2 className='text-xl lg:text-[22px] xl:text-2xl text-Primary font-semibold'> Static Matrix - Long IC </h2>
-          <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer' ref={filterModalRef} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+          <p className={`text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer ${isFilterModalVisible ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
             <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
           </p>
         </div>
 
-        <div className="flex justify-end">
+        <div ref={filterModalRef} className="flex justify-end">
           <FilterModalLong
             isVisible={isFilterModalVisible}
             filters={{
@@ -1372,7 +1395,7 @@ const StaticMatrixLong = () => {
           </button>
         </div>} */}
 
-        <Button className="flex items-center gap-2 lg:gap-[17px] h-[38px] lg:h-[55px] mt-5 lg:mt-10 mx-auto" onClick={handleSaveMatrix}>
+        <Button className={`flex items-center gap-2 lg:gap-[17px] h-[38px] lg:h-[55px] mt-5 lg:mt-10 mx-auto ${isClicked ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`} onClick={handleSaveMatrix}>
           <img className='h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
         </Button>
 
