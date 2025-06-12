@@ -199,7 +199,7 @@ function PlainDisplay({ plan, setPlan, plainId, featureOptions }) {
         </span>
 
         <div className="flex justify-end mt-4 md:mt-[30px]">
-          <button type="button" onClick={() => setShowLogoutModal(true)} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]">
+          <button type="button" onClick={() => setShowLogoutModal(true)} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]">
             Update
           </button>
         </div>
@@ -540,7 +540,7 @@ const AdminSubscription = () => {
           </button>
         </span>
         <div className='flex justify-end mt-5 lg:mt-8' onClick={createApiKey}>
-          <button type="button" className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]">
+          <button type="button" className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]">
             Update
           </button>
         </div>
@@ -617,7 +617,7 @@ const AdminSubscription = () => {
         </span>
       </div>
       <div className='flex justify-end my-5 lg:my-8' onClick={() => setShowLogoutModal2(true)}>
-        <button type="button" className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]">
+        <button type="button" className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]">
           Update
         </button>
       </div>

@@ -245,7 +245,7 @@ const Setting = ({ setIsLoggedIn }) => {
             <p className='text-lg lg:text-[22px] lg:leading-[33px] font-medium text-Primary'>Delete Account</p>
             <p className='text-sm lg:text-lg text-Secondary2 mt-2 lg:mt-[22px] mb-3 lg:mb-[30px]'>Delete Your Account and All Associated Data</p>
             <div className='flex justify-end'>
-              <a onClick={() => setShowDeleteModal(true)} className='cursor-pointer text-sm lg:text-[20px] lg:leading-[30px] font-semibold text-white rounded-md bg-ButtonBg py-2 px-4 lg:py-[13px] lg:px-[30px]'>Delete Account</a>
+              <a onClick={() => setShowDeleteModal(true)} className='cursor-pointer text-sm lg:text-[20px] lg:leading-[30px] font-semibold text-white rounded-md bg-ButtonBg py-2 px-4 lg:py-[13px] lg:px-[30px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]'>Delete Account</a>
             </div>
           </div>
 
@@ -259,10 +259,10 @@ const Setting = ({ setIsLoggedIn }) => {
                 </div>
                 <h2 className="text-sm lg:text-lg text-Secondary2 mt-3 lg:mt-5 text-center">Your account has been scheduled for deletion and will be permanently deleted after 30 days. If you log in within this period, the deletion will be canceled, and your account will remain active.</h2>
                 <div className="flex justify-between gap-3 mt-5 lg:mt-9">
-                  <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 rounded-md w-full" onClick={() => setShowDeleteModal(false)} >
+                  <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 rounded-md w-full " onClick={() => setShowDeleteModal(false)} >
                     Cancel
                   </button>
-                  <button className={`text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full ${!appContext.superUser ? "cursor-pointer" : "cursor-not-allowed"} `} onClick={() => { if (!appContext.superUser) deleteUser() }}>
+                  <button className={`text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566] ${!appContext.superUser ? "cursor-pointer" : "cursor-not-allowed"} `} onClick={() => { if (!appContext.superUser) deleteUser() }}>
                     Delete
                   </button>
                 </div>
@@ -312,7 +312,7 @@ const Setting = ({ setIsLoggedIn }) => {
                   />CAD</label>
               </div>
 
-              <button type="button" className="text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-md py-1 max-w-[100px] w-full" onClick={handleReset}>
+              <button type="button" className="text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-md py-1 max-w-[100px] w-full shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]" onClick={handleReset}>
                 Reset
               </button>
             </div>
@@ -334,7 +334,7 @@ const Setting = ({ setIsLoggedIn }) => {
                     <input type='text' inputMode='numeric' maxLength={5} title='Max Length 5' value={conversionRateAud} onChange={handleRateChangeAud} placeholder='Enter Your Rate' className='bg-transparent w-full focus:outline-none' />
                   </div>
                 </div>
-                <button type="button" className="text-sm lg:text-base font-semibold text-white bg-ButtonBg rounded-md py-2 lg:py-3 max-w-[130px] w-full" onClick={handleApplyAudRate}>
+                <button type="button" className="text-sm lg:text-base font-semibold text-white bg-ButtonBg rounded-md py-2 lg:py-3 max-w-[130px] w-full shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]" onClick={handleApplyAudRate}>
                   Apply Now
                 </button>
               </div>
@@ -368,7 +368,7 @@ const Setting = ({ setIsLoggedIn }) => {
                     <input type='number' inputMode='numeric' maxLength={5} title='Max Length 5' value={conversionRateCad} onChange={handleRateChangeCad} placeholder='Enter Your Rate' className='bg-transparent w-full focus:outline-none' />
                   </div>
                 </div>
-                <button type="button" className="text-sm lg:text-base font-semibold text-white bg-ButtonBg rounded-md py-2 lg:py-3 max-w-[130px] w-full" onClick={handleApplyCadRate}>
+                <button type="button" className="text-sm lg:text-base font-semibold text-white bg-ButtonBg rounded-md py-2 lg:py-3 max-w-[130px] w-full shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]" onClick={handleApplyCadRate}>
                   Apply Now
                 </button>
               </div>

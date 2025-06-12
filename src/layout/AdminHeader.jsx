@@ -14,6 +14,7 @@ import Logout from '../assets/Images/Login/Logout.svg';
 import { AppContext } from '../components/AppContext';
 import { removeTokens } from '../page/login/loginAPI';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const handleLogout = async (setIsLoggedIn) => {
   removeTokens();
@@ -179,20 +180,28 @@ const AdminHeader = ({ toggleTheme, isDarkTheme, isDarkMode, activeLink, setActi
           <div className={`flex items-center gap-5 FilterModalVisible`}>
             <label className="switch">
               <input type="checkbox" onClick={toggleTheme} checked={isDarkTheme} />
-              <span className={`slider ${isDarkMode ? 'dark' : 'light'}`}></span>
+              <span className={`slider ${isDarkMode ? 'dark shadow-[inset_2px_2px_5px_0_#104566]' : 'light shadow-[inset_-2px_-2px_5px_0_#104566]'}`}></span>
             </label>
           </div>
-          <div className='flex items-center gap-3 py-1 px-[14px] bg-userBg rounded-md cursor-pointer' onClick={() => setIsOpen(prev => !prev)}>
+          <div className={`flex items-center gap-3 py-1 px-[14px] bg-userBg rounded-md cursor-pointer ${isOpen ? "shadow-[inset_2px_2px_5px_0_#104566]" : "shadow-[inset_-2px_-2px_5px_0_#104566]"}`} onClick={() => setIsOpen(prev => !prev)}>
             <p className='text-[16px] leading-[28px] text-white font-medium'>{appContext.userData.first_name}</p>
             <img src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} className='w-8 h-8 rounded-full object-cover' alt="" />
           </div>
-          {isOpen && (
-            <div ref={dropdownRef} className='absolute top-10 right-0 mt-2 bg-background5 shadow-[0px_0px_6px_0px_#28236633] rounded-md z-10 w-[158px]'>
-              <div className='py-2'>
-                <div className='flex gap-[14px] text-sm text-Primary px-4 py-2 cursor-pointer' onClick={() => setShowLogoutModal(true)}><img src={LogoutIcon} alt="" /> Log out</div>
-              </div>
-            </div>
-          )}
+
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.50, ease: "easeInOut" }}
+                ref={dropdownRef} className='absolute top-10 right-0 mt-2 bg-background5 shadow-[0px_0px_6px_0px_#28236633] rounded-md z-10 w-[158px]'>
+                <div className='py-2'>
+                  <div className='flex gap-[14px] text-sm text-Primary px-4 py-2 cursor-pointer' onClick={() => setShowLogoutModal(true)}><img src={LogoutIcon} alt="" /> Log out</div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {showLogoutModal && (
             <div className="fixed inset-0 flex items-center justify-center bg-[#31313166] z-20">

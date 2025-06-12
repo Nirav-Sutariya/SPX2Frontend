@@ -420,7 +420,7 @@ function DynamicCalculations({ savedData, nextGamePlan, DynamicShowHandel }) {
                             <img className='w-4 h-[14px] lg:h-5 lg:w-5' src={DeleteIcon} alt="Delete Icon" />
                         </div>
                     </div>
-                    <p className={`text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] ${isFilterModalVisible ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+                    <p className={`text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] ${isFilterModalVisible ? "shadow-[inset_2px_2px_5px_0_#104566]" : "shadow-[inset_-2px_-2px_5px_0_#104566]"}`} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
                         <img className='w-4 lg:w-auto' src={Filter} alt="Filter icon" />Filter
                     </p>
                 </div>

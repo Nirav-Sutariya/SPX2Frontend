@@ -65,7 +65,7 @@ const ForgetPassword = () => {
             }
         }
     }
-    
+
     function isNumber(val) {
         return !isNaN(val) && val.length === 1;
     }
@@ -168,7 +168,7 @@ const ForgetPassword = () => {
                         <p className='text-sm lg:text-lg text-Secondary2 mt-[10px]'>if you don’t receive code <a className={`font-semibold underline ${isDisabled ? 'text-gray-400 cursor-not-allowed' : 'text-Secondary2 cursor-pointer'}`} onClick={!isDisabled ? resend : null}>resend</a>{isDisabled && <span> (wait {timer}s)</span>}</p>
                         {(msg.msg !== "") && <p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msg.msg}.</p>}
                         <div className='flex flex-wrap justify-start items-center gap-5 mt-7 lg:mt-10'>
-                            <button className='text-base lg:text-[20px] lg:leading-[30px] text-white font-semibold bg-ButtonBg py-2 px-[30px] rounded-md cursor-pointer' onClick={verifyOTP} ref={submitButtonRef}>Verify and Proceed</button>
+                            <button className='text-base lg:text-[20px] lg:leading-[30px] text-white font-semibold bg-ButtonBg py-2 px-[30px] rounded-md cursor-pointer shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]' onClick={verifyOTP} ref={submitButtonRef}>Verify and Proceed</button>
                             <span className='text-sm lg:text-base text-Secondary2'>Back To <Link to="/login" className='text-sm lg:text-base text-Secondary2 underline ml-1'>Login </Link></span>
                         </div>
                     </div>

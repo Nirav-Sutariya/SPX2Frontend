@@ -7,6 +7,8 @@ import axios from 'axios';
 import { AppContext } from '../components/AppContext';
 import { getToken, getUserId } from '../page/login/loginAPI';
 import * as XLSX from "xlsx";
+import { motion, AnimatePresence } from 'framer-motion';
+
 
 const ManageLevels = ({ }) => {
 
@@ -520,7 +522,7 @@ const ManageLevels = ({ }) => {
             </div>
           </div>
           <div className="flex justify-end mt-5 md:mt-[30px]">
-            <button type="button" onClick={updateLevelLength} ref={updateRef} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]">
+            <button type="button" onClick={updateLevelLength} ref={updateRef} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]">
               Update
             </button>
           </div>
@@ -548,15 +550,22 @@ const ManageLevels = ({ }) => {
               </svg>
             </div>
 
-            {isOpen && (
-              <div className="absolute z-10 w-full bg-background6 border border-borderColor5 rounded-md shadow-[0px_0px_6px_0px_#28236633]">
-                {options.map((option) => (
-                  <div key={option.value} className={`px-4 py-2 text-xs lg:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${matrixTypeValue === option.value ? 'bg-borderColor4 text-white rounded' : ''}`} onClick={() => handleChangeMatrixType(option.value)} >
-                    {option.label}
-                  </div>
-                ))}
-              </div>
-            )}
+            <AnimatePresence>
+              {isOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.50, ease: "easeInOut" }}
+                  className="absolute z-10 w-full bg-background6 border border-borderColor5 rounded-md shadow-[0px_0px_6px_0px_#28236633]">
+                  {options.map((option) => (
+                    <div key={option.value} className={`px-4 py-2 text-xs lg:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${matrixTypeValue === option.value ? 'bg-borderColor4 text-white rounded' : ''}`} onClick={() => handleChangeMatrixType(option.value)} >
+                      {option.label}
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Choose a Spread */}
@@ -569,15 +578,22 @@ const ManageLevels = ({ }) => {
               </svg>
             </div>
 
-            {spreadOpen && (
-              <div className="absolute z-10 w-full bg-background6 border border-borderColor5 rounded-md shadow-[0px_0px_6px_0px_#28236633]">
-                {spreadOptions.map((option) => (
-                  <div key={option} className={`px-4 py-2 text-xs lg:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${selectedValue === option ? 'bg-borderColor4 text-white' : ''}`} onClick={() => handleSpreadOptionClick(option)}>
-                    {option}
-                  </div>
-                ))}
-              </div>
-            )}
+            <AnimatePresence>
+              {spreadOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.50, ease: "easeInOut" }}
+                  className="absolute z-10 w-full bg-background6 border border-borderColor5 rounded-md shadow-[0px_0px_6px_0px_#28236633]">
+                  {spreadOptions.map((option) => (
+                    <div key={option} className={`px-4 py-2 text-xs lg:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${selectedValue === option ? 'bg-borderColor4 text-white' : ''}`} onClick={() => handleSpreadOptionClick(option)}>
+                      {option}
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className='max-w-[161px] sm:max-w-[170px] lg:max-w-[200px] sm:mt-2'>
@@ -613,7 +629,7 @@ const ManageLevels = ({ }) => {
 
         <div className='flex flex-wrap justify-end gap-3 lg:gap-5 min-w-[160px] sm:min-w-[240px] md:min-w-[340px] lg:min-w-[406px]'>
           <div>
-            <p className='text-nowrap text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer w-full max-w-[115px] lg:max-w-[130px]' onClick={handleFileClick} >
+            <p className='text-nowrap text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer w-full max-w-[115px] lg:max-w-[130px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]' onClick={handleFileClick} >
               Upload file
             </p>
 
@@ -626,11 +642,11 @@ const ManageLevels = ({ }) => {
             />
           </div>
 
-          <p onClick={handleExport} className='text-nowrap text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer w-full max-w-[105px] lg:max-w-[115px]'>
+          <p onClick={handleExport} className='text-nowrap text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer w-full max-w-[105px] lg:max-w-[115px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]'>
             Export file
           </p>
 
-          <p className='text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer w-full max-w-[95px] lg:max-w-[110px]' onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+          <p className={`text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer w-full max-w-[95px] lg:max-w-[110px] ${isFilterModalVisible ? "shadow-[inset_2px_2px_5px_0_#104566]" : "shadow-[inset_-2px_-2px_5px_0_#104566]"}`} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
             <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
           </p>
         </div>
@@ -638,29 +654,36 @@ const ManageLevels = ({ }) => {
 
       {/* Filter For Table */}
       <div className='flex justify-end' ref={filterModalRef} >
-        {isFilterModalVisible && (
-          <div className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
-            <p className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor px-12 pb-2 cursor-pointer" onClick={ResetTable}>Reset Table</p>
-            <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-              <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={showLevel1} onChange={() => handleToggle(setShowLevel1)} /> Level 1
-            </label>
-            <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-              <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={showLevel2} onChange={() => handleToggle(setShowLevel2)} /> Level 2
-            </label>
-            <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-              <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={showLevel3} onChange={() => handleToggle(setShowLevel3)} /> Level 3
-            </label>
-            <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-              <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={showLevel4} onChange={() => handleToggle(setShowLevel4)} /> Level 4
-            </label>
-            <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-              <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={showLevel5} onChange={() => handleToggle(setShowLevel5)} /> Level 5
-            </label>
-            <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
-              <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={showAction} onChange={() => handleToggle(setShowAction)} /> Action
-            </label>
-          </div>
-        )}
+        <AnimatePresence>
+          {isFilterModalVisible && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.50, ease: "easeInOut" }}
+              className="absolute z-10 border border-borderColor5 rounded-lg bg-background6 max-w-[224px] w-full p-3 mt-2 lg:mt-4 shadow-[0px_0px_6px_0px_#28236633]">
+              <p className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor px-12 pb-2 cursor-pointer" onClick={ResetTable}>Reset Table</p>
+              <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={showLevel1} onChange={() => handleToggle(setShowLevel1)} /> Level 1
+              </label>
+              <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={showLevel2} onChange={() => handleToggle(setShowLevel2)} /> Level 2
+              </label>
+              <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={showLevel3} onChange={() => handleToggle(setShowLevel3)} /> Level 3
+              </label>
+              <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={showLevel4} onChange={() => handleToggle(setShowLevel4)} /> Level 4
+              </label>
+              <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={showLevel5} onChange={() => handleToggle(setShowLevel5)} /> Level 5
+              </label>
+              <label className="text-sm lg:text-base font-medium text-Primary flex items-center gap-3 lg:gap-4 border-b border-borderColor py-[6px]">
+                <input type="checkbox" className='accent-accentColor w-[15px] h-[15px]' checked={showAction} onChange={() => handleToggle(setShowAction)} /> Action
+              </label>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {(msgM1.msg !== "") && <p className={`text-sm mt-2 ${msgM1.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msgM1.msg}</p>}

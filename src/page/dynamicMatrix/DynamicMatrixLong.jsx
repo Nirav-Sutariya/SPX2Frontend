@@ -1531,6 +1531,33 @@ const DynamicMatrixLong = ({ theme }) => {
     localStorage.setItem('originalSizeIdDyLong', key._id);
   };
 
+  const collapseVariants = {
+    hidden: {
+      height: 0,
+      opacity: 0,
+      transition: {
+        duration: 0.3,
+        ease: 'easeInOut',
+      },
+    },
+    visible: {
+      height: 'auto',
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+        ease: 'easeInOut',
+      },
+    },
+    exit: {
+      height: 0,
+      opacity: 0,
+      transition: {
+        duration: 0.3,
+        ease: 'easeInOut',
+      },
+    },
+  };
+
 
   return (<>
     {dynamicKey ?
@@ -1539,7 +1566,7 @@ const DynamicMatrixLong = ({ theme }) => {
         <div className='grid min-[450px]:flex flex-wrap items-center gap-5 order-2 lg:order-1'>
           <div className='flex items-center gap-5'>
             <h2 className='text-xl lg:text-[32px] lg:leading-[48px] text-Primary font-semibold'> Dynamic Matrix Long </h2>
-            <Button className={`${showModal ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`}
+            <Button className={`${showModal ? "shadow-[inset_2px_2px_5px_0_#104566]" : "shadow-[inset_-2px_-2px_5px_0_#104566]"}`}
               onClick={() => {
                 setModalData({
                   icon: ResetIcon,
@@ -1619,15 +1646,22 @@ const DynamicMatrixLong = ({ theme }) => {
                     <img className='w-[10px]' src={DropdownIcon} alt="" />
                   </div>
 
-                  {isOpen && (
-                    <div className="absolute top-full right-0 w-12 border border-borderColor bg-background6 rounded-md shadow-md z-10">
-                      {options.map((value, index) => (
-                        <div key={index} className={`px-3 py-1 text-xs lg:text-sm cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${selectedValue === value ? 'bg-borderColor4 text-white' : 'text-Primary'}`} onClick={() => handleSelect(value)} >
-                          {value}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.50, ease: "easeInOut" }}
+                        className="absolute top-full right-0 w-12 border border-borderColor bg-background6 rounded-md shadow-md z-10">
+                        {options.map((value, index) => (
+                          <div key={index} className={`px-3 py-1 text-xs lg:text-sm cursor-pointer hover:bg-borderColor4 hover:text-white rounded ${selectedValue === value ? 'bg-borderColor4 text-white' : 'text-Primary'}`} onClick={() => handleSelect(value)} >
+                            {value}
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
               <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 p-[7px] lg:p-[11px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
@@ -1709,7 +1743,7 @@ const DynamicMatrixLong = ({ theme }) => {
           </div>
         </div>
 
-        <div className={`fixed bottom-[5%] lg:bottom-auto lg:top-[30%] right-5 z-20 flex items-center gap-3 lg:gap-4 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-t-lg py-3 lg:py-2 px-4 lg:px-7 cursor-pointer -rotate-90 origin-right ${isClicked ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`} onClick={handleSaveMatrix} >
+        <div className={`fixed bottom-[5%] lg:bottom-auto lg:top-[30%] right-5 z-20 flex items-center gap-3 lg:gap-4 text-sm lg:text-base font-medium text-white bg-ButtonBg rounded-t-lg py-3 lg:py-2 px-4 lg:px-7 cursor-pointer -rotate-90 origin-right ${isClicked ? "shadow-[inset_2px_2px_5px_0_#104566]" : "shadow-[inset_-2px_-2px_5px_0_#104566]"}`} onClick={handleSaveMatrix} >
           <img className='h-4 lg:h-[18px] rotate-90' src={SavedMatrixIcon} alt="" /> <span className="hidden lg:inline">Save Matrix</span>
         </div>
 
@@ -1729,10 +1763,10 @@ const DynamicMatrixLong = ({ theme }) => {
 
         <div className='rounded-md p-5 mt-5 lg:mt-10 shadow-[0px_0px_8px_0px_#28236633] Levels bg-background6'>
           <div className='flex flex-wrap gap-3 lg:gap-5 text-sm lg:text-base text-Primary lg:font-medium mb-5'>
-            <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md hover:text-white hover:bg-Primary active:shadow-[inset_4px_4px_6px_0_#104566]`} onClick={Regular}>Regular</button>
-            <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF] shadow-[inset_4px_4px_6px_0_#104566]" : ""}`} onClick={StackMatrix}>Stack</button>
-            <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF] shadow-[inset_4px_4px_6px_0_#104566]" : ""}`} onClick={ShiftMatrix}>Shift</button>
-            <button type="button" className="focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md hover:text-white hover:bg-Primary active:shadow-[inset_4px_4px_6px_0_#104566]" onClick={handleClearLevels}>Clear</button>
+            <button type="button" className={`focus:outline-none border border-borderColor text-sm lg:text-base shadow-md py-[7px] lg:py-[10px] px-[18px] rounded-md hover:text-white hover:bg-Primary active:shadow-[inset_2px_2px_5px_0_#104566]`} onClick={Regular}>Regular</button>
+            <button type="button" disabled={(stackOrShiftFlag === "shift" ? true : false)} title={(stackOrShiftFlag === "shift" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "shift" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "stack" ? "bg-[#2c7bace7] text-[#FFFFFF] shadow-[inset_2px_2px_5px_0_#104566]" : ""}`} onClick={StackMatrix}>Stack</button>
+            <button type="button" disabled={(stackOrShiftFlag === "stack" ? true : false)} title={(stackOrShiftFlag === "stack" && "Only one operation can we do stack or shift")} className={`focus:outline-none border border-borderColor text-sm lg:text-base py-[7px] lg:py-[10px] px-[18px] rounded-md ${stackOrShiftFlag === "stack" ? "bg-[#D8D8D8] text-[#FFFFFF]" : ""} ${stackOrShiftFlag === "shift" ? "bg-[#2c7bace7] text-[#FFFFFF] shadow-[inset_2px_2px_5px_0_#104566]" : ""}`} onClick={ShiftMatrix}>Shift</button>
+            <button type="button" className="focus:outline-none border border-borderColor text-sm lg:text-base py-[7px] lg:py-[10px] px-[18px] rounded-md hover:text-white hover:bg-Primary active:shadow-[inset_2px_2px_5px_0_#104566]" onClick={handleClearLevels}>Clear</button>
           </div>
           {(msgM3.msg !== "") && <p className={`text-sm ${msgM3.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM3.msg}.</p>}
           <h3 className='text-xl lg:text-[22px] xl:text-2xl font-semibold text-Primary mb-3'>Levels</h3>
@@ -1761,17 +1795,6 @@ const DynamicMatrixLong = ({ theme }) => {
 
               return (
                 <div key={index}>
-
-                  {/* <input
-                    type="date"
-                    className="text-[11px] lg:text-xs text-Primary mt-2 px-2 py-1 lg::py-[6px] border border-borderColor rounded-md bg-textBoxBg focus:outline-none focus:border-borderColor7 max-w-[120px]"
-                    maxLength={10}
-                    title="max length 10"
-                    value={formattedDate}
-                    onChange={(e) => handleLevelDateChange(levelKey, e.target.value)}
-                    disabled={!levelData.active}
-                  /> */}
-
                   <DatePicker
                     selected={formattedDate ? new Date(formattedDate) : null}
                     onChange={(date) => handleLevelDateChange(levelKey, formatDateToString(date))}
@@ -1922,125 +1945,140 @@ const DynamicMatrixLong = ({ theme }) => {
           <div onClick={LongICShowHandel}>
             {!longICShow && <h2 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary p-3 lg:p-4 xl:p-5 rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633] cursor-pointer flex items-center gap-5'>Current Long IC Position <img className=' w-4 xl:w-5' src={DownArrowIcon} alt="" /> </h2>}
           </div>
-          {longICShow && <div className='rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
-            <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'>
-              <h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary flex items-center gap-4 cursor-pointer' onClick={(e) => { LongICShowHandel(false) }}>Current Long IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
-              <div className='flex gap-3 w-[160px]'>
-                <button type="button" className="text-sm lg:text-base text-white bg-ButtonBg rounded-md py-1 max-w-[80px] w-full" onClick={currentIcPosition}>
-                  Save
-                </button>
-                <div ref={dropdownRef2} className="relative w-full max-w-[80px] text-xs lg:text-sm">
-                  <button className="w-full text-left px-3 py-[6px] border border-borderColor rounded-md bg-textBoxBg text-Primary flex items-center justify-between" onClick={() => setOpenDropdown(openDropdown === "second" ? null : "second")} >
-                    {selectedValue2}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-Primary ml-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
+          <AnimatePresence initial={false}>
+            {longICShow && <motion.div
+              key="shortICContent"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={collapseVariants}
+              className='rounded-md bg-background6 shadow-[0px_0px_8px_0px_#28236633]'>
+              <div className='flex flex-wrap justify-between gap-3 p-3 pb-0 lg:p-5 lg:pb-0'>
+                <h3 className='text-lg lg:text-[22px] 2xl:text-[24px] font-semibold text-Primary flex items-center gap-4 cursor-pointer' onClick={(e) => { LongICShowHandel(false) }}>Current Long IC Position <img className="rotate-180 w-4 xl:w-5" src={DownArrowIcon} alt="" /></h3>
+                <div className='flex gap-3 w-[160px]'>
+                  <button type="button" className="text-sm lg:text-base text-white bg-ButtonBg rounded-md py-1 max-w-[80px] w-full shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]" onClick={currentIcPosition}>
+                    Save
                   </button>
-                  {openDropdown === "second" && (
-                    <ul className="absolute z-10 mt-1 w-full bg-white border border-borderColor rounded-md shadow-md">
-                      {options2.map((opt) => (
-                        <li key={opt} onClick={() => handleSelect2(opt)} className="px-3 py-1 hover:bg-borderColor4 hover:text-white text-Primary rounded cursor-pointer">
-                          {opt}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  <div ref={dropdownRef2} className="relative w-full max-w-[80px] text-xs lg:text-sm">
+                    <button className="w-full text-left px-3 py-[6px] border border-borderColor rounded-md bg-textBoxBg text-Primary flex items-center justify-between" onClick={() => setOpenDropdown(openDropdown === "second" ? null : "second")} >
+                      {selectedValue2}
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-Primary ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    <AnimatePresence>
+                      {openDropdown === "second" && (
+                        <motion.ul
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.50, ease: "easeInOut" }}
+                          className="absolute z-10 mt-1 w-full bg-white border border-borderColor rounded-md shadow-md">
+                          {options2.map((opt) => (
+                            <li key={opt} onClick={() => handleSelect2(opt)} className="px-3 py-1 hover:bg-borderColor4 hover:text-white text-Primary rounded cursor-pointer">
+                              {opt}
+                            </li>
+                          ))}
+                        </motion.ul>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className='grid sm:grid-cols-2 gap-4 mt-3 lg:mt-5 px-3 lg:px-5'>
-              <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Premium
-                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                  <input type="text" placeholder='...' name="premium" maxLength={4} title='Max Length 4' value={inputs2.premium} ref={premiumRef} onKeyDown={(e) => handleKeyDown(e, contractsRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                  {errors2.premium && (
-                    <p className="text-red-500 text-xs mt-1">{errors2.premium}</p>
-                  )}
-                  <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                    <button onClick={handlePremiumDecrement2}>
-                      <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                    </button>
-                    <div className='border-r border-borderColor6 h-[26px]'></div>
-                    <button className='w-[22px]' onClick={handlePremiumIncrement2}>
-                      <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                    </button>
+              <div className='grid sm:grid-cols-2 gap-4 mt-3 lg:mt-5 px-3 lg:px-5'>
+                <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Premium
+                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                    <input type="text" placeholder='...' name="premium" maxLength={4} title='Max Length 4' value={inputs2.premium} ref={premiumRef} onKeyDown={(e) => handleKeyDown(e, contractsRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    {errors2.premium && (
+                      <p className="text-red-500 text-xs mt-1">{errors2.premium}</p>
+                    )}
+                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                      <button onClick={handlePremiumDecrement2}>
+                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                      </button>
+                      <div className='border-r border-borderColor6 h-[26px]'></div>
+                      <button className='w-[22px]' onClick={handlePremiumIncrement2}>
+                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </label>
-              <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Contract
-                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                  <input type="text" placeholder='...' name="contracts" value={inputs2.contracts} ref={contractsRef} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                  <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                    <button onClick={handleContractDecrement2}>
-                      <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                    </button>
-                    <div className='border-r border-borderColor6 h-[26px]'></div>
-                    <button className='w-[22px]' onClick={handleContractIncrement2}>
-                      <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                    </button>
+                </label>
+                <label className='block text-sm lg:text-base text-Primary lg:font-medium'> Contract
+                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                    <input type="text" placeholder='...' name="contracts" value={inputs2.contracts} ref={contractsRef} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                      <button onClick={handleContractDecrement2}>
+                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                      </button>
+                      <div className='border-r border-borderColor6 h-[26px]'></div>
+                      <button className='w-[22px]' onClick={handleContractIncrement2}>
+                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </label>
-              <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Put
-                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                  <input type="text" placeholder='...' name="shortPut" maxLength={5} title='Max Length 5' value={inputs2.shortPut} onKeyDown={(e) => handleKeyDown(e, shortCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                  <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                    <button onClick={handleShortPutDecrement2}>
-                      <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                    </button>
-                    <div className='border-r border-borderColor6 h-[26px]'></div>
-                    <button className='w-[22px]' onClick={handleShortPutIncrement2}>
-                      <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                    </button>
+                </label>
+                <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Put
+                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                    <input type="text" placeholder='...' name="shortPut" maxLength={5} title='Max Length 5' value={inputs2.shortPut} onKeyDown={(e) => handleKeyDown(e, shortCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                      <button onClick={handleShortPutDecrement2}>
+                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                      </button>
+                      <div className='border-r border-borderColor6 h-[26px]'></div>
+                      <button className='w-[22px]' onClick={handleShortPutIncrement2}>
+                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </label>
-              <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Call
-                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                  <input type="text" placeholder='...' name="longCall" maxLength={5} title='Max Length 5' value={inputs2.longCall} ref={longCallRef} onKeyDown={(e) => handleKeyDown(e, premiumRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                  <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                    <button onClick={handleLongCallDecrement2}>
-                      <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                    </button>
-                    <div className='border-r border-borderColor6 h-[26px]'></div>
-                    <button className='w-[22px]' onClick={handleLongCallIncrement2}>
-                      <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                    </button>
+                </label>
+                <label className='block text-sm lg:text-base text-[#f23645] lg:font-medium'> Short Call
+                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                    <input type="text" placeholder='...' name="longCall" maxLength={5} title='Max Length 5' value={inputs2.longCall} ref={longCallRef} onKeyDown={(e) => handleKeyDown(e, premiumRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                      <button onClick={handleLongCallDecrement2}>
+                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                      </button>
+                      <div className='border-r border-borderColor6 h-[26px]'></div>
+                      <button className='w-[22px]' onClick={handleLongCallIncrement2}>
+                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </label>
-              <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Put
-                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                  <input type="text" placeholder='...' name="longPut" maxLength={5} title='Max Length 5' value={inputs2.longPut} ref={longPutRef} onKeyDown={(e) => handleKeyDown(e, longCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                  <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                    <button onClick={handleLongPutDecrement2}>
-                      <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                    </button>
-                    <div className='border-r border-borderColor6 h-[26px]'></div>
-                    <button className='w-[22px]' onClick={handleLongPutIncrement2}>
-                      <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                    </button>
+                </label>
+                <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Put
+                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                    <input type="text" placeholder='...' name="longPut" maxLength={5} title='Max Length 5' value={inputs2.longPut} ref={longPutRef} onKeyDown={(e) => handleKeyDown(e, longCallRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                      <button onClick={handleLongPutDecrement2}>
+                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                      </button>
+                      <div className='border-r border-borderColor6 h-[26px]'></div>
+                      <button className='w-[22px]' onClick={handleLongPutIncrement2}>
+                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </label>
-              <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Call
-                <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
-                  <input type="text" placeholder='...' name="shortCall" maxLength={5} title='Max Length 5' value={inputs2.shortCall} ref={shortCallRef} onKeyDown={(e) => handleKeyDown(e, longPutRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
-                  <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
-                    <button onClick={handleShortCallDecrement2}>
-                      <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
-                    </button>
-                    <div className='border-r border-borderColor6 h-[26px]'></div>
-                    <button className='w-[22px]' onClick={handleShortCallIncrement2}>
-                      <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
-                    </button>
+                </label>
+                <label className='block text-sm lg:text-base text-[#089981] lg:font-medium'> Long Call
+                  <div className='flex justify-between items-center text-sm lg:text-base text-Primary mt-1 lg:mt-2 py-1 px-[6px] lg:p-[10px] gap-[10px] border border-borderColor bg-textBoxBg rounded-md'>
+                    <input type="text" placeholder='...' name="shortCall" maxLength={5} title='Max Length 5' value={inputs2.shortCall} ref={shortCallRef} onKeyDown={(e) => handleKeyDown(e, longPutRef)} onChange={handleInputChange2} className='bg-textBoxBg text-sm lg:text-base w-full focus:outline-none focus:border-borderColor7' />
+                    <div className='flex justify-end gap-[5px] lg:gap-[10px] min-w-[50px] lg:min-w-[65px]'>
+                      <button onClick={handleShortCallDecrement2}>
+                        <img className='w-4 lg:w-auto' src={MinimumIcon} alt="" />
+                      </button>
+                      <div className='border-r border-borderColor6 h-[26px]'></div>
+                      <button className='w-[22px]' onClick={handleShortCallIncrement2}>
+                        <img className='w-4 lg:w-auto' src={PluseIcon} alt="" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </label>
-            </div>
-            <div className='mt-5 lg:mt-10'>
-              <ICChart2 inputs2={inputs2} theme={theme} matrixTypeValue={selectedValue2} price={appContext.marketData?.[selectedValue2.toLowerCase()]?.price} />
-            </div>
-          </div>}
+                </label>
+              </div>
+              <div className='mt-5 lg:mt-10'>
+                <ICChart2 inputs2={inputs2} theme={theme} matrixTypeValue={selectedValue2} price={appContext.marketData?.[selectedValue2.toLowerCase()]?.price} />
+              </div>
+            </motion.div>}
+          </AnimatePresence>
         </div>
 
         <div className='flex justify-between items-center gap-5 mt-5 lg:mt-10 lg:max-w-[830px] min-[1150px]:max-w-[975px] xl:max-w-[1110px] min-[1380px]:max-w-[1220px] min-[1450px]:max-w-[1070px] max-[1600px]:max-w-[1000px] min-[1601px]:max-w-full w-full'>
@@ -2063,7 +2101,7 @@ const DynamicMatrixLong = ({ theme }) => {
               )}
             </span>
           </h2>
-          <p className={`text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer ${isFilterModalVisible ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
+          <p className={`text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer ${isFilterModalVisible ? "shadow-[inset_2px_2px_5px_0_#104566]" : "shadow-[inset_-2px_-2px_5px_0_#104566]"}`} onClick={() => setIsFilterModalVisible(!isFilterModalVisible)}>
             <img className='w-4 lg:w-auto' src={FilterIcon} alt="Filter icon" /> Filter
           </p>
         </div>
@@ -2194,7 +2232,7 @@ const DynamicMatrixLong = ({ theme }) => {
           </Link>
         )}
 
-        <Button className={`flex items-center gap-2 lg:gap-[17px] h-[38px] lg:h-[55px] mt-5 lg:mt-10 mx-auto ${isClicked ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`} onClick={handleSaveMatrix}>
+        <Button className={`flex items-center gap-2 lg:gap-[17px] h-[38px] lg:h-[55px] mt-5 lg:mt-10 mx-auto ${isClicked ? "shadow-[inset_2px_2px_5px_0_#104566]" : "shadow-[inset_-2px_-2px_5px_0_#104566]"}`} onClick={handleSaveMatrix}>
           <img className='h-[18px]' src={SavedMatrixIcon} alt="" /> Save Matrix
         </Button>
 
@@ -2207,7 +2245,7 @@ const DynamicMatrixLong = ({ theme }) => {
         {isMessageVisible ?
           <div className="flex justify-center items-center h-[100vh]">
             <div role="status">
-              <svg aria-hidden="true" className="w-14 h-14 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg aria-hidden="true" className="w-14 h-14 text-gray-200 animate-spin fill-Primary" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
                 <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
               </svg>

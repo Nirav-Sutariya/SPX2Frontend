@@ -2,7 +2,22 @@ import React, { useEffect } from "react";
 
 const CursorTrail = () => {
   useEffect(() => {
-    const colors = ['#083753', '#084367', '#0E527B', '#1D6B9A', '#2C7CAC'];
+    const colors = ["#FF6B6B", // red-pink
+      "#FFD93D", // yellow
+      "#6BCB77", // green
+      "#4D96FF", // blue
+      "#845EC2", // violet
+      "#F9C80E", // gold
+      "#F86624", // orange
+      "#A155B9", // purple
+      "#2EC4B6", // teal
+      "#FF3C38", // bright red
+      "#00F5D4", // aqua neon
+      "#FF5E5B", // coral
+      "#FFC75F", // pastel orange
+      "#D65DB1", // magenta
+      "#A3D2CA"  // soft mint
+    ];
 
     const handleMouseMove = (e) => {
       const trail = document.createElement("div");

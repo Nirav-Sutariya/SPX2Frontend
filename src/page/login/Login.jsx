@@ -149,7 +149,7 @@ const Login = ({ setIsLoggedIn }) => {
             {(msg.msg !== "") && <p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}.</p>}
 
             <div className='flex justify-start mt-6 lg:mt-5 2xl:mt-[50px]'>
-              <button className='text-lg lg:text-[20px] lg:leading-[30px] cursor-pointer text-white font-semibold bg-ButtonBg py-2 px-[30px] rounded-md' onClick={loginSubmit} ref={loginButtonRef}>Log In</button>
+              <button className='text-lg lg:text-[20px] lg:leading-[30px] cursor-pointer text-white font-semibold bg-ButtonBg py-2 px-[30px] rounded-md shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]' onClick={loginSubmit} ref={loginButtonRef}>Log In</button>
             </div>
             {/* <p className='text-base lg:text-lg text-Secondary2 mt-[10px]'>Don’t have an account? <Link to={"/signup"} className='font-semibold'>Sign Up</Link></p> */}
             <p className='text-sm lg:text-base text-Secondary2 mt-3'><Link to={"/terms-of-service"} className='font-semibold underline'>Terms of Service</Link> And <Link to={"/privacy-policy"} className='font-semibold underline'>Privacy Policy</Link></p>

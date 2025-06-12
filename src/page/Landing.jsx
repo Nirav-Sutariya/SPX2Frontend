@@ -91,7 +91,7 @@ const Landing = () => {
         <h2 className='text-2xl lg:text-[32px] lg:leading-[48px] text-Primary font-semibold text-center '>Option Matrix</h2>
         <p className='text-sm lg:text-lg text-Secondary3 text-center mt-1 lg:mt-3'> A dynamic, execution-focused tools that helps traders adjust in reel-time and optimize their strategy with precision. </p>
         <div className='flex justify-center mt-3 lg:mt-7'>
-          <Link to="/login" className='text-base lg:text-xl font-medium text-white rounded-md py-[6px] lg:py-2 px-[30px] bg-ButtonBg'>Get Started</Link>
+          <Link to="/login" className='text-base lg:text-xl font-medium text-white rounded-md py-[6px] lg:py-2 px-[30px] bg-ButtonBg shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]'>Get Started</Link>
         </div>
       </div>
 
@@ -171,7 +171,7 @@ const Landing = () => {
             </div>
 
             {index === 0 ? (
-              <Link to="/login" className={`text-base lg:text-xl font-semibold ${index === 1 ? 'text-Primary bg-white' : 'text-white bg-ButtonBg'} py-2 lg:py-[13px] px-5 lg:px-9 text-center mt-2 w-[170px] lg:w-[229px] mx-auto rounded-md`}>
+              <Link to="/login" className={`text-base lg:text-xl font-semibold ${index === 1 ? 'text-Primary bg-white' : 'text-white bg-ButtonBg'} py-2 lg:py-[13px] px-5 lg:px-9 text-center mt-2 w-[170px] lg:w-[229px] mx-auto rounded-md shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]`}>
                 Choose Plan
               </Link>
             ) : (
@@ -179,7 +179,7 @@ const Landing = () => {
                 <p className="text-xs font-medium text-white text-center mt-7 px-5">
                   *The subscription will be billed on a yearly basis.
                 </p>
-                <Link to="/login" className={`text-base lg:text-xl font-semibold ${index === 1 ? 'text-Primary bg-white' : 'text-white bg-ButtonBg'} py-2 lg:py-[13px] px-5 lg:px-9 text-center mt-2 w-[170px] lg:w-[229px] mx-auto rounded-md`}>
+                <Link to="/login" className={`text-base lg:text-xl font-semibold ${index === 1 ? 'text-Primary bg-white' : 'text-white bg-ButtonBg'} py-2 lg:py-[13px] px-5 lg:px-9 text-center mt-2 w-[170px] lg:w-[229px] mx-auto rounded-md shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]`}>
                   Choose Plan
                 </Link>
               </div>

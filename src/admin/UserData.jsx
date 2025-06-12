@@ -16,6 +16,8 @@ import { validateEmail } from '../components/utils';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppContext } from "../components/AppContext";
 import { getToken, getUserId } from '../page/login/loginAPI';
+import { motion, AnimatePresence } from 'framer-motion';
+
 
 const MAX_FILE_SIZE = 1
 
@@ -419,7 +421,7 @@ const UserData = () => {
   //Export Data
   async function ExportData() {
     try {
-      let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_EXPORT_DATA, { userId: getUserId() }, {
+      let response = await axios.post(process.env.REACT_APP_AUTH_URL + process.env.REACT_APP_EXPORT_DATA, { userId: getUserId(), firstName: true, phoneNo: true, subscriptionName: true, price: true, startDate: true, endDate: true }, {
         headers: {
           'x-access-token': getToken()
         },
@@ -501,13 +503,13 @@ const UserData = () => {
             style={{ display: "none" }}
             id="fileInput"
           />
-          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]' onClick={triggerFileInput}>Upload file</p>
+          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]' onClick={triggerFileInput}>Upload file</p>
           {file && <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]' onClick={handleUpload}> Import Data </p>}
         </div>
         <div className='flex flex-wrap justify-end gap-3 lg:gap-5'>
-          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] flex items-center gap-3' onClick={() => { setAddUser(true) }}> Add User </p>
-          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]' onClick={ExportData}> Export Data </p>
-          <Link to="/user-data-ban-user" className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px]'> Ban User List </Link>
+          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] flex items-center gap-3 shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]' onClick={() => { setAddUser(true) }}> Add User </p>
+          <p className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]' onClick={ExportData}> Export Data </p>
+          <Link to="/user-data-ban-user" className='text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]'> Ban User List </Link>
         </div>
       </div>
 
@@ -530,15 +532,22 @@ const UserData = () => {
               <img className='w-3' src={DropdownIcon} alt="" />
             </span>
             {/* Dropdown menu */}
-            {isDropdownOpen && (
-              <div className="absolute z-10 w-full top-full border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
-                {['Select an Plan', ...appContext.plans.map(plan => plan.name), 'Expired'].map((option, index) => (
-                  <div key={index} className={`px-4 py-2 text-xs lg:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded-sm ${selectedOption === option ? 'bg-borderColor4 text-white' : ''}`} onClick={() => handleOptionClick(option)}>
-                    {option}
-                  </div>
-                ))}
-              </div>
-            )}
+            <AnimatePresence>
+              {isDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.50, ease: "easeInOut" }}
+                  className="absolute z-10 w-full top-full border border-borderColor5 rounded-md bg-background6 shadow-[0px_0px_6px_0px_#28236633]">
+                  {['Select an Plan', ...appContext.plans.map(plan => plan.name), 'Expired'].map((option, index) => (
+                    <div key={index} className={`px-4 py-2 text-xs lg:text-sm text-Primary cursor-pointer hover:bg-borderColor4 hover:text-white rounded-sm ${selectedOption === option ? 'bg-borderColor4 text-white' : ''}`} onClick={() => handleOptionClick(option)}>
+                      {option}
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           <div className='flex items-center gap-5 px-3 py-[7px] lg:py-2 border border-borderColor rounded-md'>
             <label className="text-sm lg:text-base text-Primary">End Date:</label>
@@ -651,7 +660,7 @@ const UserData = () => {
 
       {/* Pagination Controls */}
       <div className="flex justify-between items-center my-5 pt-5 border-t border-borderColor">
-        <button className="text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} >
+        <button className="text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} >
           Previous
         </button>
 
@@ -659,7 +668,7 @@ const UserData = () => {
           Page {currentPage} of {totalPages}
         </span>
 
-        <button className="text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages} >
+        <button className="text-sm lg:text-base font-medium text-center text-white bg-background2 py-2 px-5 rounded-md cursor-pointer min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]" onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages} >
           Next
         </button>
       </div>
@@ -746,7 +755,7 @@ const UserData = () => {
             </div>
 
             <div className="flex justify-end mt-5 lg:mt-1">
-              <button type="submit" ref={submitButtonRef} onClick={addNewUser} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]">
+              <button type="submit" ref={submitButtonRef} onClick={addNewUser} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]">
                 Submit
               </button>
             </div>
@@ -840,7 +849,7 @@ const UserData = () => {
             </div>
 
             <div className="flex justify-end mt-1">
-              <button type="button" ref={submitButtonEditRef} onClick={editExistingUser} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]" >
+              <button type="button" ref={submitButtonEditRef} onClick={editExistingUser} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]" >
                 Update Changes
               </button>
             </div>
@@ -863,7 +872,7 @@ const UserData = () => {
                 Delete User
               </button>
               <button
-                className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-5 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full max-w-[150px] lg:max-w-[185px]"
+                className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-5 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full max-w-[150px] lg:max-w-[185px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]"
                 onClick={() => { setDeleteUser(false); setDeleteUserId(null); setDeleteUserName(null) }} >
                 Cancel
               </button>
@@ -887,7 +896,7 @@ const UserData = () => {
                 Ban User
               </button>
               <button
-                className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-5 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full max-w-[150px] lg:max-w-[185px]"
+                className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-5 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full max-w-[150px] lg:max-w-[185px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]"
                 onClick={() => { setBanUser(false); }}>
                 Cancel
               </button>

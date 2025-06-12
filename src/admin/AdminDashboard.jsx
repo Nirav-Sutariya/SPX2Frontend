@@ -10,6 +10,7 @@ import axios from 'axios';
 import { Pie } from 'react-chartjs-2';
 import { AppContext } from '../components/AppContext';
 import { getToken, getUserId } from '../page/login/loginAPI';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 ChartJS.register(ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -206,14 +207,21 @@ const AdminDashboard = () => {
                 <img className='w-3' src={DropdownIcon} alt="" />
               </span>
 
-              {month2 && (
-                <div ref={Month2Ref} className='absolute top-10 right-0 z-10 py-2 mt-1 px-3 rounded-md bg-background6 border border-borderColor2 shadow-[0px_0px_6px_0px_#28236633] max-w-[105px] w-full'>
-                  <p className='text-sm font-medium text-Secondary2 pb-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth2(1); setMonth2(false) }}>Month</p>
-                  <p className='text-sm font-medium text-Secondary2 py-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth2(3); setMonth2(false) }}>Month 3</p>
-                  <p className='text-sm font-medium text-Secondary2 py-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth2(6); setMonth2(false) }}>Month 6</p>
-                  <p className='text-sm font-medium text-Secondary2 pt-1 cursor-pointer' onClick={() => { setSelectedMonth2(12); setMonth2(false) }}>Month 12</p>
-                </div>
-              )}
+              <AnimatePresence>
+                {month2 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.50, ease: "easeInOut" }}
+                    ref={Month2Ref} className='absolute top-10 right-0 z-10 py-2 mt-1 px-3 rounded-md bg-background6 border border-borderColor2 shadow-[0px_0px_6px_0px_#28236633] max-w-[105px] w-full'>
+                    <p className='text-sm font-medium text-Secondary2 pb-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth2(1); setMonth2(false) }}>Month</p>
+                    <p className='text-sm font-medium text-Secondary2 py-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth2(3); setMonth2(false) }}>Month 3</p>
+                    <p className='text-sm font-medium text-Secondary2 py-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth2(6); setMonth2(false) }}>Month 6</p>
+                    <p className='text-sm font-medium text-Secondary2 pt-1 cursor-pointer' onClick={() => { setSelectedMonth2(12); setMonth2(false) }}>Month 12</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div className='flex flex-wrap justify-center items-center gap-10 xl:gap-20 w-full mt-5'>
@@ -262,14 +270,22 @@ const AdminDashboard = () => {
               <p className='text-sm xl:text-sm text-Secondary2 font-medium'>{monthFilters[selectedMonth]}</p>
               <img className='w-3' src={DropdownIcon} alt="" />
             </span>
-            {month && (
-              <div ref={MonthRef} className='absolute top-9 right-0 z-10 py-2 mt-1 px-3 rounded-md bg-background6 border border-borderColor2 shadow-[0px_0px_6px_0px_#28236633] max-w-[105px] w-full'>
-                <p className='text-sm font-medium text-Secondary2 pb-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth(1); setMonth(false) }}>Month</p>
-                <p className='text-sm font-medium text-Secondary2 py-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth(3); setMonth(false) }}>Month 3</p>
-                <p className='text-sm font-medium text-Secondary2 py-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth(6); setMonth(false) }}>Month 6</p>
-                <p className='text-sm font-medium text-Secondary2 pt-1 cursor-pointer' onClick={() => { setSelectedMonth(12); setMonth(false) }}>Month 12</p>
-              </div>
-            )}
+
+            <AnimatePresence>
+              {month && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.50, ease: "easeInOut" }}
+                  ref={MonthRef} className='absolute top-9 right-0 z-10 py-2 mt-1 px-3 rounded-md bg-background6 border border-borderColor2 shadow-[0px_0px_6px_0px_#28236633] max-w-[105px] w-full'>
+                  <p className='text-sm font-medium text-Secondary2 pb-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth(1); setMonth(false) }}>Month</p>
+                  <p className='text-sm font-medium text-Secondary2 py-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth(3); setMonth(false) }}>Month 3</p>
+                  <p className='text-sm font-medium text-Secondary2 py-1 cursor-pointer border-b border-borderColor' onClick={() => { setSelectedMonth(6); setMonth(false) }}>Month 6</p>
+                  <p className='text-sm font-medium text-Secondary2 pt-1 cursor-pointer' onClick={() => { setSelectedMonth(12); setMonth(false) }}>Month 12</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </span>
           <div className='flex justify-center'>
             <div className='max-w-[272px] 2xl:max-w-[312px]'>

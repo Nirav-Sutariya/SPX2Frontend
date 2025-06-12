@@ -47,6 +47,9 @@ const NewPassword = () => {
       } else if (error.response?.status === 400) {
         const message = error.response?.data?.message || "Something went wrong";
         setMsg({ type: "error", msg: message });
+      } else {
+        const message = error.response?.data?.message || "Something went wrong";
+        setMsg({ type: "error", msg: message });
       }
     }
   }
@@ -99,7 +102,7 @@ const NewPassword = () => {
             <p className='flex text-sm text-Secondary2 mt-[5px]'>(Password should be at least 1 upper, 1 lower, 1 special character, 1 digit, length min 8 - max 30)</p>
             {(msg.msg !== "") && <p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msg.msg}.</p>}
             <div className='flex justify-start mt-5 2xl:mt-10'>
-              <button className='text-lg lg:text-[20px] lg:leading-[30px] text-white font-semibold bg-ButtonBg py-2 px-[30px] rounded-md cursor-pointer' onClick={setNewPassword} ref={submitButtonRef} >Continue</button>
+              <button className='text-lg lg:text-[20px] lg:leading-[30px] text-white font-semibold bg-ButtonBg py-2 px-[30px] rounded-md cursor-pointer shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]' onClick={setNewPassword} ref={submitButtonRef} >Continue</button>
             </div>
           </div>
         </div>

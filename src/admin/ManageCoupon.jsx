@@ -209,7 +209,7 @@ const ManageCoupon = () => {
 
         {/* Individual Create button for each coupon form */}
         <div className="flex justify-end mt-5 md:mt-[30px]">
-          <button type="button" ref={submitButtonRef} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px]" onClick={createCoupon}> Save </button>
+          <button type="button" ref={submitButtonRef} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]" onClick={createCoupon}> Save </button>
         </div>
         {(msg.msg !== "") && <p className={`text-sm mt-2 text-end ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"}`}>{msg.msg}.</p>}
       </div>

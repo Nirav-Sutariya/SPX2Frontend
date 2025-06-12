@@ -419,7 +419,7 @@ const EditProfile = () => {
         {(msgM2.msg !== "") && <p className={`text-sm ${msgM2.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM2.msg}.</p>}
 
         <div className="flex justify-end mt-5 md:mt-[30px]">
-          <button type="button" ref={submitButtonRef} onClick={updatedUserData} disabled={isButtonDisabled} className={`text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px] ${isButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}`} >
+          <button type="button" ref={submitButtonRef} onClick={updatedUserData} disabled={isButtonDisabled} className={`text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566] ${isButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}`} >
             Update Changes
           </button>
         </div>
@@ -462,7 +462,7 @@ const EditProfile = () => {
         </div>
         {(msgM2.msg !== "") && <p className={`text-sm ${msgM2.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}>{msgM2.msg}.</p>}
         <div className="flex justify-end mt-5 md:mt-[30px]">
-          <button type="button" ref={submitButton2Ref} onClick={(_) => updatePassword(passwordFrom)} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px] " >
+          <button type="button" ref={submitButton2Ref} onClick={(_) => updatePassword(passwordFrom)} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 lg:py-[13px] lg:px-[30px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]" >
             Change Password
           </button>
         </div>

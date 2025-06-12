@@ -276,7 +276,7 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
       <div className={`relative flex flex-wrap gap-5 justify-between w-full ${showTradingView ? "pt-5 lg:pt-16" : "pt-6 lg:pt-11"} px-[14px] lg:px-10`}>
         <div className='absolute right-6 hidden lg:flex items-center gap-[30px] FilterModalVisible order-1 lg:order-2'>
           <div ref={ref} className="relative inline-block text-left w-[110px] ">
-            <div onClick={() => setOpen(!open)} className={`cursor-pointer bg-userBg text-white text-base px-3 py-1 rounded-md flex gap-2 justify-between items-center ${open ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`}>
+            <div onClick={() => setOpen(!open)} className={`cursor-pointer bg-userBg text-white text-base px-3 py-1 rounded-md flex gap-2 justify-between items-center ${open ? "shadow-[inset_2px_2px_5px_0_#104566]" : "shadow-[inset_-2px_-2px_5px_0_#104566]"}`}>
               <img src={optionImages[currency]} alt={currency} />
               {currency}
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-Primary" viewBox="0 0 20 20" fill="#fff">
@@ -306,12 +306,12 @@ const Header = ({ isDarkTheme, toggleTheme, isDarkMode, activeLink, setActiveLin
           <div className={`flex items-center gap-[30px] FilterModalVisible`}>
             <label className="switch">
               <input type="checkbox" onClick={toggleTheme} checked={isDarkTheme} />
-              <span className={`slider ${isDarkMode ? 'dark' : 'light'}`}></span>
+              <span className={`slider ${isDarkMode ? 'dark shadow-[inset_2px_2px_5px_0_#104566]' : 'light shadow-[inset_-2px_-2px_5px_0_#104566]'}`}></span>
             </label>
           </div>
 
           <div ref={dropdownRef}>
-            <div className={`flex items-center gap-3 py-1 px-[14px] bg-userBg rounded-md cursor-pointer ${isOpen ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"} `} onClick={() => setIsOpen(prev => !prev)}>
+            <div className={`flex items-center gap-3 py-1 px-[14px] bg-userBg rounded-md cursor-pointer ${isOpen ? "shadow-[inset_2px_2px_5px_0_#104566]" : "shadow-[inset_-2px_-2px_5px_0_#104566]"} `} onClick={() => setIsOpen(prev => !prev)}>
               <p className='text-base text-white font-medium'>{appContext.userData.first_name || "Loading..."}</p>
               <img src={`${appContext.profilePhoto || ManImag}?t=${Date.now()}`} className='w-8 h-8 rounded-full object-cover' alt="" />
             </div>

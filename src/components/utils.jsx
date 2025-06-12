@@ -92,7 +92,7 @@ const ConfirmationModal2 = ({ show, onClose, onConfirm, title, icon, message, co
                 <h2 className="text-base lg:text-[18px] lg:leading-[33px] text-Secondary2 mx-auto max-w-[400px] lg:mt-2 text-center">{message}</h2>
                 <div className="flex justify-between gap-3 mt-5 lg:mt-9">
                     <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 border border-borderColor3 bg-background5 rounded-md w-full" onClick={onClose}>Cancel</button>
-                    <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full" onClick={() => { onConfirm(extraParam); onClose(); }}>{confirmText}</button>
+                    <button className="text-base lg:text-[20px] lg:leading-[30px] text-Primary font-semibold px-7 lg:px-10 py-2 lg:py-3 text-white rounded-md bg-ButtonBg w-full shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]" onClick={() => { onConfirm(extraParam); onClose(); }}>{confirmText}</button>
                 </div>
             </div>
         </div>

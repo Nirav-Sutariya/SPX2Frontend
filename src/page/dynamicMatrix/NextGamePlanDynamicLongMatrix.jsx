@@ -131,7 +131,7 @@ function NextGamePlanDynamicLongMatrix({
             />
           </div>
         </div>
-        <p className={`text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer ${isFilterModalVisible2 ? "shadow-[inset_4px_4px_6px_0_#104566]" : "shadow-[inset_-4px_-4px_6px_0_#104566]"}`} onClick={() => setIsFilterModalVisible2(!isFilterModalVisible2)}>
+        <p className={`text-sm lg:text-base font-medium text-white flex items-center gap-[10px] bg-background2 py-2 px-5 rounded-md cursor-pointer ${isFilterModalVisible2 ? "shadow-[inset_2px_2px_5px_0_#104566]" : "shadow-[inset_-2px_-2px_5px_0_#104566]"}`} onClick={() => setIsFilterModalVisible2(!isFilterModalVisible2)}>
           <img className='w-4 lg:w-auto' src={Filter} alt="Filter icon" /> Filter
         </p>
       </div>

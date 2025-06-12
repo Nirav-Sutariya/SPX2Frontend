@@ -251,7 +251,7 @@ const HelpSupport = () => {
         {msg && (<p className={`text-sm ${msg.type === "error" ? "text-[#D82525]" : "text-Secondary2"} mt-2`}> {msg.msg} </p>)}
 
         <div className='flex justify-end'>
-          <button type="submit" ref={submitButtonRef} onClick={handleSubmit} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 mt-[30px] lg:py-[13px] lg:px-[30px]"> Submit </button>
+          <button type="submit" ref={submitButtonRef} onClick={handleSubmit} className="text-sm lg:text-xl font-semibold text-white bg-ButtonBg rounded-md py-2 px-4 mt-[30px] lg:py-[13px] lg:px-[30px] shadow-[inset_-2px_-2px_5px_0_#104566] active:shadow-[inset_2px_2px_5px_0_#104566]"> Submit </button>
         </div>
       </div>
 
